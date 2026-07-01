@@ -9,6 +9,10 @@ namespace QuotingTool.Forms
     /// <summary>
     /// Tab 2 – Quote
     /// Shows all quote lines in a DataGridView with page selector and action buttons.
+    /// Column headers match the 2.Quote sheet (row 11) from the .xlsm:
+    ///   C=Section, D=Description, E=Alloy, F=Temper, G=Qty, H=Length(m),
+    ///   I=$ Each, J=$ Total, K=Slotting/Sundry Charge(ea),
+    ///   L=Ignore Finish, M=SAP Colour Code, V=SS?
     /// </summary>
     public partial class QuoteForm : Form
     {
@@ -27,6 +31,7 @@ namespace QuotingTool.Forms
             _resetPrice  = new ResetPriceService(db);
             _exportQuote = new ExportQuoteService(db);
             InitializeComponent();
+            ConfigureGridColumns();
         }
 
         public void LoadProject(int projectId)
@@ -47,6 +52,51 @@ namespace QuotingTool.Forms
         {
             if (_projectId <= 0) return;
             lblPrintArea.Text = _pageSetup.GetPrintAreaDescription(_projectId);
+        }
+
+        /// <summary>
+        /// Configures DataGridView column headers to match the 2.Quote sheet column names.
+        /// Auto-binding from QuoteLine model properties shows all columns;
+        /// this method sets friendly headers and hides internal-only columns.
+        /// </summary>
+        private void ConfigureGridColumns()
+        {
+            gridQuote.AutoGenerateColumns = true;
+            gridQuote.DataBindingComplete += (s, e) =>
+            {
+                SetColHeader("PageBlock",         "Page",          50);
+                SetColHeader("RowInBlock",        "Ln",            40);
+                SetColHeader("ExtrusionCode",     "Section (C)",  120);
+                SetColHeader("Description",       "Description (D)", 250);
+                SetColHeader("Alloy",             "Alloy (E)",     70);
+                SetColHeader("Temper",            "Temper (F)",    70);
+                SetColHeader("Quantity",          "Qty (G)",       60);
+                SetColHeader("LengthM",           "Length m (H)",  90);
+                SetColHeader("Price",             "$ Each (I)",    90);
+                SetColHeader("SellPrice",         "$ Total (J)",   90);
+                SetColHeader("SubsillSurcharge",  "Slotting (K)",  90);
+                SetColHeader("IgnoreFinish",      "Ign Fin (L)",   80);
+                SetColHeader("SapColourCode",     "SAP Code (M)",  90);
+                SetColHeader("SubsillFlag",       "SS? (V)",       60);
+                // Hide internal/Id columns
+                HideCol("Id");
+                HideCol("ProjectId");
+            };
+        }
+
+        private void SetColHeader(string propName, string header, int width)
+        {
+            if (gridQuote.Columns.Contains(propName))
+            {
+                gridQuote.Columns[propName].HeaderText = header;
+                gridQuote.Columns[propName].Width = width;
+            }
+        }
+
+        private void HideCol(string propName)
+        {
+            if (gridQuote.Columns.Contains(propName))
+                gridQuote.Columns[propName].Visible = false;
         }
 
         private void cmbPageSelector_SelectedIndexChanged(object sender, EventArgs e)

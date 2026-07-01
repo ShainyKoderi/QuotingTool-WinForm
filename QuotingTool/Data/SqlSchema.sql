@@ -2,6 +2,8 @@
 -- QuotingTool Database Schema
 -- SQL Server / LocalDB
 -- Maps to the Excel workbook structure used in the VBA macros
+-- Source: Project Pricing_Quotation Tool.xlsm (password: "party" for protected sheets)
+-- VeryHidden sheets in VBA: Colour_Groups, DATA_EDGE
 -- ============================================================
 
 -- Projects table (maps to "1.Project Details" sheet)
@@ -13,25 +15,49 @@ CREATE TABLE Projects (
     RevisionDate DATE,
     LMERate DECIMAL(18,4),
     BilletPremium DECIMAL(18,4),
+    -- Additional fields from 1.Project Details sheet
+    Region NVARCHAR(50),                -- A4 / named range: region
+    QuotedBy NVARCHAR(200),             -- A6 / named range: quoted_by
+    AccountManager NVARCHAR(200),       -- A7
+    Attention NVARCHAR(200),            -- B12 / named range: attention
+    MarketSegment NVARCHAR(100),        -- A14 / named range: Market_Segment
+    ProductSegment NVARCHAR(100),       -- A15 / named range: product_segment
+    ProjectNotes NVARCHAR(MAX),         -- A17
+    LocalLogo NVARCHAR(50),             -- B23 / named range: local_logo
+    FinishType NVARCHAR(100),           -- B24 / named range: finish_type_value
+    FinishApplicator NVARCHAR(200),     -- B26 / named range: finish_applicator_value
+    FinishGroup NVARCHAR(100),          -- B28 / named range: finish_group_value
+    FinishName NVARCHAR(200),           -- B30 / named range: finish_name_value
+    FinishCustomName NVARCHAR(200),     -- B31 / named range: Finish_Custom_Name
+    FinishSapCode NVARCHAR(50),         -- E30/E32 / named range: finish_code_value
+    ThresholdChoice NVARCHAR(100),      -- E33 / named range: Threshold_Choice (e.g. "20um Clear", "No")
+    GenerateMfAlt BIT DEFAULT 0,        -- E24 / named range: MF_ALT
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME DEFAULT GETDATE()
 );
 
 -- QuoteLines table (maps to "2.Quote" sheet, 6 page blocks of 40 rows each)
+-- Column headers from row 11: B=Ln, C=Section, D=Description, E=Alloy, F=Temper,
+--   G=Qty, H=Length(m), I=$ Each, J=$ Total, K=Slotting/Sundry Charge(ea),
+--   L=Ignore Finish, M=SAP Colour Code, V=SS? (SubSill flag)
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'QuoteLines')
 CREATE TABLE QuoteLines (
     Id INT IDENTITY PRIMARY KEY,
     ProjectId INT FOREIGN KEY REFERENCES Projects(Id),
     PageBlock INT NOT NULL,         -- 1-6
     RowInBlock INT NOT NULL,        -- 1-40
-    ExtrusionCode NVARCHAR(100),    -- col C
-    Description NVARCHAR(200),      -- col D
-    Quantity DECIMAL(18,4),         -- col G
-    LengthM DECIMAL(18,6),          -- col H (metres)
-    Price DECIMAL(18,4),            -- col I
-    SellPrice DECIMAL(18,4),        -- col J
-    SubsillFlag BIT DEFAULT 0,      -- col V
-    SubsillSurcharge DECIMAL(18,4)  -- col K
+    ExtrusionCode NVARCHAR(100),    -- col C (Section)
+    Description NVARCHAR(500),      -- col D (auto-filled via VLOOKUP from Table5)
+    Quantity DECIMAL(18,4),         -- col G (Qty)
+    LengthM DECIMAL(18,6),          -- col H (Length in metres)
+    Price DECIMAL(18,4),            -- col I ($ Each = AH+AI+AS+K)
+    SellPrice DECIMAL(18,4),        -- col J ($ Total = I*G)
+    SubsillFlag BIT DEFAULT 0,      -- col V (SS?)
+    SubsillSurcharge DECIMAL(18,4), -- col K (Slotting/Sundry Charge ea = AZ+BC)
+    SapColourCode NVARCHAR(50),     -- col M: =IF(C="","", IF(AND(BF>0,NOT(threshold="No")), VLOOKUP(threshold,Threshold_Code,2), IF(L="No",SAP_Colour_Code,"NON")))
+    IgnoreFinish NVARCHAR(10),      -- col L ("Yes"/"No") – when "Yes" shows "**MILL FINISH**" in description
+    Alloy NVARCHAR(50),             -- col E (auto from N col via VLOOKUP)
+    Temper NVARCHAR(50)             -- col F (auto from O col via VLOOKUP)
 );
 
 -- QuoteFooters table (maps to named ranges pg1_foot .. pg6_foot)
@@ -55,19 +81,31 @@ CREATE TABLE PrintSettings (
 );
 
 -- EditPricing table (maps to "3.Edit Pricing" sheet)
+-- Key cells: C16=FinType, C25=CostType (sum), D25=Override,
+--   B33=MetalSellPrice, B42=POA cost, B43=FinishingCostPrice(auto), B44=FinishingSellPrice,
+--   B48=MillPOACost, B49=BulkCostPrice(auto), B50=BulkSellPrice,
+--   B52=NonBulkPOACost, B53=NonBulkCostPrice(auto), B54=NonBulkSellPrice, B57=ThresholdCostPrice, B58=ThresholdSellPrice,
+--   B36=TBCalcType, B37=TBMargin
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'EditPricing')
 CREATE TABLE EditPricing (
     Id INT IDENTITY PRIMARY KEY,
     ProjectId INT FOREIGN KEY REFERENCES Projects(Id),
-    CostType INT DEFAULT 0,         -- C25
-    FinType INT DEFAULT 0,          -- C16
-    CostTypeOverride BIT DEFAULT 0, -- D25
-    MetalPrice DECIMAL(18,4),       -- B33
-    FinishingPrice DECIMAL(18,4),   -- B43
-    Price_B42 DECIMAL(18,4) DEFAULT 99,
-    Price_B44 DECIMAL(18,4) DEFAULT 99,
-    Price_B48 DECIMAL(18,4) DEFAULT 99,
-    Price_B50 DECIMAL(18,4) DEFAULT 99
+    CostType INT DEFAULT 0,             -- C25: SUM(C22:C24) – 0=Standard,1=POA,2=Custom,4=Bremer Mill Std,5=Bremer Mill POA
+    FinType INT DEFAULT 0,              -- C16: =IF(B16="Powder",1,0)
+    CostTypeOverride BIT DEFAULT 0,     -- D25: manual override flag
+    MetalPrice DECIMAL(18,4),           -- B33: Mill Finish Sell Price $/kg (user-entered)
+    FinishingPrice DECIMAL(18,4),       -- B43: Finishing Cost Price $/m2 (auto from Pricing Matrix E44)
+    Price_B42 DECIMAL(18,4) DEFAULT 99, -- B42: POA/Other Vendor Cost $/m2
+    Price_B44 DECIMAL(18,4) DEFAULT 99, -- B44: Finishing Sell Price $/m2 (user-entered)
+    Price_B48 DECIMAL(18,4) DEFAULT 99, -- B48: Mill POA Cost $/m2
+    Price_B50 DECIMAL(18,4) DEFAULT 99, -- B50: Mill BULK Sell Price $/m2 (user-entered)
+    -- Additional fields revealed by .xlsm
+    Price_B52 DECIMAL(18,4) DEFAULT 99, -- B52: Mill NON-Bulk POA Cost $/m2
+    Price_B54 DECIMAL(18,4) DEFAULT 99, -- B54: Mill NON-Bulk Sell Price $/m2 (user-entered)
+    Price_B57 DECIMAL(18,4) DEFAULT 0,  -- B57: Anodised Threshold Cost Price $/m2 (auto from PricingMatrix E49)
+    Price_B58 DECIMAL(18,4) DEFAULT 99, -- B58: Anodised Threshold Sell Price $/m2 (user-entered)
+    ThermalBreakCalcType NVARCHAR(50) DEFAULT 'Margin', -- B36: "Margin" or "List less Discount"
+    ThermalBreakMargin DECIMAL(18,4) DEFAULT 0.5        -- B37: TB margin/discount value
 );
 
 -- BomLines table (maps to "BOM_Import" sheet)
@@ -124,4 +162,112 @@ CREATE TABLE SheetLocks (
     SheetName NVARCHAR(100) NOT NULL,
     IsLocked BIT DEFAULT 1,
     UpdatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- ============================================================
+-- Reference / Lookup tables populated from .xlsm data
+-- ============================================================
+
+-- ColourGroups table (maps to "Colour_Groups" sheet – VeryHidden in VBA)
+-- Columns: A=GROUP, B=SHORT_DESC, C=LONG DESC, D=CODE
+-- Named ranges: COLOURS (A4:D94), colour_code (C4:D94), GRP1_Long..GrpPOA_Long
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ColourGroups')
+CREATE TABLE ColourGroups (
+    Id INT IDENTITY PRIMARY KEY,
+    GroupName NVARCHAR(50),         -- col A e.g. "GROUP 1", "GROUP 2", "20um Clear", "25um Clear", "GROUP POA", "n/a"
+    ShortDesc NVARCHAR(200),        -- col B
+    LongDesc NVARCHAR(500),         -- col C (used in LONG_DESC named ranges)
+    ColourCode NVARCHAR(20)         -- col D (SAP colour code, e.g. "GR", "AM", "NON")
+);
+
+-- ValidationData table (maps to "Validation" sheet – stores all dropdown/lookup lists)
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ValidationData')
+CREATE TABLE ValidationData (
+    Id INT IDENTITY PRIMARY KEY,
+    Category NVARCHAR(100) NOT NULL,  -- e.g. "MarketSegment", "Region", "FinishType", "PCApplicator"
+    Value NVARCHAR(500) NOT NULL,
+    SortOrder INT DEFAULT 0
+);
+
+-- MetalBreakpoints table (maps to "Pricing Matrix" rows 7-13, cols A-G)
+-- Used for VLOOKUP in 3.Edit Pricing B33 (Table_Metal_BP)
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'MetalBreakpoints')
+CREATE TABLE MetalBreakpoints (
+    Id INT IDENTITY PRIMARY KEY,
+    BreakpointKg DECIMAL(18,2),     -- col A: kg threshold
+    Spread DECIMAL(18,4),           -- col B: spread $/kg
+    TypicalPrice DECIMAL(18,4),     -- col C: typical sell price $/kg
+    MinPrice DECIMAL(18,4),         -- col D: min sell price $/kg
+    MaxPrice DECIMAL(18,4),         -- col E: max sell price $/kg
+    MinFactor DECIMAL(18,4),        -- col F
+    MaxFactor DECIMAL(18,4)         -- col G
+);
+
+-- ThermalBreakBreakpoints table (maps to "Pricing Matrix" rows 15-21, cols A-G)
+-- Used for VLOOKUP in 3.Edit Pricing B37 (Table_TB_BP)
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ThermalBreakBreakpoints')
+CREATE TABLE ThermalBreakBreakpoints (
+    Id INT IDENTITY PRIMARY KEY,
+    BreakpointKg DECIMAL(18,2),     -- col A: kg threshold
+    MarginTyp DECIMAL(18,4),        -- col B: typical margin
+    MarginMin DECIMAL(18,4),        -- col C: min margin
+    MarginMax DECIMAL(18,4),        -- col D: max margin
+    ListTyp DECIMAL(18,4),          -- col E: typical list price $/m
+    ListMin DECIMAL(18,4),          -- col F: min list price $/m
+    ListMax DECIMAL(18,4)           -- col G: max list price $/m
+);
+
+-- PowderCostTable (maps to "Pricing Matrix" rows 27-40)
+-- Cost rates per m2 by vendor, AP/PP type, and colour group
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'PowderCostTable')
+CREATE TABLE PowderCostTable (
+    Id INT IDENTITY PRIMARY KEY,
+    FinishCategory NVARCHAR(50),    -- col A: "Powder" or "Anodised" or "Powder/Anodised"
+    Vendor NVARCHAR(200),           -- col B: vendor name (e.g. "Capral P&P - Bremer (AP)")
+    ApPp NVARCHAR(5),               -- col C: "AP" or "PP"
+    Group1Rate DECIMAL(18,4),       -- col D: Group 1 cost $/m2
+    Group2Rate DECIMAL(18,4),       -- col E: Group 2 cost $/m2
+    Group3Rate DECIMAL(18,4),       -- col F: Group 3 cost $/m2
+    Group4Rate DECIMAL(18,4),       -- col G: Group 4 cost $/m2
+    Group5Rate DECIMAL(18,4),       -- col H: Group 5 cost $/m2
+    Anodised20umRate DECIMAL(18,4), -- col I: 20um Clear rate $/m2
+    Anodised25umRate DECIMAL(18,4), -- col J: 25um Clear rate $/m2
+    GroupPOARate DECIMAL(18,4),     -- col K: Group POA (99 = POA)
+    UpdatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- FinishBreakpoints table (maps to "Pricing Matrix" rows 52-60)
+-- Margin/price breakpoints by m2 quantity for AP/PP powder coating
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'FinishBreakpoints')
+CREATE TABLE FinishBreakpoints (
+    Id INT IDENTITY PRIMARY KEY,
+    BreakpointAP DECIMAL(18,2),     -- col A: AP breakpoint (m2)
+    BreakpointPP DECIMAL(18,2),     -- col B: PP breakpoint (m2)
+    -- Breakpoint range 'a' columns (C-E)
+    RangeA_Typical DECIMAL(18,4),
+    RangeA_Min DECIMAL(18,4),
+    RangeA_Max DECIMAL(18,4),
+    -- Breakpoint range 'b' columns (F-H)
+    RangeB_Typical DECIMAL(18,4),
+    RangeB_Min DECIMAL(18,4),
+    RangeB_Max DECIMAL(18,4),
+    -- Breakpoint range 'c' columns (I-K)
+    RangeC_Typical DECIMAL(18,4),
+    RangeC_Min DECIMAL(18,4),
+    RangeC_Max DECIMAL(18,4),
+    -- Breakpoint range 'd' columns (L-N)
+    RangeD_Typical DECIMAL(18,4),
+    RangeD_Min DECIMAL(18,4),
+    RangeD_Max DECIMAL(18,4)
+);
+
+-- SubsillTierPrices table (maps to "Pricing Matrix" rows 63-68)
+-- Named range: SubSill_Tier_Price (A64:C68)
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'SubsillTierPrices')
+CREATE TABLE SubsillTierPrices (
+    Id INT IDENTITY PRIMARY KEY,
+    Tier INT NOT NULL,              -- col A: tier number (1-4)
+    SellPricePerMetre DECIMAL(18,4), -- col B: sell price $/m
+    CostPerMetre DECIMAL(18,4),     -- col C: estimated cost $/m
+    Notes NVARCHAR(500)             -- col D: notes (e.g. Panoramic door rule)
 );

@@ -35,7 +35,8 @@ namespace QuotingTool.Data
         public SqlConnection GetConnection() => new SqlConnection(_connectionString);
 
         /// <summary>
-        /// Runs SqlSchema.sql on first run to create all tables if they do not exist.
+        /// Runs SqlSchema.sql on first run to create all tables if they do not exist,
+        /// then runs SeedData.sql to populate reference data if not already seeded.
         /// </summary>
         public void EnsureSchemaExists()
         {
@@ -56,6 +57,26 @@ namespace QuotingTool.Data
                 if (!string.IsNullOrWhiteSpace(trimmed))
                     conn.Execute(trimmed);
             }
+
+            // Run seed data on first launch (only if ColourGroups is empty)
+            var colourGroupCount = conn.ExecuteScalar<int>("SELECT COUNT(1) FROM ColourGroups");
+            if (colourGroupCount == 0)
+            {
+                var seedPath = Path.Combine(AppContext.BaseDirectory, "Data", "SeedData.sql");
+                if (!File.Exists(seedPath))
+                    seedPath = Path.Combine(AppContext.BaseDirectory, "SeedData.sql");
+
+                if (File.Exists(seedPath))
+                {
+                    var seedSql = File.ReadAllText(seedPath);
+                    foreach (var batch in seedSql.Split(new[] { "\nGO\n", "\nGO\r\n" }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        var trimmed = batch.Trim();
+                        if (!string.IsNullOrWhiteSpace(trimmed))
+                            conn.Execute(trimmed);
+                    }
+                }
+            }
         }
 
         // ── Projects ─────────────────────────────────────────────────────────
@@ -64,9 +85,15 @@ namespace QuotingTool.Data
         {
             using var conn = GetConnection();
             return conn.ExecuteScalar<int>(
-                @"INSERT INTO Projects (CustomerName, ProjectName, RevisionDate, LMERate, BilletPremium)
+                @"INSERT INTO Projects (CustomerName, ProjectName, RevisionDate, LMERate, BilletPremium,
+                  Region, QuotedBy, AccountManager, Attention, MarketSegment, ProductSegment,
+                  ProjectNotes, LocalLogo, FinishType, FinishApplicator, FinishGroup,
+                  FinishName, FinishCustomName, FinishSapCode, ThresholdChoice, GenerateMfAlt)
                   OUTPUT INSERTED.Id
-                  VALUES (@CustomerName, @ProjectName, @RevisionDate, @LMERate, @BilletPremium)", p);
+                  VALUES (@CustomerName, @ProjectName, @RevisionDate, @LMERate, @BilletPremium,
+                  @Region, @QuotedBy, @AccountManager, @Attention, @MarketSegment, @ProductSegment,
+                  @ProjectNotes, @LocalLogo, @FinishType, @FinishApplicator, @FinishGroup,
+                  @FinishName, @FinishCustomName, @FinishSapCode, @ThresholdChoice, @GenerateMfAlt)", p);
         }
 
         public Project? GetProject(int id)
@@ -88,7 +115,13 @@ namespace QuotingTool.Data
             conn.Execute(
                 @"UPDATE Projects SET CustomerName=@CustomerName, ProjectName=@ProjectName,
                   RevisionDate=@RevisionDate, LMERate=@LMERate, BilletPremium=@BilletPremium,
-                  UpdatedAt=@UpdatedAt WHERE Id=@Id", p);
+                  Region=@Region, QuotedBy=@QuotedBy, AccountManager=@AccountManager,
+                  Attention=@Attention, MarketSegment=@MarketSegment, ProductSegment=@ProductSegment,
+                  ProjectNotes=@ProjectNotes, LocalLogo=@LocalLogo, FinishType=@FinishType,
+                  FinishApplicator=@FinishApplicator, FinishGroup=@FinishGroup,
+                  FinishName=@FinishName, FinishCustomName=@FinishCustomName,
+                  FinishSapCode=@FinishSapCode, ThresholdChoice=@ThresholdChoice,
+                  GenerateMfAlt=@GenerateMfAlt, UpdatedAt=@UpdatedAt WHERE Id=@Id", p);
         }
 
         public void DeleteProject(int id)
@@ -124,14 +157,18 @@ namespace QuotingTool.Data
                 conn.Execute(
                     @"UPDATE QuoteLines SET ExtrusionCode=@ExtrusionCode, Description=@Description,
                       Quantity=@Quantity, LengthM=@LengthM, Price=@Price, SellPrice=@SellPrice,
-                      SubsillFlag=@SubsillFlag, SubsillSurcharge=@SubsillSurcharge
+                      SubsillFlag=@SubsillFlag, SubsillSurcharge=@SubsillSurcharge,
+                      SapColourCode=@SapColourCode, IgnoreFinish=@IgnoreFinish,
+                      Alloy=@Alloy, Temper=@Temper
                       WHERE ProjectId=@ProjectId AND PageBlock=@PageBlock AND RowInBlock=@RowInBlock", line);
             else
                 conn.Execute(
                     @"INSERT INTO QuoteLines (ProjectId,PageBlock,RowInBlock,ExtrusionCode,Description,
-                      Quantity,LengthM,Price,SellPrice,SubsillFlag,SubsillSurcharge)
+                      Quantity,LengthM,Price,SellPrice,SubsillFlag,SubsillSurcharge,
+                      SapColourCode,IgnoreFinish,Alloy,Temper)
                       VALUES (@ProjectId,@PageBlock,@RowInBlock,@ExtrusionCode,@Description,
-                      @Quantity,@LengthM,@Price,@SellPrice,@SubsillFlag,@SubsillSurcharge)", line);
+                      @Quantity,@LengthM,@Price,@SellPrice,@SubsillFlag,@SubsillSurcharge,
+                      @SapColourCode,@IgnoreFinish,@Alloy,@Temper)", line);
         }
 
         public void DeleteQuoteLines(int projectId)
@@ -227,13 +264,19 @@ namespace QuotingTool.Data
                     @"UPDATE EditPricing SET CostType=@CostType, FinType=@FinType,
                       CostTypeOverride=@CostTypeOverride, MetalPrice=@MetalPrice,
                       FinishingPrice=@FinishingPrice, Price_B42=@Price_B42, Price_B44=@Price_B44,
-                      Price_B48=@Price_B48, Price_B50=@Price_B50 WHERE ProjectId=@ProjectId", ep);
+                      Price_B48=@Price_B48, Price_B50=@Price_B50,
+                      Price_B52=@Price_B52, Price_B54=@Price_B54,
+                      Price_B57=@Price_B57, Price_B58=@Price_B58,
+                      ThermalBreakCalcType=@ThermalBreakCalcType, ThermalBreakMargin=@ThermalBreakMargin
+                      WHERE ProjectId=@ProjectId", ep);
             else
                 conn.Execute(
                     @"INSERT INTO EditPricing (ProjectId,CostType,FinType,CostTypeOverride,MetalPrice,
-                      FinishingPrice,Price_B42,Price_B44,Price_B48,Price_B50)
+                      FinishingPrice,Price_B42,Price_B44,Price_B48,Price_B50,
+                      Price_B52,Price_B54,Price_B57,Price_B58,ThermalBreakCalcType,ThermalBreakMargin)
                       VALUES (@ProjectId,@CostType,@FinType,@CostTypeOverride,@MetalPrice,
-                      @FinishingPrice,@Price_B42,@Price_B44,@Price_B48,@Price_B50)", ep);
+                      @FinishingPrice,@Price_B42,@Price_B44,@Price_B48,@Price_B50,
+                      @Price_B52,@Price_B54,@Price_B57,@Price_B58,@ThermalBreakCalcType,@ThermalBreakMargin)", ep);
         }
 
         // ── BomLines ─────────────────────────────────────────────────────────
@@ -350,6 +393,115 @@ namespace QuotingTool.Data
                 conn.Execute(
                     "INSERT INTO SheetLocks (ProjectId,SheetName,IsLocked) VALUES (@projectId,@sheetName,@isLocked)",
                     new { projectId, sheetName, isLocked });
+        }
+
+        // ── ColourGroups ─────────────────────────────────────────────────────
+
+        public IEnumerable<ColourGroup> GetColourGroups()
+        {
+            using var conn = GetConnection();
+            return conn.Query<ColourGroup>("SELECT * FROM ColourGroups ORDER BY Id");
+        }
+
+        public IEnumerable<ColourGroup> GetColourGroupsByGroup(string groupName)
+        {
+            using var conn = GetConnection();
+            return conn.Query<ColourGroup>(
+                "SELECT * FROM ColourGroups WHERE GroupName=@groupName ORDER BY ShortDesc",
+                new { groupName });
+        }
+
+        public ColourGroup? GetColourGroupByCode(string colourCode)
+        {
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<ColourGroup>(
+                "SELECT TOP 1 * FROM ColourGroups WHERE ColourCode=@colourCode",
+                new { colourCode });
+        }
+
+        public void InsertColourGroup(ColourGroup cg)
+        {
+            using var conn = GetConnection();
+            conn.Execute(
+                @"INSERT INTO ColourGroups (GroupName,ShortDesc,LongDesc,ColourCode)
+                  VALUES (@GroupName,@ShortDesc,@LongDesc,@ColourCode)", cg);
+        }
+
+        public void ClearColourGroups()
+        {
+            using var conn = GetConnection();
+            conn.Execute("DELETE FROM ColourGroups");
+        }
+
+        // ── ValidationData ───────────────────────────────────────────────────
+
+        public IEnumerable<ValidationItem> GetValidationItems(string category)
+        {
+            using var conn = GetConnection();
+            return conn.Query<ValidationItem>(
+                "SELECT * FROM ValidationData WHERE Category=@category ORDER BY SortOrder",
+                new { category });
+        }
+
+        public void InsertValidationItem(ValidationItem vi)
+        {
+            using var conn = GetConnection();
+            conn.Execute(
+                @"INSERT INTO ValidationData (Category,Value,SortOrder)
+                  VALUES (@Category,@Value,@SortOrder)", vi);
+        }
+
+        public void ClearValidationData()
+        {
+            using var conn = GetConnection();
+            conn.Execute("DELETE FROM ValidationData");
+        }
+
+        // ── MetalBreakpoints ─────────────────────────────────────────────────
+
+        public IEnumerable<MetalBreakpoint> GetMetalBreakpoints()
+        {
+            using var conn = GetConnection();
+            return conn.Query<MetalBreakpoint>("SELECT * FROM MetalBreakpoints ORDER BY BreakpointKg");
+        }
+
+        // ── ThermalBreakBreakpoints ──────────────────────────────────────────
+
+        public IEnumerable<ThermalBreakBreakpoint> GetThermalBreakBreakpoints()
+        {
+            using var conn = GetConnection();
+            return conn.Query<ThermalBreakBreakpoint>("SELECT * FROM ThermalBreakBreakpoints ORDER BY BreakpointKg");
+        }
+
+        // ── PowderCostTable ──────────────────────────────────────────────────
+
+        public IEnumerable<PowderCostRow> GetPowderCostTable()
+        {
+            using var conn = GetConnection();
+            return conn.Query<PowderCostRow>("SELECT * FROM PowderCostTable ORDER BY Id");
+        }
+
+        // ── FinishBreakpoints ────────────────────────────────────────────────
+
+        public IEnumerable<FinishBreakpoint> GetFinishBreakpoints()
+        {
+            using var conn = GetConnection();
+            return conn.Query<FinishBreakpoint>("SELECT * FROM FinishBreakpoints ORDER BY BreakpointAP");
+        }
+
+        // ── SubsillTierPrices ────────────────────────────────────────────────
+
+        public IEnumerable<SubsillTierPrice> GetSubsillTierPrices()
+        {
+            using var conn = GetConnection();
+            return conn.Query<SubsillTierPrice>("SELECT * FROM SubsillTierPrices ORDER BY Tier");
+        }
+
+        public SubsillTierPrice? GetSubsillTierPrice(int tier)
+        {
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<SubsillTierPrice>(
+                "SELECT TOP 1 * FROM SubsillTierPrices WHERE Tier=@tier", new { tier });
         }
     }
 }
