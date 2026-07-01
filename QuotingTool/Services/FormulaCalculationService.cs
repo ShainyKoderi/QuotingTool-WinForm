@@ -255,15 +255,25 @@ namespace QuotingTool.Services
         }
 
         /// <summary>
+        /// Sentinel value used throughout the Pricing Matrix to represent
+        /// "Price On Application" (POA).  Any rate stored as 99 in the DB
+        /// means the price must be obtained manually from the supplier.
+        /// (Mirrors the Excel convention in PowderCostTable.GroupPOARate = 99.)
+        /// </summary>
+        public const decimal PricePOASentinel = 99m;
+
+        /// <summary>
         /// Powder cost lookup from PowderCostTable by vendor and colour group.
         /// Maps colour group name (e.g. "GROUP 1") to the appropriate rate column.
+        /// Returns <see cref="PricePOASentinel"/> (99) when the vendor is not found
+        /// or the colour group requires a manual POA price.
         /// </summary>
         public decimal LookupPowderCostByVendorAndGroup(string vendor, string colourGroup)
         {
             var powderTable = _db.GetPowderCostTable().ToList();
             var row = powderTable.FirstOrDefault(r =>
                 string.Equals(r.Vendor, vendor, StringComparison.OrdinalIgnoreCase));
-            if (row == null) return 99m;
+            if (row == null) return PricePOASentinel;
 
             return colourGroup?.ToUpperInvariant() switch
             {
@@ -275,7 +285,7 @@ namespace QuotingTool.Services
                 "20UM CLEAR"  => row.Anodised20umRate,
                 "25UM CLEAR"  => row.Anodised25umRate,
                 "GROUP POA"   => row.GroupPOARate,
-                _             => 99m
+                _             => PricePOASentinel   // unknown group → POA
             };
         }
 
