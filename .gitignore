@@ -1,0 +1,33 @@
+## Build output
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## NuGet packages
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+*.lock.json
+
+## Visual Studio artifacts
+.vs/
+*.user
+*.suo
+*.userprefs
+*.sln.docstates
+*.rsuser
+.vscode/
+
+## OS artifacts
+.DS_Store
+Thumbs.db
+
+## Test results
+TestResults/
+*.trx
+*.coverage
+
+## Publish output
+[Pp]ublish/
