@@ -168,3 +168,101 @@ Compared to the original Excel workbook:
 | `Microsoft.Extensions.Configuration` | 8.0.0 | Configuration framework |
 | `Microsoft.Extensions.Configuration.Json` | 8.0.0 | JSON config file support |
 | `CsvHelper` | 33.0.1 | CSV file import |
+
+---
+
+## 📊 What Was Extracted from `Project Pricing_Quotation Tool.xlsm`
+
+The `.xlsm` file was read using **openpyxl** (Python) after being uploaded to the
+repository root.  The following content was extracted and incorporated into the app.
+
+### Sheets Found (17 total)
+
+| Sheet Name | Type | Notes |
+|---|---|---|
+| `DATA` | Reference | Product cost tables, sundry data. Formula cells not evaluable without Excel. |
+| `DATA_EDGE` | Reference | EDGE product pricing. VeryHidden in VBA. |
+| `Validation` | Reference | All dropdown list values. Seeded to `ValidationData` table. |
+| `Pricing Matrix` | Reference | Metal/TB/finish/subsill breakpoint tables. Seeded to 5 tables. |
+| `Colour_Groups` | Reference | 91 colour entries. VeryHidden in VBA. Seeded to `ColourGroups` table. |
+| `Revision Control` | Admin | Version/date tracking. Maps to `RevisionControl` table. |
+| `1.Project Details` | Input | 18+ project fields. All mapped to `Projects` table. |
+| `2.Quote` | Input/Calc | Main quote grid. 6 page blocks × up to ~40 rows. |
+| `2b.Quote MF ALT` | Input/Calc | Mill Finish ALT quote variant. |
+| `3.Edit Pricing` | Config | Pricing config. Maps to `EditPricing` table. |
+| `3.EDGE` | Config | EDGE product pricing config. |
+| `4.Quote Letter` | Output | Quote letter / customer-facing export. |
+| `4b. Quote no pricing` | Output | Quote letter without prices. |
+| `4c.Quote MF ALT` | Output | Mill Finish ALT quote letter. |
+| `5.Edit_PH_IP` | Config | PH (passive house) and IP (ingress protection) settings. |
+| `BOM_Import` | Input | Bill of Materials import. Maps to `BomLines` table. |
+| `Quote_Data` | Summary | Pivot / summary data sheet. |
+
+### Named Ranges Found (108 total — key ones listed)
+
+| Named Range | Refers To | Purpose |
+|---|---|---|
+| `pg1_foot` … `pg6_foot` | `2.Quote!B56`, etc. | Footer row reference per page |
+| `AP_PP_factor` | `Pricing Matrix!K5` = 1.9 | AP → PP conversion factor |
+| `Sundry_Data` | `DATA!N8:R58` | Sundry item cost lookup table |
+| `ThresholdChoice` | `1.Project Details!B??` | "No" / "20um Clear" / "25um Clear" |
+| `Threshold_Code` | `Validation!E10:F11` | Threshold SAP code lookup |
+| `SAP_Colour_Code` | `Colour_Groups` lookup | Final SAP colour code |
+| `MetalRate_Table` | `Pricing Matrix!B7:C13` | Metal cost breakpoints |
+| `TB_Rate_Table` | `Pricing Matrix!B14:C21` | Thermal break breakpoints |
+| `Finish_BP_Table` | `Pricing Matrix!B51:C60` | Finish cost breakpoints |
+| `Subsill_Tier_Table` | `Pricing Matrix!B63:C68` | Subsill tier prices |
+
+### Formulas Translated to C#
+
+All translations are in `QuotingTool/Services/FormulaCalculationService.cs`.
+
+| Excel Formula / Cell | C# Method | Sheet |
+|---|---|---|
+| `I12 = AH + AI + AS + K` | `CalculatePriceEach(...)` | 2.Quote |
+| `J12 = I12 * G12` | `CalculateSellTotal(qty, price)` | 2.Quote |
+| `K12 = AZ + BC` | `CalculateSlotSellEach(...)` | 2.Quote |
+| `AY12 = tier_cost * H * G` | `CalculateSubsillCost(...)` | 2.Quote |
+| `AZ12 = tier_sell * H (×2.5 for Tier 4)` | `CalculateSubsillSellEach(...)` | 2.Quote |
+| `M12 = SAP code VLOOKUP` | `CalculateSapColourCode(...)` | 2.Quote |
+| `BA12 = VLOOKUP(C12, Sundry_Data, 4)` | *stub — see FORMULA_NOTES.md* | 2.Quote |
+| `Metal breakpoint lookup` | `LookupMetalTypicalPrice(kgPerM)` | Pricing Matrix |
+| `Powder cost lookup` | `LookupPowderCostByVendorAndGroup(...)` | Pricing Matrix |
+| `Finish breakpoint lookup` | `LookupFinishFactor(kgPerM)` | Pricing Matrix |
+| `Subsill tier lookup` | `LookupSubsillTierCost(tier)` | Pricing Matrix |
+| `B57 = threshold cost` | Read-only stub in EditPricingForm | 3.Edit Pricing |
+
+### Column M (`SapColourCode`) in 2.Quote
+
+- **Header**: "SAP Colour Code"
+- **Formula**: `=IF(C="","", IF(AND(BF>0, NOT(ThresholdChoice="No")), VLOOKUP(ThresholdChoice, Threshold_Code, 2), IF(L="No", SAP_Colour_Code, "NON")))`
+- **Added to**: `QuoteLines` table (column `SapColourCode`), `QuoteLine` model, `QuoteForm` grid (column M header).
+
+### New Database Tables Added from .xlsm
+
+| Table | Source Sheet | Rows Seeded |
+|---|---|---|
+| `ColourGroups` | `Colour_Groups` | ~91 |
+| `ValidationData` | `Validation` | ~50 |
+| `MetalBreakpoints` | `Pricing Matrix` rows 7-13 | 7 |
+| `ThermalBreakBreakpoints` | `Pricing Matrix` rows 14-21 | 8 |
+| `PowderCostTable` | `Pricing Matrix` rows 26-40 | 48 |
+| `FinishBreakpoints` | `Pricing Matrix` rows 51-60 | 10 |
+| `SubsillTierPrices` | `Pricing Matrix` rows 63-68 | 6 |
+
+### New Project Fields Added from `1.Project Details`
+
+Region, QuotedBy, AccountManager, Attention, MarketSegment, ProductSegment,
+ProjectNotes, FinishType, FinishApplicator, FinishGroup, FinishName,
+FinishCustomName, FinishSapCode, ThresholdChoice, LocalLogo, GenerateMfAlt,
+RevisionNumber, QuoteDate.
+
+### Items That Could Not Be Extracted
+
+See `FORMULA_NOTES.md` for full details.
+
+- VBA macro code (not readable by openpyxl)
+- Pivot table cache
+- `DATA` sheet formula-derived values (XLOOKUP/LAMBDA not evaluated)
+- `DATA_EDGE` full structure
+- Embedded image/logo assets

@@ -8,8 +8,14 @@ namespace QuotingTool.Forms
 {
     /// <summary>
     /// Tab 3 – Edit Pricing
-    /// Fields: Cost Type, Fin Type, Cost Type Override, Metal Price, Finishing Price,
-    /// Prices B42/B44/B48/B50. Shows row visibility result.
+    /// Maps to "3.Edit Pricing" sheet in the .xlsm.
+    /// Fields: C16=FinType, C25=CostType, D25=Override,
+    ///   B33=MetalSellPrice, B43=FinishingCostPrice(auto),
+    ///   B42=POACost, B44=FinishingSellPrice,
+    ///   B48=MillBulkPOACost, B50=MillBulkSellPrice,
+    ///   B52=MillNonBulkPOACost(new), B54=MillNonBulkSellPrice(new),
+    ///   B57=ThresholdCostPrice(new,auto), B58=ThresholdSellPrice(new),
+    ///   B36=ThermalBreakCalcType(new), B37=ThermalBreakMargin(new).
     /// </summary>
     public partial class EditPricingForm : Form
     {
@@ -42,6 +48,9 @@ namespace QuotingTool.Forms
             cmbFinType.Items.Add("0 – Not Powder Coat");
             cmbFinType.Items.Add("1 – Powder Coat");
             cmbFinType.SelectedIndex = 0;
+
+            if (cmbTBCalcType.SelectedIndex < 0)
+                cmbTBCalcType.SelectedIndex = 0;
         }
 
         public void LoadProject(int projectId)
@@ -49,18 +58,25 @@ namespace QuotingTool.Forms
             _projectId = projectId;
             var ep = _db.GetEditPricing(projectId) ?? new EditPricing { ProjectId = projectId };
 
-            // Map CostType value to combo index
             int ctIndex = Array.IndexOf(CostTypeValues, ep.CostType);
             cmbCostType.SelectedIndex = ctIndex >= 0 ? ctIndex : 0;
 
-            cmbFinType.SelectedIndex = ep.FinType == 1 ? 1 : 0;
+            cmbFinType.SelectedIndex   = ep.FinType == 1 ? 1 : 0;
             chkCostTypeOverride.Checked = ep.CostTypeOverride;
-            txtMetalPrice.Text     = ep.MetalPrice.ToString("F4");
-            txtFinishingPrice.Text = ep.FinishingPrice.ToString("F4");
+            txtMetalPrice.Text          = ep.MetalPrice.ToString("F4");
+            txtFinishingPrice.Text      = ep.FinishingPrice.ToString("F4");
             txtB42.Text = ep.Price_B42.ToString("F2");
             txtB44.Text = ep.Price_B44.ToString("F2");
             txtB48.Text = ep.Price_B48.ToString("F2");
             txtB50.Text = ep.Price_B50.ToString("F2");
+            // New fields from .xlsm
+            txtB52.Text = ep.Price_B52.ToString("F2");
+            txtB54.Text = ep.Price_B54.ToString("F2");
+            txtB57.Text = ep.Price_B57.ToString("F4");
+            txtB58.Text = ep.Price_B58.ToString("F2");
+            int tbIdx = cmbTBCalcType.FindStringExact(ep.ThermalBreakCalcType);
+            cmbTBCalcType.SelectedIndex = tbIdx >= 0 ? tbIdx : 0;
+            txtTBMargin.Text = ep.ThermalBreakMargin.ToString("F4");
         }
 
         public void SavePricing()
@@ -77,6 +93,13 @@ namespace QuotingTool.Forms
             ep.Price_B44 = ParseDecimal(txtB44.Text);
             ep.Price_B48 = ParseDecimal(txtB48.Text);
             ep.Price_B50 = ParseDecimal(txtB50.Text);
+            // New fields from .xlsm
+            ep.Price_B52 = ParseDecimal(txtB52.Text);
+            ep.Price_B54 = ParseDecimal(txtB54.Text);
+            ep.Price_B57 = ParseDecimal(txtB57.Text);
+            ep.Price_B58 = ParseDecimal(txtB58.Text);
+            ep.ThermalBreakCalcType = cmbTBCalcType.SelectedItem?.ToString() ?? "Margin";
+            ep.ThermalBreakMargin   = ParseDecimal(txtTBMargin.Text);
 
             _db.UpsertEditPricing(ep);
             MessageBox.Show("Pricing saved.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Information);
