@@ -6,10 +6,6 @@ using QuotingTool.Services;
 
 namespace QuotingTool.Forms
 {
-    /// <summary>
-    /// Main application window with tabbed interface.
-    /// Tabs: Project Details | Quote | Edit Pricing | BOM Import | Monthly Update
-    /// </summary>
     public partial class MainForm : Form
     {
         public int CurrentProjectId { get; private set; }
@@ -21,24 +17,23 @@ namespace QuotingTool.Forms
         private readonly ResetPriceService _resetPrice;
         private readonly ExportQuoteService _exportQuote;
         private readonly PivotRefreshService _pivotRefresh;
+        private readonly SapExportService _sapExport;
 
         public MainForm()
         {
-            InitializeComponent();
-            _db           = new DatabaseContext();
+            _db = new DatabaseContext();
             _db.EnsureSchemaExists();
-            _nav          = new NavigationService();
-            _pageSetup    = new PageSetupService(_db);
-            _lengthFix    = new LengthFixService(_db);
-            _resetPrice   = new ResetPriceService(_db);
-            _exportQuote  = new ExportQuoteService(_db);
+            _nav = new NavigationService();
+            _pageSetup = new PageSetupService(_db);
+            _lengthFix = new LengthFixService(_db);
+            _resetPrice = new ResetPriceService(_db);
+            _exportQuote = new ExportQuoteService(_db);
             _pivotRefresh = new PivotRefreshService(_db);
+            _sapExport = new SapExportService(_db);
+            InitializeComponent();
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
-        {
-            LoadLastProject();
-        }
+        private void MainForm_Load(object sender, EventArgs e) => LoadLastProject();
 
         private void LoadLastProject()
         {
@@ -49,6 +44,7 @@ namespace QuotingTool.Forms
                 {
                     CurrentProjectId = projects[0].Id;
                     UpdateStatusBar(projects[0]);
+                    RefreshAllTabs();
                 }
             }
             catch (Exception ex)
@@ -84,24 +80,24 @@ namespace QuotingTool.Forms
                 bif.LoadProject(CurrentProjectId);
             if (monthlyUpdateTab.Controls.Count > 0 && monthlyUpdateTab.Controls[0] is MonthlyUpdateForm muf)
                 muf.LoadProject(CurrentProjectId);
+            if (quoteLetterTab.Controls.Count > 0 && quoteLetterTab.Controls[0] is QuoteLetterForm qlf)
+                qlf.LoadProject(CurrentProjectId);
+            if (noPricingTab.Controls.Count > 0 && noPricingTab.Controls[0] is QuoteNoPricingForm qnp)
+                qnp.LoadProject(CurrentProjectId);
         }
-
-        // ── Toolbar buttons ──────────────────────────────────────────────────
 
         private void btnNewProject_Click(object sender, EventArgs e)
         {
             int newId = _db.CreateProject(new Project
             {
                 CustomerName = "New Customer",
-                ProjectName  = "New Project",
+                ProjectName = "New Project",
                 RevisionDate = DateTime.Today
             });
-            // Seed edit pricing defaults
             _db.UpsertEditPricing(new EditPricing { ProjectId = newId });
             SetCurrentProject(newId);
             _nav.NavigateTo("Project Details", tabControl);
-            MessageBox.Show($"New project created (ID {newId}).", "New Project",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"New project created (ID {newId}).", "New Project", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnOpenProject_Click(object sender, EventArgs e)
@@ -113,14 +109,12 @@ namespace QuotingTool.Forms
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            // Delegate save to active tab
             if (tabControl.SelectedTab == projectDetailsTab && projectDetailsTab.Controls[0] is ProjectDetailsForm pdf)
                 pdf.SaveProject();
             else if (tabControl.SelectedTab == editPricingTab && editPricingTab.Controls[0] is EditPricingForm epf)
                 epf.SavePricing();
             else
-                MessageBox.Show("Nothing to save on the current tab.", "Save",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Nothing to save on the current tab.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnExportQuote_Click(object sender, EventArgs e)
@@ -132,8 +126,8 @@ namespace QuotingTool.Forms
 
             using var sfd = new SaveFileDialog
             {
-                Filter     = "Excel Files (*.xlsx)|*.xlsx|CSV Files (*.csv)|*.csv",
-                FileName   = $"Quote_{DateTime.Today:yyyyMMdd}",
+                Filter = "Excel Files (*.xlsx)|*.xlsx|CSV Files (*.csv)|*.csv",
+                FileName = $"Quote_{DateTime.Today:yyyyMMdd}",
                 DefaultExt = "xlsx"
             };
             if (sfd.ShowDialog(this) == DialogResult.OK)
@@ -144,17 +138,15 @@ namespace QuotingTool.Forms
                 else
                     exporter.ExportToCsv(CurrentProjectId, sfd.FileName);
 
-                MessageBox.Show($"Exported to:\n{sfd.FileName}", "Export Complete",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"Exported to:\n{sfd.FileName}", "Export Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
         private void btnFixLengths_Click(object sender, EventArgs e)
         {
             if (CurrentProjectId <= 0) { MessageBox.Show("No project open."); return; }
-            int fixed_ = _lengthFix.FixLengths(CurrentProjectId);
-            MessageBox.Show($"Fixed {fixed_} length(s) from mm to m.", "Fix Lengths",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            int fixedCount = _lengthFix.FixLengths(CurrentProjectId);
+            MessageBox.Show($"Fixed {fixedCount} length(s) from mm to m.", "Fix Lengths", MessageBoxButtons.OK, MessageBoxIcon.Information);
             RefreshAllTabs();
         }
 
@@ -162,8 +154,7 @@ namespace QuotingTool.Forms
         {
             if (CurrentProjectId <= 0) { MessageBox.Show("No project open."); return; }
             int reset = _resetPrice.ResetPriceFormulas(CurrentProjectId);
-            MessageBox.Show($"Reset {reset} price formula(s).", "Reset Prices",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"Reset {reset} price formula(s).", "Reset Prices", MessageBoxButtons.OK, MessageBoxIcon.Information);
             RefreshAllTabs();
         }
 
@@ -176,17 +167,29 @@ namespace QuotingTool.Forms
                 "Refresh", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        // ── Menu items ───────────────────────────────────────────────────────
-
         private void menuFileNewProject_Click(object sender, EventArgs e) => btnNewProject_Click(sender, e);
         private void menuFileOpenProject_Click(object sender, EventArgs e) => btnOpenProject_Click(sender, e);
         private void menuFileSave_Click(object sender, EventArgs e) => btnSave_Click(sender, e);
-
         private void menuFileExit_Click(object sender, EventArgs e) => Application.Exit();
-
         private void menuToolsFixLengths_Click(object sender, EventArgs e) => btnFixLengths_Click(sender, e);
         private void menuToolsResetPrices_Click(object sender, EventArgs e) => btnResetPrices_Click(sender, e);
         private void menuToolsRefresh_Click(object sender, EventArgs e) => btnRefresh_Click(sender, e);
+
+        private void menuToolsSundryItems_Click(object sender, EventArgs e)
+        {
+            if (CurrentProjectId <= 0) { MessageBox.Show("No project open."); return; }
+            using var form = new SundryItemsForm(_db);
+            form.LoadProject(CurrentProjectId);
+            form.ShowDialog(this);
+            RefreshAllTabs();
+        }
+
+        private void menuToolsCopyForSap_Click(object sender, EventArgs e)
+        {
+            if (CurrentProjectId <= 0) { MessageBox.Show("No project open."); return; }
+            int count = _sapExport.CopyToClipboard(CurrentProjectId);
+            MessageBox.Show($"{count} lines copied to clipboard for SAP", "Copy for SAP", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
 
         private void menuHelpAbout_Click(object sender, EventArgs e)
         {

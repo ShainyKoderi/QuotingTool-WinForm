@@ -151,12 +151,14 @@ namespace QuotingTool.Services
                     ProjectId       = projectId,
                     PageBlock       = pageBlock,
                     RowInBlock      = rowInBlock,
+                    LineNumber      = i + 1,
                     ExtrusionCode   = bom.ExtrusionCode,
                     Description     = bom.Description,
                     Quantity        = bom.Quantity,
                     LengthM         = bom.LengthM,
                     Price           = bom.ImportedPrice,
                     SellPrice       = 0,
+                    TotalPrice      = bom.Quantity * bom.LengthM * bom.ImportedPrice,
                     SubsillFlag     = bom.SubsillFlag,
                     SubsillSurcharge = surcharge
                 });
