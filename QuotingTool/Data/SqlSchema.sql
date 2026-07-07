@@ -271,3 +271,75 @@ CREATE TABLE SubsillTierPrices (
     CostPerMetre DECIMAL(18,4),     -- col C: estimated cost $/m
     Notes NVARCHAR(500)             -- col D: notes (e.g. Panoramic door rule)
 );
+
+-- Add missing columns to Projects
+IF COL_LENGTH('Projects','AccountManager') IS NULL ALTER TABLE Projects ADD AccountManager NVARCHAR(200);
+IF COL_LENGTH('Projects','AttentionTo') IS NULL ALTER TABLE Projects ADD AttentionTo NVARCHAR(200) DEFAULT 'To whom it may concern';
+IF COL_LENGTH('Projects','QuoteValidity') IS NULL ALTER TABLE Projects ADD QuoteValidity NVARCHAR(50) DEFAULT '30 days';
+IF COL_LENGTH('Projects','ProjectNotes') IS NULL ALTER TABLE Projects ADD ProjectNotes NVARCHAR(2000);
+IF COL_LENGTH('Projects','AddLocAlLogos') IS NULL ALTER TABLE Projects ADD AddLocAlLogos NVARCHAR(50) DEFAULT 'None';
+IF COL_LENGTH('Projects','FinishGroup') IS NULL ALTER TABLE Projects ADD FinishGroup NVARCHAR(100);
+IF COL_LENGTH('Projects','FinishSapCode') IS NULL ALTER TABLE Projects ADD FinishSapCode NVARCHAR(50);
+IF COL_LENGTH('Projects','FinishName') IS NULL ALTER TABLE Projects ADD FinishName NVARCHAR(200);
+IF COL_LENGTH('Projects','GenerateMillFinishAlternative') IS NULL ALTER TABLE Projects ADD GenerateMillFinishAlternative BIT DEFAULT 0;
+IF COL_LENGTH('Projects','DeliveryCharge') IS NULL ALTER TABLE Projects ADD DeliveryCharge DECIMAL(18,4) DEFAULT 97.00;
+IF COL_LENGTH('Projects','CustomerSapDiscount') IS NULL ALTER TABLE Projects ADD CustomerSapDiscount DECIMAL(18,4) DEFAULT 0;
+
+-- Add missing columns to QuoteLines
+IF COL_LENGTH('QuoteLines','TotalPrice') IS NULL ALTER TABLE QuoteLines ADD TotalPrice DECIMAL(18,4) DEFAULT 0;
+IF COL_LENGTH('QuoteLines','LineNumber') IS NULL ALTER TABLE QuoteLines ADD LineNumber INT DEFAULT 0;
+
+-- Add missing columns to EditPricing
+IF COL_LENGTH('EditPricing','PricingNotes') IS NULL ALTER TABLE EditPricing ADD PricingNotes NVARCHAR(2000);
+IF COL_LENGTH('EditPricing','TotalKg') IS NULL ALTER TABLE EditPricing ADD TotalKg DECIMAL(18,4) DEFAULT 0;
+IF COL_LENGTH('EditPricing','TotalFinishingM2') IS NULL ALTER TABLE EditPricing ADD TotalFinishingM2 DECIMAL(18,4) DEFAULT 0;
+IF COL_LENGTH('EditPricing','TotalPieces') IS NULL ALTER TABLE EditPricing ADD TotalPieces INT DEFAULT 0;
+IF COL_LENGTH('EditPricing','IP1UpchargePerKg') IS NULL ALTER TABLE EditPricing ADD IP1UpchargePerKg DECIMAL(18,4) DEFAULT 1.00;
+IF COL_LENGTH('EditPricing','IP2UpchargePerKg') IS NULL ALTER TABLE EditPricing ADD IP2UpchargePerKg DECIMAL(18,4) DEFAULT 2.00;
+IF COL_LENGTH('EditPricing','IP3PanoramicFixedKgRate') IS NULL ALTER TABLE EditPricing ADD IP3PanoramicFixedKgRate DECIMAL(18,4) DEFAULT 25.85;
+IF COL_LENGTH('EditPricing','IP1MarginPct') IS NULL ALTER TABLE EditPricing ADD IP1MarginPct DECIMAL(18,4) DEFAULT 0;
+IF COL_LENGTH('EditPricing','IP2MarginPct') IS NULL ALTER TABLE EditPricing ADD IP2MarginPct DECIMAL(18,4) DEFAULT 0;
+IF COL_LENGTH('EditPricing','IP3MarginPct') IS NULL ALTER TABLE EditPricing ADD IP3MarginPct DECIMAL(18,4) DEFAULT 0;
+IF COL_LENGTH('EditPricing','MillFinishMarginPct') IS NULL ALTER TABLE EditPricing ADD MillFinishMarginPct DECIMAL(18,4) DEFAULT 0;
+IF COL_LENGTH('EditPricing','FinishingMarginPct') IS NULL ALTER TABLE EditPricing ADD FinishingMarginPct DECIMAL(18,4) DEFAULT 0;
+IF COL_LENGTH('EditPricing','FinishingCostPricePerM2') IS NULL ALTER TABLE EditPricing ADD FinishingCostPricePerM2 DECIMAL(18,4) DEFAULT 0;
+IF COL_LENGTH('EditPricing','AnodisedThresholdCostPerM2') IS NULL ALTER TABLE EditPricing ADD AnodisedThresholdCostPerM2 DECIMAL(18,4) DEFAULT 10.65;
+IF COL_LENGTH('EditPricing','ThermalBreakMarginPct') IS NULL ALTER TABLE EditPricing ADD ThermalBreakMarginPct DECIMAL(18,4) DEFAULT 0;
+
+-- SundryItems table
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='SundryItems')
+CREATE TABLE SundryItems (
+    Id INT IDENTITY PRIMARY KEY,
+    ProjectId INT FOREIGN KEY REFERENCES Projects(Id),
+    LineNumber INT DEFAULT 0,
+    Description NVARCHAR(300),
+    Quantity DECIMAL(18,4) DEFAULT 1,
+    UnitPrice DECIMAL(18,4) DEFAULT 0,
+    TotalPrice DECIMAL(18,4) DEFAULT 0,
+    Category NVARCHAR(100) DEFAULT 'Sundry',
+    Notes NVARCHAR(500),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- QuoteSummary table
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='QuoteSummary')
+CREATE TABLE QuoteSummary (
+    Id INT IDENTITY PRIMARY KEY,
+    ProjectId INT FOREIGN KEY REFERENCES Projects(Id),
+    MillFinishTotal DECIMAL(18,4) DEFAULT 0,
+    MillFinishMarginDollar DECIMAL(18,4) DEFAULT 0,
+    MillFinishMarginPct DECIMAL(18,4) DEFAULT 0,
+    ThermalBreakMetalTotal DECIMAL(18,4) DEFAULT 0,
+    ThermalBreakMarginDollar DECIMAL(18,4) DEFAULT 0,
+    ThermalBreakMarginPct DECIMAL(18,4) DEFAULT 0,
+    SlottingSundryTotal DECIMAL(18,4) DEFAULT 0,
+    SlottingSundryMarginDollar DECIMAL(18,4) DEFAULT 0,
+    SlottingSundryMarginPct DECIMAL(18,4) DEFAULT 0,
+    FinishingTotal DECIMAL(18,4) DEFAULT 0,
+    FinishingMarginDollar DECIMAL(18,4) DEFAULT 0,
+    FinishingMarginPct DECIMAL(18,4) DEFAULT 0,
+    GrandTotal DECIMAL(18,4) DEFAULT 0,
+    GrandMarginDollar DECIMAL(18,4) DEFAULT 0,
+    GrandMarginPct DECIMAL(18,4) DEFAULT 0,
+    UpdatedAt DATETIME DEFAULT GETDATE()
+);

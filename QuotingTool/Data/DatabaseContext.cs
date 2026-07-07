@@ -34,6 +34,35 @@ namespace QuotingTool.Data
 
         public SqlConnection GetConnection() => new SqlConnection(_connectionString);
 
+        private static void NormalizeProject(Project project, bool isNew = false)
+        {
+            project.AttentionTo = string.IsNullOrWhiteSpace(project.AttentionTo)
+                ? (string.IsNullOrWhiteSpace(project.Attention) ? "To whom it may concern" : project.Attention)
+                : project.AttentionTo;
+            project.Attention = string.IsNullOrWhiteSpace(project.Attention)
+                ? project.AttentionTo
+                : project.Attention;
+            project.QuoteValidity = string.IsNullOrWhiteSpace(project.QuoteValidity) ? "30 days" : project.QuoteValidity;
+            project.AddLocAlLogos = string.IsNullOrWhiteSpace(project.AddLocAlLogos)
+                ? (string.IsNullOrWhiteSpace(project.LocalLogo) ? "None" : project.LocalLogo)
+                : project.AddLocAlLogos;
+            project.LocalLogo = string.IsNullOrWhiteSpace(project.LocalLogo) ? project.AddLocAlLogos : project.LocalLogo;
+            project.GenerateMillFinishAlternative = project.GenerateMillFinishAlternative || project.GenerateMfAlt;
+            project.GenerateMfAlt = project.GenerateMfAlt || project.GenerateMillFinishAlternative;
+
+            if (isNew && project.DeliveryCharge == 0m)
+                project.DeliveryCharge = 97m;
+        }
+
+        private static void NormalizeQuoteLine(QuoteLine line)
+        {
+            if (line.LineNumber <= 0)
+                line.LineNumber = line.RowInBlock > 0 ? line.RowInBlock : 0;
+
+            if (line.TotalPrice == 0m && line.Quantity != 0m && line.LengthM != 0m && line.Price != 0m)
+                line.TotalPrice = line.Quantity * line.LengthM * line.Price;
+        }
+
         /// <summary>
         /// Runs SqlSchema.sql on first run to create all tables if they do not exist,
         /// then runs SeedData.sql to populate reference data if not already seeded.
@@ -83,23 +112,31 @@ namespace QuotingTool.Data
 
         public int CreateProject(Project p)
         {
+            NormalizeProject(p, isNew: true);
             using var conn = GetConnection();
             return conn.ExecuteScalar<int>(
                 @"INSERT INTO Projects (CustomerName, ProjectName, RevisionDate, LMERate, BilletPremium,
-                  Region, QuotedBy, AccountManager, Attention, MarketSegment, ProductSegment,
-                  ProjectNotes, LocalLogo, FinishType, FinishApplicator, FinishGroup,
-                  FinishName, FinishCustomName, FinishSapCode, ThresholdChoice, GenerateMfAlt)
+                  Region, QuotedBy, AccountManager, Attention, AttentionTo, QuoteValidity,
+                  MarketSegment, ProductSegment, ProjectNotes, AddLocAlLogos, LocalLogo,
+                  FinishType, FinishApplicator, FinishGroup, FinishName, FinishCustomName,
+                  FinishSapCode, ThresholdChoice, GenerateMfAlt, GenerateMillFinishAlternative,
+                  DeliveryCharge, CustomerSapDiscount)
                   OUTPUT INSERTED.Id
                   VALUES (@CustomerName, @ProjectName, @RevisionDate, @LMERate, @BilletPremium,
-                  @Region, @QuotedBy, @AccountManager, @Attention, @MarketSegment, @ProductSegment,
-                  @ProjectNotes, @LocalLogo, @FinishType, @FinishApplicator, @FinishGroup,
-                  @FinishName, @FinishCustomName, @FinishSapCode, @ThresholdChoice, @GenerateMfAlt)", p);
+                  @Region, @QuotedBy, @AccountManager, @Attention, @AttentionTo, @QuoteValidity,
+                  @MarketSegment, @ProductSegment, @ProjectNotes, @AddLocAlLogos, @LocalLogo,
+                  @FinishType, @FinishApplicator, @FinishGroup, @FinishName, @FinishCustomName,
+                  @FinishSapCode, @ThresholdChoice, @GenerateMfAlt, @GenerateMillFinishAlternative,
+                  @DeliveryCharge, @CustomerSapDiscount)", p);
         }
 
         public Project? GetProject(int id)
         {
             using var conn = GetConnection();
-            return conn.QueryFirstOrDefault<Project>("SELECT * FROM Projects WHERE Id = @id", new { id });
+            var project = conn.QueryFirstOrDefault<Project>("SELECT * FROM Projects WHERE Id = @id", new { id });
+            if (project != null)
+                NormalizeProject(project);
+            return project;
         }
 
         public IEnumerable<Project> GetAllProjects()
@@ -110,18 +147,22 @@ namespace QuotingTool.Data
 
         public void UpdateProject(Project p)
         {
+            NormalizeProject(p);
             p.UpdatedAt = DateTime.Now;
             using var conn = GetConnection();
             conn.Execute(
                 @"UPDATE Projects SET CustomerName=@CustomerName, ProjectName=@ProjectName,
                   RevisionDate=@RevisionDate, LMERate=@LMERate, BilletPremium=@BilletPremium,
                   Region=@Region, QuotedBy=@QuotedBy, AccountManager=@AccountManager,
-                  Attention=@Attention, MarketSegment=@MarketSegment, ProductSegment=@ProductSegment,
-                  ProjectNotes=@ProjectNotes, LocalLogo=@LocalLogo, FinishType=@FinishType,
-                  FinishApplicator=@FinishApplicator, FinishGroup=@FinishGroup,
+                  Attention=@Attention, AttentionTo=@AttentionTo, QuoteValidity=@QuoteValidity,
+                  MarketSegment=@MarketSegment, ProductSegment=@ProductSegment,
+                  ProjectNotes=@ProjectNotes, AddLocAlLogos=@AddLocAlLogos, LocalLogo=@LocalLogo,
+                  FinishType=@FinishType, FinishApplicator=@FinishApplicator, FinishGroup=@FinishGroup,
                   FinishName=@FinishName, FinishCustomName=@FinishCustomName,
                   FinishSapCode=@FinishSapCode, ThresholdChoice=@ThresholdChoice,
-                  GenerateMfAlt=@GenerateMfAlt, UpdatedAt=@UpdatedAt WHERE Id=@Id", p);
+                  GenerateMfAlt=@GenerateMfAlt, GenerateMillFinishAlternative=@GenerateMillFinishAlternative,
+                  DeliveryCharge=@DeliveryCharge, CustomerSapDiscount=@CustomerSapDiscount,
+                  UpdatedAt=@UpdatedAt WHERE Id=@Id", p);
         }
 
         public void DeleteProject(int id)
@@ -130,6 +171,8 @@ namespace QuotingTool.Data
             conn.Execute("DELETE FROM MasterFormulas WHERE ProjectId=@id", new { id });
             conn.Execute("DELETE FROM BomLines WHERE ProjectId=@id", new { id });
             conn.Execute("DELETE FROM QuoteLines WHERE ProjectId=@id", new { id });
+            conn.Execute("DELETE FROM SundryItems WHERE ProjectId=@id", new { id });
+            conn.Execute("DELETE FROM QuoteSummary WHERE ProjectId=@id", new { id });
             conn.Execute("DELETE FROM QuoteFooters WHERE ProjectId=@id", new { id });
             conn.Execute("DELETE FROM PrintSettings WHERE ProjectId=@id", new { id });
             conn.Execute("DELETE FROM EditPricing WHERE ProjectId=@id", new { id });
@@ -149,6 +192,7 @@ namespace QuotingTool.Data
 
         public void UpsertQuoteLine(QuoteLine line)
         {
+            NormalizeQuoteLine(line);
             using var conn = GetConnection();
             var exists = conn.ExecuteScalar<int>(
                 "SELECT COUNT(1) FROM QuoteLines WHERE ProjectId=@ProjectId AND PageBlock=@PageBlock AND RowInBlock=@RowInBlock",
@@ -159,16 +203,16 @@ namespace QuotingTool.Data
                       Quantity=@Quantity, LengthM=@LengthM, Price=@Price, SellPrice=@SellPrice,
                       SubsillFlag=@SubsillFlag, SubsillSurcharge=@SubsillSurcharge,
                       SapColourCode=@SapColourCode, IgnoreFinish=@IgnoreFinish,
-                      Alloy=@Alloy, Temper=@Temper
+                      Alloy=@Alloy, Temper=@Temper, TotalPrice=@TotalPrice, LineNumber=@LineNumber
                       WHERE ProjectId=@ProjectId AND PageBlock=@PageBlock AND RowInBlock=@RowInBlock", line);
             else
                 conn.Execute(
                     @"INSERT INTO QuoteLines (ProjectId,PageBlock,RowInBlock,ExtrusionCode,Description,
                       Quantity,LengthM,Price,SellPrice,SubsillFlag,SubsillSurcharge,
-                      SapColourCode,IgnoreFinish,Alloy,Temper)
+                      SapColourCode,IgnoreFinish,Alloy,Temper,TotalPrice,LineNumber)
                       VALUES (@ProjectId,@PageBlock,@RowInBlock,@ExtrusionCode,@Description,
                       @Quantity,@LengthM,@Price,@SellPrice,@SubsillFlag,@SubsillSurcharge,
-                      @SapColourCode,@IgnoreFinish,@Alloy,@Temper)", line);
+                      @SapColourCode,@IgnoreFinish,@Alloy,@Temper,@TotalPrice,@LineNumber)", line);
         }
 
         public void DeleteQuoteLines(int projectId)
@@ -267,16 +311,133 @@ namespace QuotingTool.Data
                       Price_B48=@Price_B48, Price_B50=@Price_B50,
                       Price_B52=@Price_B52, Price_B54=@Price_B54,
                       Price_B57=@Price_B57, Price_B58=@Price_B58,
-                      ThermalBreakCalcType=@ThermalBreakCalcType, ThermalBreakMargin=@ThermalBreakMargin
+                      ThermalBreakCalcType=@ThermalBreakCalcType, ThermalBreakMargin=@ThermalBreakMargin,
+                      PricingNotes=@PricingNotes, TotalKg=@TotalKg, TotalFinishingM2=@TotalFinishingM2,
+                      TotalPieces=@TotalPieces, IP1UpchargePerKg=@IP1UpchargePerKg,
+                      IP2UpchargePerKg=@IP2UpchargePerKg, IP3PanoramicFixedKgRate=@IP3PanoramicFixedKgRate,
+                      IP1MarginPct=@IP1MarginPct, IP2MarginPct=@IP2MarginPct, IP3MarginPct=@IP3MarginPct,
+                      MillFinishMarginPct=@MillFinishMarginPct, FinishingMarginPct=@FinishingMarginPct,
+                      FinishingCostPricePerM2=@FinishingCostPricePerM2,
+                      AnodisedThresholdCostPerM2=@AnodisedThresholdCostPerM2,
+                      ThermalBreakMarginPct=@ThermalBreakMarginPct
                       WHERE ProjectId=@ProjectId", ep);
             else
                 conn.Execute(
                     @"INSERT INTO EditPricing (ProjectId,CostType,FinType,CostTypeOverride,MetalPrice,
                       FinishingPrice,Price_B42,Price_B44,Price_B48,Price_B50,
-                      Price_B52,Price_B54,Price_B57,Price_B58,ThermalBreakCalcType,ThermalBreakMargin)
+                      Price_B52,Price_B54,Price_B57,Price_B58,ThermalBreakCalcType,ThermalBreakMargin,
+                      PricingNotes,TotalKg,TotalFinishingM2,TotalPieces,IP1UpchargePerKg,IP2UpchargePerKg,
+                      IP3PanoramicFixedKgRate,IP1MarginPct,IP2MarginPct,IP3MarginPct,MillFinishMarginPct,
+                      FinishingMarginPct,FinishingCostPricePerM2,AnodisedThresholdCostPerM2,
+                      ThermalBreakMarginPct)
                       VALUES (@ProjectId,@CostType,@FinType,@CostTypeOverride,@MetalPrice,
                       @FinishingPrice,@Price_B42,@Price_B44,@Price_B48,@Price_B50,
-                      @Price_B52,@Price_B54,@Price_B57,@Price_B58,@ThermalBreakCalcType,@ThermalBreakMargin)", ep);
+                      @Price_B52,@Price_B54,@Price_B57,@Price_B58,@ThermalBreakCalcType,@ThermalBreakMargin,
+                      @PricingNotes,@TotalKg,@TotalFinishingM2,@TotalPieces,@IP1UpchargePerKg,@IP2UpchargePerKg,
+                      @IP3PanoramicFixedKgRate,@IP1MarginPct,@IP2MarginPct,@IP3MarginPct,@MillFinishMarginPct,
+                      @FinishingMarginPct,@FinishingCostPricePerM2,@AnodisedThresholdCostPerM2,
+                      @ThermalBreakMarginPct)", ep);
+        }
+
+        // ── SundryItems ───────────────────────────────────────────────────────
+
+        public IEnumerable<SundryItem> GetSundryItems(int projectId)
+        {
+            using var conn = GetConnection();
+            return conn.Query<SundryItem>(
+                "SELECT * FROM SundryItems WHERE ProjectId=@projectId ORDER BY LineNumber, Id",
+                new { projectId });
+        }
+
+        public void InsertSundryItem(SundryItem item)
+        {
+            using var conn = GetConnection();
+            conn.Execute(
+                @"INSERT INTO SundryItems (ProjectId,LineNumber,Description,Quantity,UnitPrice,TotalPrice,Category,Notes)
+                  VALUES (@ProjectId,@LineNumber,@Description,@Quantity,@UnitPrice,@TotalPrice,@Category,@Notes)",
+                item);
+        }
+
+        public void UpdateSundryItem(SundryItem item)
+        {
+            using var conn = GetConnection();
+            conn.Execute(
+                @"UPDATE SundryItems SET LineNumber=@LineNumber, Description=@Description,
+                  Quantity=@Quantity, UnitPrice=@UnitPrice, TotalPrice=@TotalPrice,
+                  Category=@Category, Notes=@Notes
+                  WHERE Id=@Id",
+                item);
+        }
+
+        public void DeleteSundryItem(int id)
+        {
+            using var conn = GetConnection();
+            conn.Execute("DELETE FROM SundryItems WHERE Id=@id", new { id });
+        }
+
+        public void DeleteAllSundryItems(int projectId)
+        {
+            using var conn = GetConnection();
+            conn.Execute("DELETE FROM SundryItems WHERE ProjectId=@projectId", new { projectId });
+        }
+
+        public decimal GetSundryTotal(int projectId)
+        {
+            using var conn = GetConnection();
+            return conn.ExecuteScalar<decimal?>(
+                "SELECT SUM(TotalPrice) FROM SundryItems WHERE ProjectId=@projectId",
+                new { projectId }) ?? 0m;
+        }
+
+        // ── QuoteSummary ──────────────────────────────────────────────────────
+
+        public QuoteSummary? GetQuoteSummary(int projectId)
+        {
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<QuoteSummary>(
+                "SELECT TOP 1 * FROM QuoteSummary WHERE ProjectId=@projectId",
+                new { projectId });
+        }
+
+        public void UpsertQuoteSummary(QuoteSummary summary)
+        {
+            using var conn = GetConnection();
+            var exists = conn.ExecuteScalar<int>(
+                "SELECT COUNT(1) FROM QuoteSummary WHERE ProjectId=@ProjectId",
+                summary);
+            if (exists > 0)
+                conn.Execute(
+                    @"UPDATE QuoteSummary SET MillFinishTotal=@MillFinishTotal,
+                      MillFinishMarginDollar=@MillFinishMarginDollar,
+                      MillFinishMarginPct=@MillFinishMarginPct,
+                      ThermalBreakMetalTotal=@ThermalBreakMetalTotal,
+                      ThermalBreakMarginDollar=@ThermalBreakMarginDollar,
+                      ThermalBreakMarginPct=@ThermalBreakMarginPct,
+                      SlottingSundryTotal=@SlottingSundryTotal,
+                      SlottingSundryMarginDollar=@SlottingSundryMarginDollar,
+                      SlottingSundryMarginPct=@SlottingSundryMarginPct,
+                      FinishingTotal=@FinishingTotal,
+                      FinishingMarginDollar=@FinishingMarginDollar,
+                      FinishingMarginPct=@FinishingMarginPct,
+                      GrandTotal=@GrandTotal,
+                      GrandMarginDollar=@GrandMarginDollar,
+                      GrandMarginPct=@GrandMarginPct,
+                      UpdatedAt=@UpdatedAt
+                      WHERE ProjectId=@ProjectId",
+                    summary);
+            else
+                conn.Execute(
+                    @"INSERT INTO QuoteSummary (ProjectId,MillFinishTotal,MillFinishMarginDollar,
+                      MillFinishMarginPct,ThermalBreakMetalTotal,ThermalBreakMarginDollar,
+                      ThermalBreakMarginPct,SlottingSundryTotal,SlottingSundryMarginDollar,
+                      SlottingSundryMarginPct,FinishingTotal,FinishingMarginDollar,
+                      FinishingMarginPct,GrandTotal,GrandMarginDollar,GrandMarginPct,UpdatedAt)
+                      VALUES (@ProjectId,@MillFinishTotal,@MillFinishMarginDollar,
+                      @MillFinishMarginPct,@ThermalBreakMetalTotal,@ThermalBreakMarginDollar,
+                      @ThermalBreakMarginPct,@SlottingSundryTotal,@SlottingSundryMarginDollar,
+                      @SlottingSundryMarginPct,@FinishingTotal,@FinishingMarginDollar,
+                      @FinishingMarginPct,@GrandTotal,@GrandMarginDollar,@GrandMarginPct,@UpdatedAt)",
+                    summary);
         }
 
         // ── BomLines ─────────────────────────────────────────────────────────

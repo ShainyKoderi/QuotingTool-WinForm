@@ -17,9 +17,12 @@ namespace QuotingTool.Data
         public string QuotedBy { get; set; } = string.Empty;           // named range: quoted_by (A6)
         public string AccountManager { get; set; } = string.Empty;     // A7
         public string Attention { get; set; } = string.Empty;          // named range: attention (B12)
+        public string AttentionTo { get; set; } = "To whom it may concern";
+        public string QuoteValidity { get; set; } = "30 days";
         public string MarketSegment { get; set; } = string.Empty;      // named range: Market_Segment
         public string ProductSegment { get; set; } = string.Empty;     // named range: product_segment
         public string ProjectNotes { get; set; } = string.Empty;       // A17
+        public string AddLocAlLogos { get; set; } = "None";
         public string LocalLogo { get; set; } = "None";                // named range: local_logo (B23)
         public string FinishType { get; set; } = "Mill Finish";        // named range: finish_type_value (B24)
         public string FinishApplicator { get; set; } = string.Empty;   // named range: finish_applicator_value (B26)
@@ -28,7 +31,10 @@ namespace QuotingTool.Data
         public string FinishCustomName { get; set; } = string.Empty;   // named range: Finish_Custom_Name (B31)
         public string FinishSapCode { get; set; } = "NON";             // named range: finish_code_value (E30/E32)
         public string ThresholdChoice { get; set; } = "No";            // named range: Threshold_Choice (E33)
+        public bool GenerateMillFinishAlternative { get; set; }
         public bool GenerateMfAlt { get; set; } = false;               // named range: MF_ALT (E24)
+        public decimal DeliveryCharge { get; set; } = 97m;
+        public decimal CustomerSapDiscount { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
@@ -59,6 +65,8 @@ namespace QuotingTool.Data
         public string IgnoreFinish { get; set; } = "No";            // col L
         public string Alloy { get; set; } = string.Empty;           // col E (auto)
         public string Temper { get; set; } = string.Empty;          // col F (auto)
+        public decimal TotalPrice { get; set; }
+        public int LineNumber { get; set; }
     }
 
     // Maps to named ranges pg1_foot .. pg6_foot
@@ -107,6 +115,57 @@ namespace QuotingTool.Data
         public decimal Price_B58 { get; set; } = 99;  // B58: Anodised Threshold Sell Price $/m2
         public string ThermalBreakCalcType { get; set; } = "Margin"; // B36: "Margin" or "List less Discount"
         public decimal ThermalBreakMargin { get; set; } = 0.5m;      // B37
+        public string PricingNotes { get; set; } = string.Empty;
+        public decimal TotalKg { get; set; }
+        public decimal TotalFinishingM2 { get; set; }
+        public int TotalPieces { get; set; }
+        public decimal IP1UpchargePerKg { get; set; } = 1.00m;
+        public decimal IP2UpchargePerKg { get; set; } = 2.00m;
+        public decimal IP3PanoramicFixedKgRate { get; set; } = 25.85m;
+        public decimal IP1MarginPct { get; set; }
+        public decimal IP2MarginPct { get; set; }
+        public decimal IP3MarginPct { get; set; }
+        public decimal MillFinishMarginPct { get; set; }
+        public decimal FinishingMarginPct { get; set; }
+        public decimal FinishingCostPricePerM2 { get; set; }
+        public decimal AnodisedThresholdCostPerM2 { get; set; } = 10.65m;
+        public decimal ThermalBreakMarginPct { get; set; }
+    }
+
+    public class SundryItem
+    {
+        public int Id { get; set; }
+        public int ProjectId { get; set; }
+        public int LineNumber { get; set; }
+        public string Description { get; set; } = string.Empty;
+        public decimal Quantity { get; set; } = 1;
+        public decimal UnitPrice { get; set; }
+        public decimal TotalPrice { get; set; }
+        public string Category { get; set; } = "Sundry";
+        public string Notes { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class QuoteSummary
+    {
+        public int Id { get; set; }
+        public int ProjectId { get; set; }
+        public decimal MillFinishTotal { get; set; }
+        public decimal MillFinishMarginDollar { get; set; }
+        public decimal MillFinishMarginPct { get; set; }
+        public decimal ThermalBreakMetalTotal { get; set; }
+        public decimal ThermalBreakMarginDollar { get; set; }
+        public decimal ThermalBreakMarginPct { get; set; }
+        public decimal SlottingSundryTotal { get; set; }
+        public decimal SlottingSundryMarginDollar { get; set; }
+        public decimal SlottingSundryMarginPct { get; set; }
+        public decimal FinishingTotal { get; set; }
+        public decimal FinishingMarginDollar { get; set; }
+        public decimal FinishingMarginPct { get; set; }
+        public decimal GrandTotal { get; set; }
+        public decimal GrandMarginDollar { get; set; }
+        public decimal GrandMarginPct { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 
     // Maps to "BOM_Import" sheet
