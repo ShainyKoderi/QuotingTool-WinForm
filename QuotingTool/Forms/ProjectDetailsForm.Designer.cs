@@ -12,207 +12,207 @@ namespace QuotingTool.Forms
 
         private void InitializeComponent()
         {
-            this.pnlScroll       = new System.Windows.Forms.Panel();
-            this.lblTitle        = new System.Windows.Forms.Label();
-            this.lblCustomer     = new System.Windows.Forms.Label();
-            this.txtCustomerName = new System.Windows.Forms.TextBox();
-            this.lblProject      = new System.Windows.Forms.Label();
-            this.txtProjectName  = new System.Windows.Forms.TextBox();
-            this.lblRevDate      = new System.Windows.Forms.Label();
-            this.dtpRevisionDate = new System.Windows.Forms.DateTimePicker();
-            this.lblLME          = new System.Windows.Forms.Label();
-            this.txtLMERate      = new System.Windows.Forms.TextBox();
-            this.lblBillet       = new System.Windows.Forms.Label();
-            this.txtBilletPremium = new System.Windows.Forms.TextBox();
-            // New fields from .xlsm 1.Project Details sheet
-            this.lblRegion       = new System.Windows.Forms.Label();
-            this.cmbRegion       = new System.Windows.Forms.ComboBox();
-            this.lblQuotedBy     = new System.Windows.Forms.Label();
-            this.txtQuotedBy     = new System.Windows.Forms.TextBox();
-            this.lblAccountMgr   = new System.Windows.Forms.Label();
-            this.txtAccountManager = new System.Windows.Forms.TextBox();
-            this.lblAttention    = new System.Windows.Forms.Label();
-            this.txtAttention    = new System.Windows.Forms.TextBox();
-            this.lblMarketSeg    = new System.Windows.Forms.Label();
-            this.cmbMarketSegment = new System.Windows.Forms.ComboBox();
-            this.lblProductSeg   = new System.Windows.Forms.Label();
-            this.cmbProductSegment = new System.Windows.Forms.ComboBox();
-            this.lblNotes        = new System.Windows.Forms.Label();
-            this.txtProjectNotes = new System.Windows.Forms.TextBox();
-            this.lblFinishType   = new System.Windows.Forms.Label();
-            this.cmbFinishType   = new System.Windows.Forms.ComboBox();
-            this.lblFinishApplicator = new System.Windows.Forms.Label();
-            this.cmbFinishApplicator = new System.Windows.Forms.ComboBox();
-            this.lblFinishGroup  = new System.Windows.Forms.Label();
-            this.txtFinishGroup  = new System.Windows.Forms.TextBox();
-            this.lblFinishName   = new System.Windows.Forms.Label();
-            this.txtFinishName   = new System.Windows.Forms.TextBox();
-            this.lblFinishCustom = new System.Windows.Forms.Label();
-            this.txtFinishCustomName = new System.Windows.Forms.TextBox();
-            this.lblSapCode      = new System.Windows.Forms.Label();
-            this.txtFinishSapCode = new System.Windows.Forms.TextBox();
-            this.lblThreshold    = new System.Windows.Forms.Label();
-            this.cmbThresholdChoice = new System.Windows.Forms.ComboBox();
-            this.chkGenerateMfAlt = new System.Windows.Forms.CheckBox();
-            this.lblLocalLogo    = new System.Windows.Forms.Label();
-            this.cmbLocalLogo    = new System.Windows.Forms.ComboBox();
-            this.btnSave         = new System.Windows.Forms.Button();
-            this.pnlScroll.SuspendLayout();
-            this.SuspendLayout();
+            pnlScroll = new System.Windows.Forms.Panel();
+            lblTitle = new System.Windows.Forms.Label();
+            lblCustomer = new System.Windows.Forms.Label();
+            txtCustomerName = new System.Windows.Forms.TextBox();
+            lblProject = new System.Windows.Forms.Label();
+            txtProjectName = new System.Windows.Forms.TextBox();
+            lblRevDate = new System.Windows.Forms.Label();
+            dtpRevisionDate = new System.Windows.Forms.DateTimePicker();
+            lblLME = new System.Windows.Forms.Label();
+            txtLMERate = new System.Windows.Forms.TextBox();
+            lblBillet = new System.Windows.Forms.Label();
+            txtBilletPremium = new System.Windows.Forms.TextBox();
+            lblRegion = new System.Windows.Forms.Label();
+            cmbRegion = new System.Windows.Forms.ComboBox();
+            lblQuotedBy = new System.Windows.Forms.Label();
+            txtQuotedBy = new System.Windows.Forms.TextBox();
+            lblAccountMgr = new System.Windows.Forms.Label();
+            txtAccountManager = new System.Windows.Forms.TextBox();
+            lblAttention = new System.Windows.Forms.Label();
+            txtAttention = new System.Windows.Forms.TextBox();
+            lblMarketSeg = new System.Windows.Forms.Label();
+            cmbMarketSegment = new System.Windows.Forms.ComboBox();
+            lblProductSeg = new System.Windows.Forms.Label();
+            cmbProductSegment = new System.Windows.Forms.ComboBox();
+            lblNotes = new System.Windows.Forms.Label();
+            txtProjectNotes = new System.Windows.Forms.TextBox();
+            lblFinishType = new System.Windows.Forms.Label();
+            cmbFinishType = new System.Windows.Forms.ComboBox();
+            lblFinishApplicator = new System.Windows.Forms.Label();
+            cmbFinishApplicator = new System.Windows.Forms.ComboBox();
+            lblFinishGroup = new System.Windows.Forms.Label();
+            txtFinishGroup = new System.Windows.Forms.TextBox();
+            lblFinishName = new System.Windows.Forms.Label();
+            txtFinishName = new System.Windows.Forms.TextBox();
+            lblFinishCustom = new System.Windows.Forms.Label();
+            txtFinishCustomName = new System.Windows.Forms.TextBox();
+            lblSapCode = new System.Windows.Forms.Label();
+            txtFinishSapCode = new System.Windows.Forms.TextBox();
+            lblThreshold = new System.Windows.Forms.Label();
+            cmbThresholdChoice = new System.Windows.Forms.ComboBox();
+            lblLocalLogo = new System.Windows.Forms.Label();
+            cmbLocalLogo = new System.Windows.Forms.ComboBox();
+            lblGenerateMfAlt = new System.Windows.Forms.Label();
+            cmbGenerateMillFinishAlternative = new System.Windows.Forms.ComboBox();
+            lblQuoteValidity = new System.Windows.Forms.Label();
+            txtQuoteValidity = new System.Windows.Forms.TextBox();
+            lblCustomerSapDiscount = new System.Windows.Forms.Label();
+            txtCustomerSapDiscount = new System.Windows.Forms.TextBox();
+            lblDeliveryCharge = new System.Windows.Forms.Label();
+            txtDeliveryCharge = new System.Windows.Forms.TextBox();
+            btnImportCre8 = new System.Windows.Forms.Button();
+            btnSave = new System.Windows.Forms.Button();
+            pnlScroll.SuspendLayout();
+            SuspendLayout();
 
-            // Scroll panel
-            this.pnlScroll.AutoScroll = true;
-            this.pnlScroll.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlScroll.Name = "pnlScroll";
+            pnlScroll.AutoScroll = true;
+            pnlScroll.Dock = System.Windows.Forms.DockStyle.Fill;
+            pnlScroll.Controls.AddRange(new System.Windows.Forms.Control[]
+            {
+                lblTitle,
+                lblCustomer, txtCustomerName,
+                lblProject, txtProjectName,
+                lblRevDate, dtpRevisionDate,
+                lblLME, txtLMERate,
+                lblBillet, txtBilletPremium,
+                lblRegion, cmbRegion,
+                lblQuotedBy, txtQuotedBy,
+                lblAccountMgr, txtAccountManager,
+                lblAttention, txtAttention,
+                lblMarketSeg, cmbMarketSegment,
+                lblProductSeg, cmbProductSegment,
+                lblNotes, txtProjectNotes,
+                lblFinishType, cmbFinishType,
+                lblFinishApplicator, cmbFinishApplicator,
+                lblFinishGroup, txtFinishGroup,
+                lblFinishName, txtFinishName,
+                lblFinishCustom, txtFinishCustomName,
+                lblSapCode, txtFinishSapCode,
+                lblThreshold, cmbThresholdChoice,
+                lblLocalLogo, cmbLocalLogo,
+                lblGenerateMfAlt, cmbGenerateMillFinishAlternative,
+                lblQuoteValidity, txtQuoteValidity,
+                lblCustomerSapDiscount, txtCustomerSapDiscount,
+                lblDeliveryCharge, txtDeliveryCharge,
+                btnImportCre8, btnSave
+            });
 
-            int lx = 20, cx = 200, cw = 300, lh = 30;
+            int lx = 20, cx = 220, cw = 320, lh = 30;
             int y = 20;
 
-            // lblTitle
-            this.lblTitle.AutoSize = false;
-            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 13F, System.Drawing.FontStyle.Bold);
-            this.lblTitle.Location = new System.Drawing.Point(lx, y);
-            this.lblTitle.Size = new System.Drawing.Size(500, 28);
-            this.lblTitle.Text = "1. Project Details";
+            lblTitle.Font = new System.Drawing.Font("Segoe UI", 13F, System.Drawing.FontStyle.Bold);
+            lblTitle.Location = new System.Drawing.Point(lx, y);
+            lblTitle.Size = new System.Drawing.Size(500, 28);
+            lblTitle.Text = "1. Project Details";
             y += 40;
 
-            AddRow("lblCustomer", "Customer Name:", lx, cx, cw, ref y, lh, this.lblCustomer, this.txtCustomerName);
-            AddRow("lblProject", "Project Name:", lx, cx, cw, ref y, lh, this.lblProject, this.txtProjectName);
+            AddTextRow(lblCustomer, txtCustomerName, "Customer Name:", lx, cx, cw, ref y, lh);
+            AddTextRow(lblProject, txtProjectName, "Project Name:", lx, cx, cw, ref y, lh);
 
-            this.lblRevDate.AutoSize = true;
-            this.lblRevDate.Location = new System.Drawing.Point(lx, y + 3);
-            this.lblRevDate.Text = "Revision Date:";
-            this.dtpRevisionDate.Location = new System.Drawing.Point(cx, y);
-            this.dtpRevisionDate.Size = new System.Drawing.Size(200, 23);
-            this.dtpRevisionDate.Format = System.Windows.Forms.DateTimePickerFormat.Short;
+            lblRevDate.AutoSize = true;
+            lblRevDate.Location = new System.Drawing.Point(lx, y + 3);
+            lblRevDate.Text = "Revision Date:";
+            dtpRevisionDate.Format = System.Windows.Forms.DateTimePickerFormat.Short;
+            dtpRevisionDate.Location = new System.Drawing.Point(cx, y);
+            dtpRevisionDate.Size = new System.Drawing.Size(180, 23);
             y += lh;
 
-            AddRow("lblLME", "LME Rate (read-only):", lx, cx, 150, ref y, lh, this.lblLME, this.txtLMERate);
-            this.txtLMERate.ReadOnly = true;
-            this.txtLMERate.BackColor = System.Drawing.SystemColors.Control;
+            AddTextRow(lblLME, txtLMERate, "LME Rate (read-only):", lx, cx, 140, ref y, lh);
+            txtLMERate.ReadOnly = true;
+            txtLMERate.BackColor = System.Drawing.SystemColors.Control;
 
-            AddRow("lblBillet", "Billet Premium (read-only):", lx, cx, 150, ref y, lh, this.lblBillet, this.txtBilletPremium);
-            this.txtBilletPremium.ReadOnly = true;
-            this.txtBilletPremium.BackColor = System.Drawing.SystemColors.Control;
-
-            y += 10; // spacer
-            AddComboRow("lblRegion", "Region:", lx, cx, cw, ref y, lh, this.lblRegion, this.cmbRegion,
-                new[] { "NQ", "NSW", "NT", "SA", "SEQ", "TAS", "VIC", "WA" });
-
-            AddRow("lblQuotedBy", "Quoted By:", lx, cx, cw, ref y, lh, this.lblQuotedBy, this.txtQuotedBy);
-            AddRow("lblAccountMgr", "Account Manager:", lx, cx, cw, ref y, lh, this.lblAccountMgr, this.txtAccountManager);
-            AddRow("lblAttention", "Attention To:", lx, cx, cw, ref y, lh, this.lblAttention, this.txtAttention);
-
-            AddComboRow("lblMarketSeg", "Market Segment:", lx, cx, cw, ref y, lh, this.lblMarketSeg, this.cmbMarketSegment,
-                new[] { "Private Residential - Detached", "Private Residential - Other", "Public Dwelling",
-                        "Office", "Retail", "Hotel", "Factory", "Warehouse", "Education", "Health",
-                        "Entertainment/Recreation", "Other" });
-
-            AddComboRow("lblProductSeg", "Product Segment:", lx, cx, cw, ref y, lh, this.lblProductSeg, this.cmbProductSegment,
-                new[] { "Commercial", "Residential", "Security", "Industrial", "Shower & Robe" });
-
-            this.lblNotes.AutoSize = true;
-            this.lblNotes.Location = new System.Drawing.Point(lx, y + 3);
-            this.lblNotes.Text = "Project Notes:";
-            this.txtProjectNotes.Location = new System.Drawing.Point(cx, y);
-            this.txtProjectNotes.Size = new System.Drawing.Size(cw, 60);
-            this.txtProjectNotes.Multiline = true;
-            this.txtProjectNotes.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            y += 70;
-
-            y += 10; // spacer
-            AddComboRow("lblFinishType", "Finish Type:", lx, cx, cw, ref y, lh, this.lblFinishType, this.cmbFinishType,
-                new[] { "Mill Finish", "Powder", "Anodised" });
-
-            AddComboRow("lblFinishApplicator", "Finish Applicator:", lx, cx, cw, ref y, lh, this.lblFinishApplicator, this.cmbFinishApplicator,
-                new[] { "n/a", "Capral P&P - Bremer (AP)", "Capral P&P - Campbellfield (AP)",
-                        "Capral P&P - Canningvale (PP)", "Capral P&P - HWood Non-Bulk (AP)",
-                        "Capral P&P - HWood Bulk (AP)", "Capral Mill (AP)", "AAF powdercoat",
-                        "Powderline WA", "Capral/AAF QLD anodising", "WA Anodisers",
-                        "Other - pls check pricing" });
-
-            AddRow("lblFinishGroup", "Finish Group:", lx, cx, cw, ref y, lh, this.lblFinishGroup, this.txtFinishGroup);
-            AddRow("lblFinishName", "Finish Name:", lx, cx, cw, ref y, lh, this.lblFinishName, this.txtFinishName);
-            AddRow("lblFinishCustom", "Finish Custom Name:", lx, cx, cw, ref y, lh, this.lblFinishCustom, this.txtFinishCustomName);
-
-            AddRow("lblSapCode", "Finish SAP Code:", lx, cx, 120, ref y, lh, this.lblSapCode, this.txtFinishSapCode);
-
-            AddComboRow("lblThreshold", "Threshold Choice:", lx, cx, cw, ref y, lh, this.lblThreshold, this.cmbThresholdChoice,
-                new[] { "No", "Anodised Thresholds", "20um Clear", "25um Clear" });
-
-            AddComboRow("lblLocalLogo", "Add Local Logo:", lx, cx, cw, ref y, lh, this.lblLocalLogo, this.cmbLocalLogo,
-                new[] { "None", "LocAl Green", "LocAl SuperGreen" });
-
-            this.chkGenerateMfAlt.AutoSize = true;
-            this.chkGenerateMfAlt.Location = new System.Drawing.Point(cx, y);
-            this.chkGenerateMfAlt.Text = "Generate Mill Finish Alternative (MF ALT)";
-            y += lh;
+            AddTextRow(lblBillet, txtBilletPremium, "Billet Premium (read-only):", lx, cx, 140, ref y, lh);
+            txtBilletPremium.ReadOnly = true;
+            txtBilletPremium.BackColor = System.Drawing.SystemColors.Control;
 
             y += 10;
-            this.btnSave.Location = new System.Drawing.Point(cx, y);
-            this.btnSave.Size = new System.Drawing.Size(120, 30);
-            this.btnSave.Text = "Save";
-            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
-            y += 40;
+            AddComboRow(lblRegion, cmbRegion, "Region:", lx, cx, cw, ref y, lh,
+                new[] { "NQ", "NSW", "NT", "SA", "SEQ", "TAS", "VIC", "WA" });
+            AddTextRow(lblQuotedBy, txtQuotedBy, "Quoted By:", lx, cx, cw, ref y, lh);
+            AddTextRow(lblAccountMgr, txtAccountManager, "Account Manager:", lx, cx, cw, ref y, lh);
+            AddTextRow(lblAttention, txtAttention, "Attention To:", lx, cx, cw, ref y, lh);
+            txtAttention.Text = DefaultAttentionTo;
 
-            this.pnlScroll.Controls.AddRange(new System.Windows.Forms.Control[] {
-                this.lblTitle,
-                this.lblCustomer, this.txtCustomerName,
-                this.lblProject, this.txtProjectName,
-                this.lblRevDate, this.dtpRevisionDate,
-                this.lblLME, this.txtLMERate,
-                this.lblBillet, this.txtBilletPremium,
-                this.lblRegion, this.cmbRegion,
-                this.lblQuotedBy, this.txtQuotedBy,
-                this.lblAccountMgr, this.txtAccountManager,
-                this.lblAttention, this.txtAttention,
-                this.lblMarketSeg, this.cmbMarketSegment,
-                this.lblProductSeg, this.cmbProductSegment,
-                this.lblNotes, this.txtProjectNotes,
-                this.lblFinishType, this.cmbFinishType,
-                this.lblFinishApplicator, this.cmbFinishApplicator,
-                this.lblFinishGroup, this.txtFinishGroup,
-                this.lblFinishName, this.txtFinishName,
-                this.lblFinishCustom, this.txtFinishCustomName,
-                this.lblSapCode, this.txtFinishSapCode,
-                this.lblThreshold, this.cmbThresholdChoice,
-                this.lblLocalLogo, this.cmbLocalLogo,
-                this.chkGenerateMfAlt,
-                this.btnSave
-            });
-            this.pnlScroll.ResumeLayout(false);
+            AddComboRow(lblMarketSeg, cmbMarketSegment, "Market Segment:", lx, cx, cw, ref y, lh,
+                new[] { "Private Residential - Detached", "Private Residential - Other", "Public Dwelling", "Office", "Retail", "Hotel", "Factory", "Warehouse", "Education", "Health", "Entertainment/Recreation", "Other" });
+            AddComboRow(lblProductSeg, cmbProductSegment, "Product Segment:", lx, cx, cw, ref y, lh,
+                new[] { "Commercial", "Residential", "Security", "Industrial", "Shower & Robe" });
 
-            // Form
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(620, 600);
-            this.Controls.Add(this.pnlScroll);
-            this.Name = "ProjectDetailsForm";
-            this.Text = "Project Details";
-            this.ResumeLayout(false);
+            lblNotes.AutoSize = true;
+            lblNotes.Location = new System.Drawing.Point(lx, y + 3);
+            lblNotes.Text = "Project Notes:";
+            txtProjectNotes.Location = new System.Drawing.Point(cx, y);
+            txtProjectNotes.Multiline = true;
+            txtProjectNotes.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            txtProjectNotes.Size = new System.Drawing.Size(cw, 80);
+            y += 90;
+
+            AddComboRow(lblFinishType, cmbFinishType, "Finish Type:", lx, cx, cw, ref y, lh,
+                new[] { "Mill Finish", "Powder", "Anodised" });
+            AddComboRow(lblFinishApplicator, cmbFinishApplicator, "Finish Applicator:", lx, cx, cw, ref y, lh,
+                new[] { "n/a", "Capral P&P - Bremer (AP)", "Capral P&P - Campbellfield (AP)", "Capral P&P - Canningvale (PP)", "Capral P&P - HWood Non-Bulk (AP)", "Capral P&P - HWood Bulk (AP)", "Capral Mill (AP)", "AAF powdercoat", "Powderline WA", "Capral/AAF QLD anodising", "WA Anodisers", "Other - pls check pricing" });
+            AddTextRow(lblFinishGroup, txtFinishGroup, "Finish Group:", lx, cx, cw, ref y, lh);
+            AddTextRow(lblFinishName, txtFinishName, "Finish Name:", lx, cx, cw, ref y, lh);
+            AddTextRow(lblFinishCustom, txtFinishCustomName, "Finish Custom Name:", lx, cx, cw, ref y, lh);
+            AddTextRow(lblSapCode, txtFinishSapCode, "Finish SAP Code:", lx, cx, 140, ref y, lh);
+            AddComboRow(lblThreshold, cmbThresholdChoice, "Threshold Choice:", lx, cx, cw, ref y, lh,
+                new[] { "No", "Anodised Thresholds", "20um Clear", "25um Clear" });
+
+            AddComboRow(lblLocalLogo, cmbLocalLogo, "Add LocAl Logos:", lx, cx, cw, ref y, lh,
+                new[] { "None", "Green", "SuperGreen" });
+            AddComboRow(lblGenerateMfAlt, cmbGenerateMillFinishAlternative, "Generate Mill Finish Alternative:", lx, cx, 140, ref y, lh,
+                new[] { "Yes", "No" });
+            cmbGenerateMillFinishAlternative.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cmbGenerateMillFinishAlternative.SelectedIndex = 1;
+
+            AddTextRow(lblQuoteValidity, txtQuoteValidity, "Quote Validity:", lx, cx, 140, ref y, lh);
+            txtQuoteValidity.Text = "30 days";
+            AddTextRow(lblCustomerSapDiscount, txtCustomerSapDiscount, "Customer SAP Discount %:", lx, cx, 140, ref y, lh);
+            AddTextRow(lblDeliveryCharge, txtDeliveryCharge, "Delivery Charge:", lx, cx, 140, ref y, lh);
+            txtDeliveryCharge.Text = "97.00";
+
+            btnImportCre8.Location = new System.Drawing.Point(cx, y);
+            btnImportCre8.Size = new System.Drawing.Size(140, 30);
+            btnImportCre8.Text = "Import CRE8";
+            btnImportCre8.Click += new System.EventHandler(btnImportCre8_Click);
+
+            btnSave.Location = new System.Drawing.Point(cx + 160, y);
+            btnSave.Size = new System.Drawing.Size(120, 30);
+            btnSave.Text = "Save";
+            btnSave.Click += new System.EventHandler(btnSave_Click);
+
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(700, 700);
+            Controls.Add(pnlScroll);
+            Name = "ProjectDetailsForm";
+            Text = "Project Details";
+            pnlScroll.ResumeLayout(false);
+            pnlScroll.PerformLayout();
+            ResumeLayout(false);
         }
 
-        private static void AddRow(string name, string labelText, int lx, int cx, int cw, ref int y, int lh,
-            System.Windows.Forms.Label lbl, System.Windows.Forms.TextBox txt)
+        private static void AddTextRow(System.Windows.Forms.Label label, System.Windows.Forms.TextBox textBox, string text, int lx, int cx, int cw, ref int y, int lh)
         {
-            lbl.AutoSize = true;
-            lbl.Location = new System.Drawing.Point(lx, y + 3);
-            lbl.Text = labelText;
-            txt.Location = new System.Drawing.Point(cx, y);
-            txt.Size = new System.Drawing.Size(cw, 23);
+            label.AutoSize = true;
+            label.Location = new System.Drawing.Point(lx, y + 3);
+            label.Text = text;
+            textBox.Location = new System.Drawing.Point(cx, y);
+            textBox.Size = new System.Drawing.Size(cw, 23);
             y += lh;
         }
 
-        private static void AddComboRow(string name, string labelText, int lx, int cx, int cw, ref int y, int lh,
-            System.Windows.Forms.Label lbl, System.Windows.Forms.ComboBox cmb, string[] items)
+        private static void AddComboRow(System.Windows.Forms.Label label, System.Windows.Forms.ComboBox comboBox, string text, int lx, int cx, int cw, ref int y, int lh, string[] items)
         {
-            lbl.AutoSize = true;
-            lbl.Location = new System.Drawing.Point(lx, y + 3);
-            lbl.Text = labelText;
-            cmb.Location = new System.Drawing.Point(cx, y);
-            cmb.Size = new System.Drawing.Size(cw, 23);
-            cmb.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
-            foreach (var item in items) cmb.Items.Add(item);
+            label.AutoSize = true;
+            label.Location = new System.Drawing.Point(lx, y + 3);
+            label.Text = text;
+            comboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
+            comboBox.Location = new System.Drawing.Point(cx, y);
+            comboBox.Size = new System.Drawing.Size(cw, 23);
+            comboBox.Items.AddRange(items);
             y += lh;
         }
 
@@ -256,9 +256,17 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.TextBox txtFinishSapCode;
         private System.Windows.Forms.Label lblThreshold;
         private System.Windows.Forms.ComboBox cmbThresholdChoice;
-        private System.Windows.Forms.CheckBox chkGenerateMfAlt;
         private System.Windows.Forms.Label lblLocalLogo;
         private System.Windows.Forms.ComboBox cmbLocalLogo;
+        private System.Windows.Forms.Label lblGenerateMfAlt;
+        private System.Windows.Forms.ComboBox cmbGenerateMillFinishAlternative;
+        private System.Windows.Forms.Label lblQuoteValidity;
+        private System.Windows.Forms.TextBox txtQuoteValidity;
+        private System.Windows.Forms.Label lblCustomerSapDiscount;
+        private System.Windows.Forms.TextBox txtCustomerSapDiscount;
+        private System.Windows.Forms.Label lblDeliveryCharge;
+        private System.Windows.Forms.TextBox txtDeliveryCharge;
+        private System.Windows.Forms.Button btnImportCre8;
         private System.Windows.Forms.Button btnSave;
     }
 }

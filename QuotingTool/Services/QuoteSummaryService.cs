@@ -6,6 +6,10 @@ namespace QuotingTool.Services
 {
     public class QuoteSummaryService
     {
+        // Approximate cost ratio retained from the quoted workbook behaviour:
+        // using 87% of sell as cost produces an estimated 13% mill-finish margin.
+        private const decimal MillFinishCostRatio = 0.87m;
+
         private readonly DatabaseContext _db;
         public QuoteSummaryService(DatabaseContext db) => _db = db;
 
@@ -16,7 +20,7 @@ namespace QuotingTool.Services
             var sundryTotal = _db.GetSundryTotal(projectId);
 
             decimal millFinishTotal = lines.Sum(l => l.TotalPrice);
-            decimal millFinishCost = millFinishTotal * 0.87m;
+            decimal millFinishCost = millFinishTotal * MillFinishCostRatio;
             decimal millFinishMarginDollar = millFinishTotal - millFinishCost;
             decimal millFinishMarginPct = millFinishTotal > 0 ? millFinishMarginDollar / millFinishTotal * 100m : 0m;
 

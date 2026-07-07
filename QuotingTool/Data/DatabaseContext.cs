@@ -14,6 +14,8 @@ namespace QuotingTool.Data
     /// </summary>
     public class DatabaseContext
     {
+        private const decimal DefaultDeliveryCharge = 97m;
+
         private readonly string _connectionString;
 
         public DatabaseContext()
@@ -51,13 +53,13 @@ namespace QuotingTool.Data
             project.GenerateMfAlt = project.GenerateMfAlt || project.GenerateMillFinishAlternative;
 
             if (isNew && project.DeliveryCharge == 0m)
-                project.DeliveryCharge = 97m;
+                project.DeliveryCharge = DefaultDeliveryCharge;
         }
 
         private static void NormalizeQuoteLine(QuoteLine line)
         {
             if (line.LineNumber <= 0)
-                line.LineNumber = line.RowInBlock > 0 ? line.RowInBlock : 0;
+                line.LineNumber = line.RowInBlock > 0 ? line.RowInBlock : 1;
 
             if (line.TotalPrice == 0m && line.Quantity != 0m && line.LengthM != 0m && line.Price != 0m)
                 line.TotalPrice = line.Quantity * line.LengthM * line.Price;
