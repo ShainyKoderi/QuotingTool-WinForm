@@ -217,9 +217,10 @@ namespace QuotingTool.Forms
                     }
 
                     if (firstVisibleColumn != null)
+                    {
                         gridQuote.CurrentCell = gridQuote.Rows[rowIndex].Cells[firstVisibleColumn.Index];
-
-                    gridQuote.FirstDisplayedScrollingRowIndex = rowIndex;
+                        gridQuote.FirstDisplayedScrollingRowIndex = rowIndex;
+                    }
                 }
                 catch (InvalidOperationException)
                 {
