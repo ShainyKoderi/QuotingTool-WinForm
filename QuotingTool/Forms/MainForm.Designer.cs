@@ -20,9 +20,6 @@ namespace QuotingTool.Forms
             menuFileSep1 = new System.Windows.Forms.ToolStripSeparator();
             menuFileExit = new System.Windows.Forms.ToolStripMenuItem();
             menuTools = new System.Windows.Forms.ToolStripMenuItem();
-            menuToolsFixLengths = new System.Windows.Forms.ToolStripMenuItem();
-            menuToolsResetPrices = new System.Windows.Forms.ToolStripMenuItem();
-            menuToolsRefresh = new System.Windows.Forms.ToolStripMenuItem();
             menuToolsSundryItems = new System.Windows.Forms.ToolStripMenuItem();
             menuToolsCopyForSap = new System.Windows.Forms.ToolStripMenuItem();
             menuHelp = new System.Windows.Forms.ToolStripMenuItem();
@@ -30,12 +27,6 @@ namespace QuotingTool.Forms
             toolStrip = new System.Windows.Forms.ToolStrip();
             btnNewProject = new System.Windows.Forms.ToolStripButton();
             btnOpenProject = new System.Windows.Forms.ToolStripButton();
-            toolStripSep1 = new System.Windows.Forms.ToolStripSeparator();
-            btnExportQuote = new System.Windows.Forms.ToolStripButton();
-            toolStripSep2 = new System.Windows.Forms.ToolStripSeparator();
-            btnFixLengths = new System.Windows.Forms.ToolStripButton();
-            btnResetPrices = new System.Windows.Forms.ToolStripButton();
-            btnRefresh = new System.Windows.Forms.ToolStripButton();
             tabControl = new System.Windows.Forms.TabControl();
             projectDetailsTab = new System.Windows.Forms.TabPage();
             quoteTab = new System.Windows.Forms.TabPage();
@@ -67,14 +58,8 @@ namespace QuotingTool.Forms
             menuFileExit.Text = "E&xit";
             menuFileExit.Click += new System.EventHandler(menuFileExit_Click);
 
-            menuTools.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { menuToolsFixLengths, menuToolsResetPrices, menuToolsRefresh, menuToolsSundryItems, menuToolsCopyForSap });
+            menuTools.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { menuToolsSundryItems, menuToolsCopyForSap });
             menuTools.Text = "&Tools";
-            menuToolsFixLengths.Text = "Fix Lengths (mm → m)";
-            menuToolsFixLengths.Click += new System.EventHandler(menuToolsFixLengths_Click);
-            menuToolsResetPrices.Text = "Reset Price Formulas";
-            menuToolsResetPrices.Click += new System.EventHandler(menuToolsResetPrices_Click);
-            menuToolsRefresh.Text = "Refresh Summary";
-            menuToolsRefresh.Click += new System.EventHandler(menuToolsRefresh_Click);
             menuToolsSundryItems.Text = "Sundry Items";
             menuToolsSundryItems.Click += new System.EventHandler(menuToolsSundryItems_Click);
             menuToolsCopyForSap.Text = "Copy for SAP";
@@ -85,21 +70,13 @@ namespace QuotingTool.Forms
             menuHelpAbout.Text = "&About";
             menuHelpAbout.Click += new System.EventHandler(menuHelpAbout_Click);
 
-            toolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { btnNewProject, btnOpenProject, toolStripSep1, btnExportQuote, toolStripSep2, btnFixLengths, btnResetPrices, btnRefresh });
+            toolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { btnNewProject, btnOpenProject });
             toolStrip.Location = new System.Drawing.Point(0, 24);
             toolStrip.Size = new System.Drawing.Size(1200, 25);
             btnNewProject.Text = "New Project";
             btnNewProject.Click += new System.EventHandler(btnNewProject_Click);
             btnOpenProject.Text = "Open Project";
             btnOpenProject.Click += new System.EventHandler(btnOpenProject_Click);
-            btnExportQuote.Text = "Export Quote";
-            btnExportQuote.Click += new System.EventHandler(btnExportQuote_Click);
-            btnFixLengths.Text = "Fix Lengths";
-            btnFixLengths.Click += new System.EventHandler(btnFixLengths_Click);
-            btnResetPrices.Text = "Reset Prices";
-            btnResetPrices.Click += new System.EventHandler(btnResetPrices_Click);
-            btnRefresh.Text = "Refresh";
-            btnRefresh.Click += new System.EventHandler(btnRefresh_Click);
 
             tabControl.Controls.Add(projectDetailsTab);
             tabControl.Controls.Add(quoteTab);
@@ -178,9 +155,6 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.ToolStripSeparator menuFileSep1;
         private System.Windows.Forms.ToolStripMenuItem menuFileExit;
         private System.Windows.Forms.ToolStripMenuItem menuTools;
-        private System.Windows.Forms.ToolStripMenuItem menuToolsFixLengths;
-        private System.Windows.Forms.ToolStripMenuItem menuToolsResetPrices;
-        private System.Windows.Forms.ToolStripMenuItem menuToolsRefresh;
         private System.Windows.Forms.ToolStripMenuItem menuToolsSundryItems;
         private System.Windows.Forms.ToolStripMenuItem menuToolsCopyForSap;
         private System.Windows.Forms.ToolStripMenuItem menuHelp;
@@ -188,12 +162,6 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.ToolStrip toolStrip;
         private System.Windows.Forms.ToolStripButton btnNewProject;
         private System.Windows.Forms.ToolStripButton btnOpenProject;
-        private System.Windows.Forms.ToolStripSeparator toolStripSep1;
-        private System.Windows.Forms.ToolStripButton btnExportQuote;
-        private System.Windows.Forms.ToolStripSeparator toolStripSep2;
-        private System.Windows.Forms.ToolStripButton btnFixLengths;
-        private System.Windows.Forms.ToolStripButton btnResetPrices;
-        private System.Windows.Forms.ToolStripButton btnRefresh;
         public System.Windows.Forms.TabControl tabControl;
         public System.Windows.Forms.TabPage projectDetailsTab;
         public System.Windows.Forms.TabPage quoteTab;

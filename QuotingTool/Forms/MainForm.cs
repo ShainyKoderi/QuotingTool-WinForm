@@ -1,7 +1,6 @@
 using System;
 using System.Windows.Forms;
 using QuotingTool.Data;
-using QuotingTool.Helpers;
 using QuotingTool.Services;
 
 namespace QuotingTool.Forms
@@ -13,10 +12,6 @@ namespace QuotingTool.Forms
         private readonly DatabaseContext _db;
         private readonly NavigationService _nav;
         private readonly PageSetupService _pageSetup;
-        private readonly LengthFixService _lengthFix;
-        private readonly ResetPriceService _resetPrice;
-        private readonly ExportQuoteService _exportQuote;
-        private readonly PivotRefreshService _pivotRefresh;
         private readonly SapExportService _sapExport;
 
         public MainForm()
@@ -25,10 +20,6 @@ namespace QuotingTool.Forms
             _db.EnsureSchemaExists();
             _nav = new NavigationService();
             _pageSetup = new PageSetupService(_db);
-            _lengthFix = new LengthFixService(_db);
-            _resetPrice = new ResetPriceService(_db);
-            _exportQuote = new ExportQuoteService(_db);
-            _pivotRefresh = new PivotRefreshService(_db);
             _sapExport = new SapExportService(_db);
             InitializeComponent();
         }
@@ -68,7 +59,7 @@ namespace QuotingTool.Forms
             statusLabel.Text = $"Project: {project.CustomerName} – {project.ProjectName}  |  Pages: {pages}";
         }
 
-        private void RefreshAllTabs()
+        public void RefreshAllTabs()
         {
             if (projectDetailsTab.Controls.Count > 0 && projectDetailsTab.Controls[0] is ProjectDetailsForm pdf)
                 pdf.LoadProject(CurrentProjectId);
@@ -107,63 +98,9 @@ namespace QuotingTool.Forms
                 SetCurrentProject(form.SelectedProjectId);
         }
 
-
-        private void btnExportQuote_Click(object sender, EventArgs e)
-        {
-            if (CurrentProjectId <= 0) { MessageBox.Show("No project open."); return; }
-            var result = _exportQuote.ExportQuoteData(CurrentProjectId);
-            if (result.Status != ExportStatus.OK)
-                MessageBox.Show(result.Message, "Export Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-
-            using var sfd = new SaveFileDialog
-            {
-                Filter = "Excel Files (*.xlsx)|*.xlsx|CSV Files (*.csv)|*.csv",
-                FileName = $"Quote_{DateTime.Today:yyyyMMdd}",
-                DefaultExt = "xlsx"
-            };
-            if (sfd.ShowDialog(this) == DialogResult.OK)
-            {
-                var exporter = new ExcelExporter(_db);
-                if (sfd.FilterIndex == 1)
-                    exporter.ExportToExcel(CurrentProjectId, sfd.FileName);
-                else
-                    exporter.ExportToCsv(CurrentProjectId, sfd.FileName);
-
-                MessageBox.Show($"Exported to:\n{sfd.FileName}", "Export Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-        }
-
-        private void btnFixLengths_Click(object sender, EventArgs e)
-        {
-            if (CurrentProjectId <= 0) { MessageBox.Show("No project open."); return; }
-            int fixedCount = _lengthFix.FixLengths(CurrentProjectId);
-            MessageBox.Show($"Fixed {fixedCount} length(s) from mm to m.", "Fix Lengths", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            RefreshAllTabs();
-        }
-
-        private void btnResetPrices_Click(object sender, EventArgs e)
-        {
-            if (CurrentProjectId <= 0) { MessageBox.Show("No project open."); return; }
-            int reset = _resetPrice.ResetPriceFormulas(CurrentProjectId);
-            MessageBox.Show($"Reset {reset} price formula(s).", "Reset Prices", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            RefreshAllTabs();
-        }
-
-        private void btnRefresh_Click(object sender, EventArgs e)
-        {
-            if (CurrentProjectId <= 0) { MessageBox.Show("No project open."); return; }
-            var summary = _pivotRefresh.RefreshSummary(CurrentProjectId);
-            RefreshAllTabs();
-            MessageBox.Show($"Summary refreshed.\nTotal rows: {summary.TotalRows}\nGrand total price: {summary.GrandTotalPrice:C}",
-                "Refresh", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
         private void menuFileNewProject_Click(object sender, EventArgs e) => btnNewProject_Click(sender, e);
         private void menuFileOpenProject_Click(object sender, EventArgs e) => btnOpenProject_Click(sender, e);
         private void menuFileExit_Click(object sender, EventArgs e) => Application.Exit();
-        private void menuToolsFixLengths_Click(object sender, EventArgs e) => btnFixLengths_Click(sender, e);
-        private void menuToolsResetPrices_Click(object sender, EventArgs e) => btnResetPrices_Click(sender, e);
-        private void menuToolsRefresh_Click(object sender, EventArgs e) => btnRefresh_Click(sender, e);
 
         private void menuToolsSundryItems_Click(object sender, EventArgs e)
         {

@@ -135,7 +135,7 @@ namespace QuotingTool.Forms
             lblAttention.Text = "Attention To:";
             txtAttention.Location = new System.Drawing.Point(220, 310);
             txtAttention.Size = new System.Drawing.Size(320, 23);
-            txtAttention.Text = DefaultAttentionTo;
+            txtAttention.Text = "To whom it may concern";
 
             lblMarketSeg.AutoSize = true;
             lblMarketSeg.Location = new System.Drawing.Point(20, 343);

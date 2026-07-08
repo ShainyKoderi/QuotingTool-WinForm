@@ -18,6 +18,7 @@ namespace QuotingTool.Forms
         private readonly ShowHideBulkService _showHide;
         private readonly EditPricingRowVisibilityService _rowVis;
         private readonly QuoteSummaryService _quoteSummaryService;
+        private readonly PivotRefreshService _pivotRefresh;
         private int _projectId;
 
         private static readonly string[] CostTypeOptions =
@@ -36,6 +37,7 @@ namespace QuotingTool.Forms
             _showHide = new ShowHideBulkService(db);
             _rowVis = new EditPricingRowVisibilityService(db);
             _quoteSummaryService = new QuoteSummaryService(db);
+            _pivotRefresh = new PivotRefreshService(db);
             InitializeComponent();
 
             cmbCostType.Items.AddRange(CostTypeOptions);
@@ -131,6 +133,16 @@ namespace QuotingTool.Forms
         }
 
         private void btnRecalculateAll_Click(object sender, EventArgs e) => UpdateDerivedFields(saveChanges: true);
+
+        private void btnRefreshSummary_Click(object sender, EventArgs e)
+        {
+            if (_projectId <= 0) { MessageBox.Show("No project open."); return; }
+            var summary = _pivotRefresh.RefreshSummary(_projectId);
+            UpdateDerivedFields(saveChanges: true);
+            MessageBox.Show(
+                $"Summary refreshed.\nTotal rows: {summary.TotalRows}\nGrand total price: {summary.GrandTotalPrice:C}",
+                "Refresh Summary", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
 
         private void UpdateDerivedFields(bool saveChanges)
         {

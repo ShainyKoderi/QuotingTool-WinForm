@@ -90,6 +90,11 @@ namespace QuotingTool.Forms
             btnRecalculateAll = new System.Windows.Forms.Button();
             btnSave = new System.Windows.Forms.Button();
             btnUpdateVisibility = new System.Windows.Forms.Button();
+            btnRefreshSummary = new System.Windows.Forms.Button();
+            colCategory = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colTotal = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colMarginDollar = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colMarginPct = new System.Windows.Forms.DataGridViewTextBoxColumn();
             grpRowVisibility = new System.Windows.Forms.GroupBox();
             lblVisibleRows = new System.Windows.Forms.Label();
             lblHiddenRows = new System.Windows.Forms.Label();
@@ -357,10 +362,15 @@ namespace QuotingTool.Forms
             gridSummary.Location = new System.Drawing.Point(12, 24);
             gridSummary.ReadOnly = true;
             gridSummary.Size = new System.Drawing.Size(495, 150);
-            gridSummary.Columns.Add(new System.Windows.Forms.DataGridViewTextBoxColumn { DataPropertyName = "Category", HeaderText = "Category" });
-            gridSummary.Columns.Add(new System.Windows.Forms.DataGridViewTextBoxColumn { DataPropertyName = "Total", HeaderText = "Total $" });
-            gridSummary.Columns.Add(new System.Windows.Forms.DataGridViewTextBoxColumn { DataPropertyName = "MarginDollar", HeaderText = "Margin $" });
-            gridSummary.Columns.Add(new System.Windows.Forms.DataGridViewTextBoxColumn { DataPropertyName = "MarginPct", HeaderText = "Margin %" });
+            colCategory.DataPropertyName = "Category";
+            colCategory.HeaderText = "Category";
+            colTotal.DataPropertyName = "Total";
+            colTotal.HeaderText = "Total $";
+            colMarginDollar.DataPropertyName = "MarginDollar";
+            colMarginDollar.HeaderText = "Margin $";
+            colMarginPct.DataPropertyName = "MarginPct";
+            colMarginPct.HeaderText = "Margin %";
+            gridSummary.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { colCategory, colTotal, colMarginDollar, colMarginPct });
             lblSummaryNote1.AutoSize = true;
             lblSummaryNote1.Location = new System.Drawing.Point(12, 185);
             lblSummaryNote1.Text = "* Margin $ also includes IP charge";
@@ -395,6 +405,14 @@ namespace QuotingTool.Forms
             btnUpdateVisibility.Size = new System.Drawing.Size(140, 30);
             btnUpdateVisibility.Text = "Update Row Visibility";
             btnUpdateVisibility.Click += new System.EventHandler(btnUpdateVisibility_Click);
+            btnRefreshSummary.BackColor = System.Drawing.Color.FromArgb(0, 128, 64);
+            btnRefreshSummary.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            btnRefreshSummary.ForeColor = System.Drawing.Color.White;
+            btnRefreshSummary.Location = new System.Drawing.Point(710, 1073);
+            btnRefreshSummary.Size = new System.Drawing.Size(170, 34);
+            btnRefreshSummary.Text = "Refresh Summary";
+            btnRefreshSummary.UseVisualStyleBackColor = false;
+            btnRefreshSummary.Click += new System.EventHandler(btnRefreshSummary_Click);
 
             grpRowVisibility.Location = new System.Drawing.Point(20, 1120);
             grpRowVisibility.Size = new System.Drawing.Size(970, 85);
@@ -454,6 +472,7 @@ namespace QuotingTool.Forms
             pnlScroll.Controls.Add(btnRecalculateAll);
             pnlScroll.Controls.Add(btnSave);
             pnlScroll.Controls.Add(btnUpdateVisibility);
+            pnlScroll.Controls.Add(btnRefreshSummary);
             pnlScroll.Controls.Add(grpRowVisibility);
 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -555,6 +574,11 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.Button btnRecalculateAll;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnUpdateVisibility;
+        private System.Windows.Forms.Button btnRefreshSummary;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colCategory;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colTotal;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colMarginDollar;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colMarginPct;
         private System.Windows.Forms.GroupBox grpRowVisibility;
         private System.Windows.Forms.Label lblVisibleRows;
         private System.Windows.Forms.Label lblHiddenRows;
