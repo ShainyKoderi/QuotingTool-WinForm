@@ -172,6 +172,7 @@ QuotingTool/
 - Copy quote lines to clipboard in **SAP-ready tab-separated format**
 - Import inferred **CRE8** project-details CSV data into the currently open project
 - View richer **Edit Pricing** metrics including totals, IP upcharges, summary margins, and threshold data
+- Use per-tab action buttons: **Fix Lengths**, **Reset Prices**, **Export Quote**, and **Copy for SAP** live on the **Quote** tab; **Refresh Summary** lives on the **Edit Pricing** tab near the summary section
 
 ---
 
@@ -311,6 +312,9 @@ Compared to the original Excel workbook:
 
 - The repository default branch is `main`.
 - The repository language composition is currently **100% C#**.
-- The MainForm toolbar keeps New Project, Open Project, Export Quote, Fix Lengths, Reset Prices, and Refresh; save actions now live on the relevant forms/tabs.
+- The **MainForm toolbar** contains only **New Project** and **Open Project** — these are the only project-lifecycle actions not tied to a specific tab.
+- The **MainForm Tools menu** contains only **Sundry Items** and **Copy for SAP**.
+- Per-tab action buttons: **Fix Lengths**, **Reset Prices**, **Export Quote**, and **Copy for SAP** are on the **Quote** tab; **Refresh Summary** (triggers `PivotRefreshService` and updates the on-screen summary grid) is on the **Edit Pricing** tab.
+- Save actions now live on the relevant forms/tabs (Project Details, Quote, Edit Pricing, Sundry Items).
 - The File menu no longer includes a shared Save command for the same reason.
 - The README reflects changes through the latest repository updates, including the SQL connection string change committed after the major quote-letter/sundry feature merge.
