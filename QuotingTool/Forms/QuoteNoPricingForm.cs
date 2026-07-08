@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Printing;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text;
 using System.Windows.Forms;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using QuotingTool.Data;
 
 namespace QuotingTool.Forms
@@ -55,13 +55,13 @@ namespace QuotingTool.Forms
         {
             using var sfd = new SaveFileDialog
             {
-                Filter = "HTML Files (*.html)|*.html",
-                DefaultExt = "html",
-                FileName = $"QuoteNoPricing_{DateTime.Today:yyyyMMdd}.html"
+                Filter = "PDF Files (*.pdf)|*.pdf",
+                DefaultExt = "pdf",
+                FileName = $"QuoteNoPricing_{DateTime.Today:yyyyMMdd}.pdf"
             };
             if (sfd.ShowDialog(this) == DialogResult.OK)
             {
-                File.WriteAllText(sfd.FileName, BuildHtml(), Encoding.UTF8);
+                BuildPdf(sfd.FileName);
                 MessageBox.Show($"Quote saved to:\n{sfd.FileName}", "Save as PDF", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
@@ -76,28 +76,71 @@ namespace QuotingTool.Forms
             e.Graphics.DrawImage(bmp, bounds.Left, bounds.Top, bmp.Width * ratio, bmp.Height * ratio);
         }
 
-        private string BuildHtml()
+        private void BuildPdf(string filePath)
         {
-            string Encode(string value) => WebUtility.HtmlEncode(value ?? string.Empty);
-            var sb = new StringBuilder();
-            sb.Append("<!DOCTYPE html><html><head><meta charset='utf-8' /><title>Quotation - Not Itemised</title>");
-            sb.Append("<style>body{font-family:Segoe UI,Arial,sans-serif;margin:32px;}h1{font-size:24px;}table{width:100%;border-collapse:collapse;margin-top:18px;}th,td{border:1px solid #ccc;padding:8px;}th{background:#f2f2f2;}</style></head><body>");
-            sb.Append("<h1>QUOTATION - NOT ITEMISED</h1>");
-            sb.Append($"<p><strong>Customer:</strong> {Encode(_project?.CustomerName ?? string.Empty)}<br />");
-            sb.Append($"<strong>Project:</strong> {Encode(_project?.ProjectName ?? string.Empty)}<br />");
-            sb.Append($"<strong>Quote Date:</strong> {Encode((_project?.RevisionDate ?? DateTime.Today).ToString("dd/MM/yyyy"))}<br />");
-            sb.Append($"<strong>Validity:</strong> Quote valid {Encode(_project?.QuoteValidity ?? "30 days")}<br />");
-            sb.Append($"<strong>Finish:</strong> {Encode(string.IsNullOrWhiteSpace(_project?.FinishName) ? _project?.FinishType ?? string.Empty : _project!.FinishName)}<br />");
-            sb.Append($"<strong>Quoted By:</strong> {Encode(string.IsNullOrWhiteSpace(_project?.QuotedBy) ? _project?.AccountManager ?? string.Empty : _project.QuotedBy)}</p>");
-            sb.Append("<table><thead><tr><th>Ln</th><th>Section</th><th>Description</th><th>Alloy</th><th>Temper</th><th>Length (m)</th><th>Qty</th></tr></thead><tbody>");
-            foreach (var line in _lines)
+            var project = _project ?? new Project();
+            var finish = string.IsNullOrWhiteSpace(project.FinishName) ? project.FinishType : project.FinishName;
+            var quotedBy = string.IsNullOrWhiteSpace(project.QuotedBy) ? project.AccountManager : project.QuotedBy;
+            var validity = string.IsNullOrWhiteSpace(project.QuoteValidity) ? "30 days" : project.QuoteValidity;
+
+            Document.Create(document =>
             {
-                sb.Append("<tr>");
-                sb.Append($"<td>{line.LineNumber}</td><td>{Encode(line.ExtrusionCode)}</td><td>{Encode(line.Description)}</td><td>{Encode(line.Alloy)}</td><td>{Encode(line.Temper)}</td><td>{line.LengthM}</td><td>{line.Quantity}</td>");
-                sb.Append("</tr>");
-            }
-            sb.Append("</tbody></table></body></html>");
-            return sb.ToString();
+                document.Page(page =>
+                {
+                    page.Size(PageSizes.A4.Landscape());
+                    page.Margin(24);
+                    page.DefaultTextStyle(x => x.FontFamily("Segoe UI").FontSize(9));
+                    page.Content().Column(column =>
+                    {
+                        column.Spacing(8);
+                        column.Item().Text("QUOTATION - NOT ITEMISED").Bold().FontSize(18);
+                        column.Item().Text($"Customer: {project.CustomerName}");
+                        column.Item().Text($"Project: {project.ProjectName}");
+                        column.Item().Text($"Quote Date: {(project.RevisionDate ?? DateTime.Today):dd/MM/yyyy}");
+                        column.Item().Text($"Validity: Quote valid {validity}");
+                        column.Item().Text($"Finish: {finish}");
+                        column.Item().Text($"Quoted By: {quotedBy}");
+                        column.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.ConstantColumn(36);
+                                columns.ConstantColumn(80);
+                                columns.RelativeColumn(2);
+                                columns.ConstantColumn(60);
+                                columns.ConstantColumn(60);
+                                columns.ConstantColumn(70);
+                                columns.ConstantColumn(50);
+                            });
+
+                            static IContainer HeaderStyle(IContainer container) => container.Border(1).BorderColor(Colors.Grey.Lighten2).Background(Colors.Grey.Lighten3).Padding(4);
+                            static IContainer CellStyle(IContainer container) => container.Border(1).BorderColor(Colors.Grey.Lighten2).Padding(4);
+
+                            table.Header(header =>
+                            {
+                                header.Cell().Element(HeaderStyle).Text("Ln").Bold();
+                                header.Cell().Element(HeaderStyle).Text("Section").Bold();
+                                header.Cell().Element(HeaderStyle).Text("Description").Bold();
+                                header.Cell().Element(HeaderStyle).Text("Alloy").Bold();
+                                header.Cell().Element(HeaderStyle).Text("Temper").Bold();
+                                header.Cell().Element(HeaderStyle).Text("Length (m)").Bold();
+                                header.Cell().Element(HeaderStyle).Text("Qty").Bold();
+                            });
+
+                            foreach (var line in _lines)
+                            {
+                                table.Cell().Element(CellStyle).Text((line.LineNumber == 0 ? line.RowInBlock : line.LineNumber).ToString());
+                                table.Cell().Element(CellStyle).Text(line.ExtrusionCode);
+                                table.Cell().Element(CellStyle).Text(line.Description);
+                                table.Cell().Element(CellStyle).Text(line.Alloy);
+                                table.Cell().Element(CellStyle).Text(line.Temper);
+                                table.Cell().Element(CellStyle).Text(line.LengthM.ToString("N2"));
+                                table.Cell().Element(CellStyle).Text(line.Quantity.ToString("N2"));
+                            }
+                        });
+                    });
+                });
+            }).GeneratePdf(filePath);
         }
     }
 }

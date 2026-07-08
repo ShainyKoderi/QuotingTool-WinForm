@@ -21,6 +21,7 @@ namespace QuotingTool.Forms
             btnExportQuote = new System.Windows.Forms.Button();
             btnCopyForSap = new System.Windows.Forms.Button();
             btnSundryItems = new System.Windows.Forms.Button();
+            btnSave = new System.Windows.Forms.Button();
             gridQuote = new System.Windows.Forms.DataGridView();
             pnlToolbar = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)gridQuote).BeginInit();
@@ -72,10 +73,19 @@ namespace QuotingTool.Forms
             btnSundryItems.Text = "Sundry Items";
             btnSundryItems.Click += new System.EventHandler(btnSundryItems_Click);
 
+            btnSave.BackColor = System.Drawing.Color.FromArgb(0, 120, 215);
+            btnSave.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            btnSave.ForeColor = System.Drawing.Color.White;
+            btnSave.Location = new System.Drawing.Point(720, 77);
+            btnSave.Size = new System.Drawing.Size(120, 34);
+            btnSave.Text = "Save";
+            btnSave.UseVisualStyleBackColor = false;
+            btnSave.Click += new System.EventHandler(btnSave_Click);
+
             pnlToolbar.Controls.AddRange(new System.Windows.Forms.Control[]
             {
                 lblTitle, lblPageSelector, cmbPageSelector, lblPrintArea,
-                btnFixLengths, btnResetPrices, btnExportQuote, btnCopyForSap, btnSundryItems
+                btnFixLengths, btnResetPrices, btnExportQuote, btnCopyForSap, btnSundryItems, btnSave
             });
             pnlToolbar.Dock = System.Windows.Forms.DockStyle.Top;
             pnlToolbar.Height = 120;
@@ -108,6 +118,7 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.Button btnExportQuote;
         private System.Windows.Forms.Button btnCopyForSap;
         private System.Windows.Forms.Button btnSundryItems;
+        private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.DataGridView gridQuote;
         private System.Windows.Forms.Panel pnlToolbar;
     }

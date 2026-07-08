@@ -1,6 +1,7 @@
 using System;
 using System.Windows.Forms;
 using QuotingTool.Data;
+using QuotingTool.Services;
 
 namespace QuotingTool.Forms
 {
@@ -9,11 +10,13 @@ namespace QuotingTool.Forms
         internal const string DefaultAttentionTo = "To whom it may concern";
 
         private readonly DatabaseContext _db;
+        private readonly Cre8ImportService _cre8Import;
         private int _projectId;
 
         public ProjectDetailsForm(DatabaseContext db)
         {
             _db = db;
+            _cre8Import = new Cre8ImportService(db);
             InitializeComponent();
         }
 
@@ -89,14 +92,30 @@ namespace QuotingTool.Forms
 
         private void btnImportCre8_Click(object sender, EventArgs e)
         {
+            if (_projectId <= 0)
+            {
+                MessageBox.Show("No project open.");
+                return;
+            }
+
             using var ofd = new OpenFileDialog
             {
                 Filter = "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*"
             };
 
-            if (ofd.ShowDialog(this) == DialogResult.OK)
-                MessageBox.Show($"CRE8 import: {ofd.FileName} selected. Feature coming soon.", "Import CRE8",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (ofd.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            try
+            {
+                var result = _cre8Import.ImportProjectDetails(_projectId, ofd.FileName);
+                LoadProject(_projectId);
+                MessageBox.Show(result.Message, "Import CRE8", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Import failed:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private static void SetComboOrText(ComboBox cmb, string value)

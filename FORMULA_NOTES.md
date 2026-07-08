@@ -209,12 +209,13 @@ Recent updates added:
 These forms use persisted project and quote data to generate:
 
 - a printable/previewable quote letter
-- an HTML-save output path
+- native PDF export via QuestPDF for the quote letter and no-pricing schedule
 - a no-pricing schedule showing lines without dollar values
 
 ### Notes on fidelity
 
 - These forms are **app-level reconstructions**, not direct formula translations from workbook cells.
+- PDF generation is now application-driven rather than HTML-file output, so the exported document format is closer to the workbook deliverable even though the layout is still a WinForms/QuestPDF reconstruction.
 - They rely on persisted project data such as:
   - `AttentionTo`
   - `QuoteValidity`
@@ -223,6 +224,15 @@ These forms use persisted project and quote data to generate:
   - `QuotedBy` / `AccountManager`
 - `4c.Quote MF ALT` is still not explicitly implemented as a dedicated separate form/output workflow.
 - **Status**: ⚠️ Functionally represented in the app, but not a literal sheet/cell formula translation.
+
+---
+
+### CRE8 project-details import
+
+`ProjectDetailsForm` now calls `Cre8ImportService.cs` to import project metadata from a CRE8 CSV into the currently open project record.
+
+- **Important caveat**: no CRE8 sample/specification exists in this repository, so the service uses inferred header aliases and fallback column positions based on the Project Details fields.
+- **Status**: ⚠️ Implemented as a best-effort CSV mapping and may need adjustment once a real CRE8 export sample is available.
 
 ---
 
@@ -296,6 +306,7 @@ Both remain relevant to workbook logic.
 | Full per-line IP grade translation | Rates supported, line-level grade persistence still missing |
 | Full threshold cost derivation from DATA | Stored/used manually, still not fully workbook-driven |
 | Dedicated MF ALT customer output | Not yet implemented as separate end-to-end flow |
+| Exact CRE8 export schema fidelity | Import exists via best-effort `Cre8ImportService`, but no source CRE8 sample/spec is in the repo |
 
 ---
 

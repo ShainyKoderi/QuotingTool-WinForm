@@ -104,74 +104,189 @@ namespace QuotingTool.Forms
 
             pnlScroll.AutoScroll = true;
             pnlScroll.Dock = System.Windows.Forms.DockStyle.Fill;
-            Controls.Add(pnlScroll);
-
-            int x1 = 20, x2 = 280, w = 140, h = 30, y = 15;
 
             lblTitle.Font = new System.Drawing.Font("Segoe UI", 13F, System.Drawing.FontStyle.Bold);
-            lblTitle.Location = new System.Drawing.Point(x1, y);
+            lblTitle.Location = new System.Drawing.Point(20, 15);
             lblTitle.Size = new System.Drawing.Size(350, 28);
             lblTitle.Text = "3. Edit Pricing";
-            pnlScroll.Controls.Add(lblTitle);
-            y += 40;
 
             lblPricingNotes.AutoSize = true;
-            lblPricingNotes.Location = new System.Drawing.Point(x1, y + 3);
+            lblPricingNotes.Location = new System.Drawing.Point(20, 58);
             lblPricingNotes.Text = "Pricing Notes:";
-            txtPricingNotes.Location = new System.Drawing.Point(x2, y);
+            txtPricingNotes.Location = new System.Drawing.Point(280, 55);
             txtPricingNotes.Multiline = true;
             txtPricingNotes.Size = new System.Drawing.Size(320, 60);
-            pnlScroll.Controls.Add(lblPricingNotes);
-            pnlScroll.Controls.Add(txtPricingNotes);
-            y += 70;
 
-            AddComboRow(lblCostType, cmbCostType, "Cost Type:", x1, x2, 280, ref y, h, pnlScroll, true);
-            AddComboRow(lblFinType, cmbFinType, "Finish Type:", x1, x2, 280, ref y, h, pnlScroll, true);
+            lblCostType.AutoSize = true;
+            lblCostType.Location = new System.Drawing.Point(20, 128);
+            lblCostType.Text = "Cost Type:";
+            cmbCostType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cmbCostType.Location = new System.Drawing.Point(280, 125);
+            cmbCostType.Size = new System.Drawing.Size(280, 23);
+
+            lblFinType.AutoSize = true;
+            lblFinType.Location = new System.Drawing.Point(20, 158);
+            lblFinType.Text = "Finish Type:";
+            cmbFinType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cmbFinType.Location = new System.Drawing.Point(280, 155);
+            cmbFinType.Size = new System.Drawing.Size(280, 23);
 
             chkCostTypeOverride.AutoSize = true;
-            chkCostTypeOverride.Location = new System.Drawing.Point(x1, y + 3);
+            chkCostTypeOverride.Location = new System.Drawing.Point(20, 188);
             chkCostTypeOverride.Text = "Cost Type Override";
-            btnToggleOverride.Location = new System.Drawing.Point(x2, y);
+            btnToggleOverride.Location = new System.Drawing.Point(280, 185);
             btnToggleOverride.Size = new System.Drawing.Size(140, 26);
             btnToggleOverride.Text = "Toggle Override";
             btnToggleOverride.Click += new System.EventHandler(btnToggleOverride_Click);
-            pnlScroll.Controls.Add(chkCostTypeOverride);
-            pnlScroll.Controls.Add(btnToggleOverride);
-            y += h;
 
-            AddTextRow(lblMetalPrice, txtMetalPrice, "Mill Finish Price $/kg:", x1, x2, w, ref y, h, pnlScroll);
-            AddTextRow(lblFinishingPrice, txtFinishingPrice, "Finishing Price $/m2:", x1, x2, w, ref y, h, pnlScroll);
-            AddTextRow(lblFinishingCostPricePerM2, txtFinishingCostPricePerM2, "Finishing Cost Price $/m2:", x1, x2, w, ref y, h, pnlScroll);
-            AddTextRow(lblB42, txtB42, "POA/Other Vendor Cost (B42):", x1, x2, w, ref y, h, pnlScroll);
-            AddTextRow(lblB44, txtB44, "Finishing Sell Price (B44):", x1, x2, w, ref y, h, pnlScroll);
-            AddTextRow(lblB48, txtB48, "Mill BULK POA Cost (B48):", x1, x2, w, ref y, h, pnlScroll);
-            AddTextRow(lblB50, txtB50, "Mill BULK Sell Price (B50):", x1, x2, w, ref y, h, pnlScroll);
-            AddTextRow(lblB52, txtB52, "Mill NON-Bulk POA Cost (B52):", x1, x2, w, ref y, h, pnlScroll);
-            AddTextRow(lblB54, txtB54, "Mill NON-Bulk Sell Price (B54):", x1, x2, w, ref y, h, pnlScroll);
-            AddTextRow(lblB57, txtB57, "Anodised Threshold Cost (B57):", x1, x2, w, ref y, h, pnlScroll);
-            AddTextRow(lblB58, txtB58, "Anodised Threshold Sell Price (B58):", x1, x2, w, ref y, h, pnlScroll);
-            AddComboRow(lblTBCalcType, cmbTBCalcType, "Thermal Break Calc Type:", x1, x2, 200, ref y, h, pnlScroll, true);
-            AddTextRow(lblTBMargin, txtTBMargin, "Thermal Break Margin/Discount:", x1, x2, w, ref y, h, pnlScroll);
-            y += 5;
+            lblMetalPrice.AutoSize = true;
+            lblMetalPrice.Location = new System.Drawing.Point(20, 218);
+            lblMetalPrice.Text = "Mill Finish Price $/kg:";
+            txtMetalPrice.Location = new System.Drawing.Point(280, 215);
+            txtMetalPrice.Size = new System.Drawing.Size(140, 23);
 
-            grpTotals.Location = new System.Drawing.Point(x1, y);
+            lblFinishingPrice.AutoSize = true;
+            lblFinishingPrice.Location = new System.Drawing.Point(20, 248);
+            lblFinishingPrice.Text = "Finishing Price $/m2:";
+            txtFinishingPrice.Location = new System.Drawing.Point(280, 245);
+            txtFinishingPrice.Size = new System.Drawing.Size(140, 23);
+
+            lblFinishingCostPricePerM2.AutoSize = true;
+            lblFinishingCostPricePerM2.Location = new System.Drawing.Point(20, 278);
+            lblFinishingCostPricePerM2.Text = "Finishing Cost Price $/m2:";
+            txtFinishingCostPricePerM2.Location = new System.Drawing.Point(280, 275);
+            txtFinishingCostPricePerM2.Size = new System.Drawing.Size(140, 23);
+
+            lblB42.AutoSize = true;
+            lblB42.Location = new System.Drawing.Point(20, 308);
+            lblB42.Text = "POA/Other Vendor Cost (B42):";
+            txtB42.Location = new System.Drawing.Point(280, 305);
+            txtB42.Size = new System.Drawing.Size(140, 23);
+
+            lblB44.AutoSize = true;
+            lblB44.Location = new System.Drawing.Point(20, 338);
+            lblB44.Text = "Finishing Sell Price (B44):";
+            txtB44.Location = new System.Drawing.Point(280, 335);
+            txtB44.Size = new System.Drawing.Size(140, 23);
+
+            lblB48.AutoSize = true;
+            lblB48.Location = new System.Drawing.Point(20, 368);
+            lblB48.Text = "Mill BULK POA Cost (B48):";
+            txtB48.Location = new System.Drawing.Point(280, 365);
+            txtB48.Size = new System.Drawing.Size(140, 23);
+
+            lblB50.AutoSize = true;
+            lblB50.Location = new System.Drawing.Point(20, 398);
+            lblB50.Text = "Mill BULK Sell Price (B50):";
+            txtB50.Location = new System.Drawing.Point(280, 395);
+            txtB50.Size = new System.Drawing.Size(140, 23);
+
+            lblB52.AutoSize = true;
+            lblB52.Location = new System.Drawing.Point(20, 428);
+            lblB52.Text = "Mill NON-Bulk POA Cost (B52):";
+            txtB52.Location = new System.Drawing.Point(280, 425);
+            txtB52.Size = new System.Drawing.Size(140, 23);
+
+            lblB54.AutoSize = true;
+            lblB54.Location = new System.Drawing.Point(20, 458);
+            lblB54.Text = "Mill NON-Bulk Sell Price (B54):";
+            txtB54.Location = new System.Drawing.Point(280, 455);
+            txtB54.Size = new System.Drawing.Size(140, 23);
+
+            lblB57.AutoSize = true;
+            lblB57.Location = new System.Drawing.Point(20, 488);
+            lblB57.Text = "Anodised Threshold Cost (B57):";
+            txtB57.Location = new System.Drawing.Point(280, 485);
+            txtB57.Size = new System.Drawing.Size(140, 23);
+
+            lblB58.AutoSize = true;
+            lblB58.Location = new System.Drawing.Point(20, 518);
+            lblB58.Text = "Anodised Threshold Sell Price (B58):";
+            txtB58.Location = new System.Drawing.Point(280, 515);
+            txtB58.Size = new System.Drawing.Size(140, 23);
+
+            lblTBCalcType.AutoSize = true;
+            lblTBCalcType.Location = new System.Drawing.Point(20, 548);
+            lblTBCalcType.Text = "Thermal Break Calc Type:";
+            cmbTBCalcType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cmbTBCalcType.Location = new System.Drawing.Point(280, 545);
+            cmbTBCalcType.Size = new System.Drawing.Size(200, 23);
+
+            lblTBMargin.AutoSize = true;
+            lblTBMargin.Location = new System.Drawing.Point(20, 578);
+            lblTBMargin.Text = "Thermal Break Margin/Discount:";
+            txtTBMargin.Location = new System.Drawing.Point(280, 575);
+            txtTBMargin.Size = new System.Drawing.Size(140, 23);
+
+            grpTotals.Location = new System.Drawing.Point(20, 610);
             grpTotals.Size = new System.Drawing.Size(430, 110);
             grpTotals.Text = "Calculated Totals";
-            ConfigureValueRow(lblTotalKg, lblTotalKgValue, "Total kg:", 15, 180, 28, grpTotals);
-            ConfigureValueRow(lblTotalFinishingM2, lblTotalFinishingM2Value, "Total Finishing m2:", 15, 180, 53, grpTotals);
-            ConfigureValueRow(lblTotalPieces, lblTotalPiecesValue, "Total Pieces:", 15, 180, 78, grpTotals);
-            pnlScroll.Controls.Add(grpTotals);
+            lblTotalKg.AutoSize = true;
+            lblTotalKg.Location = new System.Drawing.Point(15, 28);
+            lblTotalKg.Text = "Total kg:";
+            lblTotalKgValue.AutoSize = true;
+            lblTotalKgValue.Location = new System.Drawing.Point(180, 28);
+            lblTotalKgValue.Text = "0.00";
+            lblTotalFinishingM2.AutoSize = true;
+            lblTotalFinishingM2.Location = new System.Drawing.Point(15, 53);
+            lblTotalFinishingM2.Text = "Total Finishing m2:";
+            lblTotalFinishingM2Value.AutoSize = true;
+            lblTotalFinishingM2Value.Location = new System.Drawing.Point(180, 53);
+            lblTotalFinishingM2Value.Text = "0.00";
+            lblTotalPieces.AutoSize = true;
+            lblTotalPieces.Location = new System.Drawing.Point(15, 78);
+            lblTotalPieces.Text = "Total Pieces:";
+            lblTotalPiecesValue.AutoSize = true;
+            lblTotalPiecesValue.Location = new System.Drawing.Point(180, 78);
+            lblTotalPiecesValue.Text = "0.00";
+            grpTotals.Controls.Add(lblTotalKg);
+            grpTotals.Controls.Add(lblTotalKgValue);
+            grpTotals.Controls.Add(lblTotalFinishingM2);
+            grpTotals.Controls.Add(lblTotalFinishingM2Value);
+            grpTotals.Controls.Add(lblTotalPieces);
+            grpTotals.Controls.Add(lblTotalPiecesValue);
 
-            grpIp.Location = new System.Drawing.Point(470, y);
+            grpIp.Location = new System.Drawing.Point(470, 610);
             grpIp.Size = new System.Drawing.Size(450, 190);
             grpIp.Text = "IP Upcharges";
-            ConfigureTextRow(lblCustomerSapDiscount, txtCustomerSapDiscount, "Customer SAP Discount %:", 15, 210, 90, 28, grpIp);
-            ConfigureTextRow(lblIP1Upcharge, txtIP1Upcharge, "IP1 Upcharge $/kg:", 15, 210, 90, 58, grpIp);
-            ConfigureValueRow(lblIP1Margin, lblIP1MarginValue, "IP1 Margin %:", 320, 390, 58, grpIp);
-            ConfigureTextRow(lblIP2Upcharge, txtIP2Upcharge, "IP2 Upcharge $/kg:", 15, 210, 90, 88, grpIp);
-            ConfigureValueRow(lblIP2Margin, lblIP2MarginValue, "IP2 Margin %:", 320, 390, 88, grpIp);
-            ConfigureTextRow(lblIP3Rate, txtIP3Rate, "IP3 Panoramic Fixed $/kg:", 15, 210, 90, 118, grpIp);
-            ConfigureValueRow(lblIP3Margin, lblIP3MarginValue, "IP3 Margin %:", 320, 390, 118, grpIp);
+            lblCustomerSapDiscount.AutoSize = true;
+            lblCustomerSapDiscount.Location = new System.Drawing.Point(15, 31);
+            lblCustomerSapDiscount.Text = "Customer SAP Discount %:";
+            txtCustomerSapDiscount.Location = new System.Drawing.Point(210, 28);
+            txtCustomerSapDiscount.Size = new System.Drawing.Size(90, 23);
+            lblIP1Upcharge.AutoSize = true;
+            lblIP1Upcharge.Location = new System.Drawing.Point(15, 61);
+            lblIP1Upcharge.Text = "IP1 Upcharge $/kg:";
+            txtIP1Upcharge.Location = new System.Drawing.Point(210, 58);
+            txtIP1Upcharge.Size = new System.Drawing.Size(90, 23);
+            lblIP1Margin.AutoSize = true;
+            lblIP1Margin.Location = new System.Drawing.Point(320, 58);
+            lblIP1Margin.Text = "IP1 Margin %:";
+            lblIP1MarginValue.AutoSize = true;
+            lblIP1MarginValue.Location = new System.Drawing.Point(390, 58);
+            lblIP1MarginValue.Text = "0.00";
+            lblIP2Upcharge.AutoSize = true;
+            lblIP2Upcharge.Location = new System.Drawing.Point(15, 91);
+            lblIP2Upcharge.Text = "IP2 Upcharge $/kg:";
+            txtIP2Upcharge.Location = new System.Drawing.Point(210, 88);
+            txtIP2Upcharge.Size = new System.Drawing.Size(90, 23);
+            lblIP2Margin.AutoSize = true;
+            lblIP2Margin.Location = new System.Drawing.Point(320, 88);
+            lblIP2Margin.Text = "IP2 Margin %:";
+            lblIP2MarginValue.AutoSize = true;
+            lblIP2MarginValue.Location = new System.Drawing.Point(390, 88);
+            lblIP2MarginValue.Text = "0.00";
+            lblIP3Rate.AutoSize = true;
+            lblIP3Rate.Location = new System.Drawing.Point(15, 121);
+            lblIP3Rate.Text = "IP3 Panoramic Fixed $/kg:";
+            txtIP3Rate.Location = new System.Drawing.Point(210, 118);
+            txtIP3Rate.Size = new System.Drawing.Size(90, 23);
+            lblIP3Margin.AutoSize = true;
+            lblIP3Margin.Location = new System.Drawing.Point(320, 118);
+            lblIP3Margin.Text = "IP3 Margin %:";
+            lblIP3MarginValue.AutoSize = true;
+            lblIP3MarginValue.Location = new System.Drawing.Point(390, 118);
+            lblIP3MarginValue.Text = "0.00";
             btnEditIpCategories.Location = new System.Drawing.Point(15, 150);
             btnEditIpCategories.Size = new System.Drawing.Size(150, 28);
             btnEditIpCategories.Text = "Edit IP Categories";
@@ -180,35 +295,67 @@ namespace QuotingTool.Forms
             btnResetIpCharges.Size = new System.Drawing.Size(120, 28);
             btnResetIpCharges.Text = "Reset IP Charges";
             btnResetIpCharges.Click += new System.EventHandler(btnResetIpCharges_Click);
+            grpIp.Controls.Add(lblCustomerSapDiscount);
+            grpIp.Controls.Add(txtCustomerSapDiscount);
+            grpIp.Controls.Add(lblIP1Upcharge);
+            grpIp.Controls.Add(txtIP1Upcharge);
+            grpIp.Controls.Add(lblIP1Margin);
+            grpIp.Controls.Add(lblIP1MarginValue);
+            grpIp.Controls.Add(lblIP2Upcharge);
+            grpIp.Controls.Add(txtIP2Upcharge);
+            grpIp.Controls.Add(lblIP2Margin);
+            grpIp.Controls.Add(lblIP2MarginValue);
+            grpIp.Controls.Add(lblIP3Rate);
+            grpIp.Controls.Add(txtIP3Rate);
+            grpIp.Controls.Add(lblIP3Margin);
+            grpIp.Controls.Add(lblIP3MarginValue);
             grpIp.Controls.Add(btnEditIpCategories);
             grpIp.Controls.Add(btnResetIpCharges);
-            pnlScroll.Controls.Add(grpIp);
-            y += 200;
 
-            grpMargins.Location = new System.Drawing.Point(x1, y);
+            grpMargins.Location = new System.Drawing.Point(20, 810);
             grpMargins.Size = new System.Drawing.Size(430, 130);
             grpMargins.Text = "Margin %";
-            ConfigureValueRow(lblMillFinishMargin, lblMillFinishMarginValue, "Mill Finish Margin %:", 15, 210, 28, grpMargins);
-            ConfigureValueRow(lblFinishingMargin, lblFinishingMarginValue, "Finishing Margin %:", 15, 210, 58, grpMargins);
-            ConfigureValueRow(lblThresholdMargin, lblThresholdMarginValue, "Threshold Margin %:", 15, 210, 88, grpMargins);
+            lblMillFinishMargin.AutoSize = true;
+            lblMillFinishMargin.Location = new System.Drawing.Point(15, 28);
+            lblMillFinishMargin.Text = "Mill Finish Margin %:";
+            lblMillFinishMarginValue.AutoSize = true;
+            lblMillFinishMarginValue.Location = new System.Drawing.Point(210, 28);
+            lblMillFinishMarginValue.Text = "0.00";
+            lblFinishingMargin.AutoSize = true;
+            lblFinishingMargin.Location = new System.Drawing.Point(15, 58);
+            lblFinishingMargin.Text = "Finishing Margin %:";
+            lblFinishingMarginValue.AutoSize = true;
+            lblFinishingMarginValue.Location = new System.Drawing.Point(210, 58);
+            lblFinishingMarginValue.Text = "0.00";
+            lblThresholdMargin.AutoSize = true;
+            lblThresholdMargin.Location = new System.Drawing.Point(15, 88);
+            lblThresholdMargin.Text = "Threshold Margin %:";
+            lblThresholdMarginValue.AutoSize = true;
+            lblThresholdMarginValue.Location = new System.Drawing.Point(210, 88);
+            lblThresholdMarginValue.Text = "0.00";
             lblAnodisedThresholdCost.AutoSize = true;
             lblAnodisedThresholdCost.Location = new System.Drawing.Point(15, 110);
             lblAnodisedThresholdCost.Text = "Threshold Cost Price $/m2:";
             txtAnodisedThresholdCost.Location = new System.Drawing.Point(210, 106);
             txtAnodisedThresholdCost.Size = new System.Drawing.Size(90, 23);
+            grpMargins.Controls.Add(lblMillFinishMargin);
+            grpMargins.Controls.Add(lblMillFinishMarginValue);
+            grpMargins.Controls.Add(lblFinishingMargin);
+            grpMargins.Controls.Add(lblFinishingMarginValue);
+            grpMargins.Controls.Add(lblThresholdMargin);
+            grpMargins.Controls.Add(lblThresholdMarginValue);
             grpMargins.Controls.Add(lblAnodisedThresholdCost);
             grpMargins.Controls.Add(txtAnodisedThresholdCost);
-            pnlScroll.Controls.Add(grpMargins);
 
-            grpSummary.Location = new System.Drawing.Point(470, y);
+            grpSummary.Location = new System.Drawing.Point(470, 810);
             grpSummary.Size = new System.Drawing.Size(520, 250);
             grpSummary.Text = "Quote Summary (rows 61-66)";
-            gridSummary.AutoGenerateColumns = false;
             gridSummary.AllowUserToAddRows = false;
             gridSummary.AllowUserToDeleteRows = false;
-            gridSummary.ReadOnly = true;
+            gridSummary.AutoGenerateColumns = false;
             gridSummary.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             gridSummary.Location = new System.Drawing.Point(12, 24);
+            gridSummary.ReadOnly = true;
             gridSummary.Size = new System.Drawing.Size(495, 150);
             gridSummary.Columns.Add(new System.Windows.Forms.DataGridViewTextBoxColumn { DataPropertyName = "Category", HeaderText = "Category" });
             gridSummary.Columns.Add(new System.Windows.Forms.DataGridViewTextBoxColumn { DataPropertyName = "Total", HeaderText = "Total $" });
@@ -223,37 +370,33 @@ namespace QuotingTool.Forms
             grpSummary.Controls.Add(gridSummary);
             grpSummary.Controls.Add(lblSummaryNote1);
             grpSummary.Controls.Add(lblSummaryNote2);
-            pnlScroll.Controls.Add(grpSummary);
-            y += 265;
 
-            btnBulkNonBulkRates.Location = new System.Drawing.Point(x1, y);
+            btnBulkNonBulkRates.Location = new System.Drawing.Point(20, 1075);
             btnBulkNonBulkRates.Size = new System.Drawing.Size(150, 30);
             btnBulkNonBulkRates.Text = "Bulk/Non-bulk Rates";
             btnBulkNonBulkRates.Click += new System.EventHandler(btnBulkNonBulkRates_Click);
-            btnEditSundryItems.Location = new System.Drawing.Point(x1 + 160, y);
+            btnEditSundryItems.Location = new System.Drawing.Point(180, 1075);
             btnEditSundryItems.Size = new System.Drawing.Size(120, 30);
             btnEditSundryItems.Text = "Edit Sundry Items";
             btnEditSundryItems.Click += new System.EventHandler(btnEditSundryItems_Click);
-            btnRecalculateAll.Location = new System.Drawing.Point(x1 + 290, y);
+            btnRecalculateAll.Location = new System.Drawing.Point(310, 1075);
             btnRecalculateAll.Size = new System.Drawing.Size(120, 30);
             btnRecalculateAll.Text = "Recalculate All";
             btnRecalculateAll.Click += new System.EventHandler(btnRecalculateAll_Click);
-            btnSave.Location = new System.Drawing.Point(x1 + 420, y);
-            btnSave.Size = new System.Drawing.Size(90, 30);
+            btnSave.BackColor = System.Drawing.Color.FromArgb(0, 120, 215);
+            btnSave.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            btnSave.ForeColor = System.Drawing.Color.White;
+            btnSave.Location = new System.Drawing.Point(440, 1073);
+            btnSave.Size = new System.Drawing.Size(110, 34);
             btnSave.Text = "Save";
+            btnSave.UseVisualStyleBackColor = false;
             btnSave.Click += new System.EventHandler(btnSave_Click);
-            btnUpdateVisibility.Location = new System.Drawing.Point(x1 + 520, y);
+            btnUpdateVisibility.Location = new System.Drawing.Point(560, 1075);
             btnUpdateVisibility.Size = new System.Drawing.Size(140, 30);
             btnUpdateVisibility.Text = "Update Row Visibility";
             btnUpdateVisibility.Click += new System.EventHandler(btnUpdateVisibility_Click);
-            pnlScroll.Controls.Add(btnBulkNonBulkRates);
-            pnlScroll.Controls.Add(btnEditSundryItems);
-            pnlScroll.Controls.Add(btnRecalculateAll);
-            pnlScroll.Controls.Add(btnSave);
-            pnlScroll.Controls.Add(btnUpdateVisibility);
-            y += 45;
 
-            grpRowVisibility.Location = new System.Drawing.Point(x1, y);
+            grpRowVisibility.Location = new System.Drawing.Point(20, 1120);
             grpRowVisibility.Size = new System.Drawing.Size(970, 85);
             grpRowVisibility.Text = "Row Visibility Result";
             lblVisibleRows.AutoSize = false;
@@ -266,11 +409,57 @@ namespace QuotingTool.Forms
             lblHiddenRows.Text = "Hidden rows: —";
             grpRowVisibility.Controls.Add(lblVisibleRows);
             grpRowVisibility.Controls.Add(lblHiddenRows);
+
+            pnlScroll.Controls.Add(lblTitle);
+            pnlScroll.Controls.Add(lblPricingNotes);
+            pnlScroll.Controls.Add(txtPricingNotes);
+            pnlScroll.Controls.Add(lblCostType);
+            pnlScroll.Controls.Add(cmbCostType);
+            pnlScroll.Controls.Add(lblFinType);
+            pnlScroll.Controls.Add(cmbFinType);
+            pnlScroll.Controls.Add(chkCostTypeOverride);
+            pnlScroll.Controls.Add(btnToggleOverride);
+            pnlScroll.Controls.Add(lblMetalPrice);
+            pnlScroll.Controls.Add(txtMetalPrice);
+            pnlScroll.Controls.Add(lblFinishingPrice);
+            pnlScroll.Controls.Add(txtFinishingPrice);
+            pnlScroll.Controls.Add(lblFinishingCostPricePerM2);
+            pnlScroll.Controls.Add(txtFinishingCostPricePerM2);
+            pnlScroll.Controls.Add(lblB42);
+            pnlScroll.Controls.Add(txtB42);
+            pnlScroll.Controls.Add(lblB44);
+            pnlScroll.Controls.Add(txtB44);
+            pnlScroll.Controls.Add(lblB48);
+            pnlScroll.Controls.Add(txtB48);
+            pnlScroll.Controls.Add(lblB50);
+            pnlScroll.Controls.Add(txtB50);
+            pnlScroll.Controls.Add(lblB52);
+            pnlScroll.Controls.Add(txtB52);
+            pnlScroll.Controls.Add(lblB54);
+            pnlScroll.Controls.Add(txtB54);
+            pnlScroll.Controls.Add(lblB57);
+            pnlScroll.Controls.Add(txtB57);
+            pnlScroll.Controls.Add(lblB58);
+            pnlScroll.Controls.Add(txtB58);
+            pnlScroll.Controls.Add(lblTBCalcType);
+            pnlScroll.Controls.Add(cmbTBCalcType);
+            pnlScroll.Controls.Add(lblTBMargin);
+            pnlScroll.Controls.Add(txtTBMargin);
+            pnlScroll.Controls.Add(grpTotals);
+            pnlScroll.Controls.Add(grpIp);
+            pnlScroll.Controls.Add(grpMargins);
+            pnlScroll.Controls.Add(grpSummary);
+            pnlScroll.Controls.Add(btnBulkNonBulkRates);
+            pnlScroll.Controls.Add(btnEditSundryItems);
+            pnlScroll.Controls.Add(btnRecalculateAll);
+            pnlScroll.Controls.Add(btnSave);
+            pnlScroll.Controls.Add(btnUpdateVisibility);
             pnlScroll.Controls.Add(grpRowVisibility);
 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(1050, 760);
+            Controls.Add(pnlScroll);
             Name = "EditPricingForm";
             Text = "Edit Pricing";
             grpTotals.ResumeLayout(false);
@@ -286,54 +475,6 @@ namespace QuotingTool.Forms
             pnlScroll.ResumeLayout(false);
             pnlScroll.PerformLayout();
             ResumeLayout(false);
-        }
-
-        private static void AddTextRow(System.Windows.Forms.Label label, System.Windows.Forms.TextBox textBox, string text, int lx, int tx, int tw, ref int y, int h, System.Windows.Forms.Control parent)
-        {
-            label.AutoSize = true;
-            label.Location = new System.Drawing.Point(lx, y + 3);
-            label.Text = text;
-            textBox.Location = new System.Drawing.Point(tx, y);
-            textBox.Size = new System.Drawing.Size(tw, 23);
-            parent.Controls.Add(label);
-            parent.Controls.Add(textBox);
-            y += h;
-        }
-
-        private static void AddComboRow(System.Windows.Forms.Label label, System.Windows.Forms.ComboBox comboBox, string text, int lx, int tx, int tw, ref int y, int h, System.Windows.Forms.Control parent, bool dropDownList)
-        {
-            label.AutoSize = true;
-            label.Location = new System.Drawing.Point(lx, y + 3);
-            label.Text = text;
-            comboBox.DropDownStyle = dropDownList ? System.Windows.Forms.ComboBoxStyle.DropDownList : System.Windows.Forms.ComboBoxStyle.DropDown;
-            comboBox.Location = new System.Drawing.Point(tx, y);
-            comboBox.Size = new System.Drawing.Size(tw, 23);
-            parent.Controls.Add(label);
-            parent.Controls.Add(comboBox);
-            y += h;
-        }
-
-        private static void ConfigureValueRow(System.Windows.Forms.Label label, System.Windows.Forms.Label value, string text, int lx, int vx, int y, System.Windows.Forms.Control parent)
-        {
-            label.AutoSize = true;
-            label.Location = new System.Drawing.Point(lx, y);
-            label.Text = text;
-            value.AutoSize = true;
-            value.Location = new System.Drawing.Point(vx, y);
-            value.Text = "0.00";
-            parent.Controls.Add(label);
-            parent.Controls.Add(value);
-        }
-
-        private static void ConfigureTextRow(System.Windows.Forms.Label label, System.Windows.Forms.TextBox textBox, string text, int lx, int tx, int tw, int y, System.Windows.Forms.Control parent)
-        {
-            label.AutoSize = true;
-            label.Location = new System.Drawing.Point(lx, y + 3);
-            label.Text = text;
-            textBox.Location = new System.Drawing.Point(tx, y);
-            textBox.Size = new System.Drawing.Size(tw, 23);
-            parent.Controls.Add(label);
-            parent.Controls.Add(textBox);
         }
 
         private System.Windows.Forms.Panel pnlScroll;

@@ -166,6 +166,33 @@ namespace QuotingTool.Forms
             form.ShowDialog(this);
         }
 
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            if (_projectId <= 0)
+            {
+                MessageBox.Show("No project open.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (gridQuote.IsCurrentCellDirty)
+                gridQuote.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            gridQuote.EndEdit();
+
+            var lines = (gridQuote.DataSource as IEnumerable<QuoteLine>)?.ToList()
+                ?? _db.GetQuoteLines(_projectId).ToList();
+
+            foreach (var line in lines)
+            {
+                line.ProjectId = _projectId;
+                line.LineNumber = line.LineNumber <= 0 ? line.RowInBlock : line.LineNumber;
+                line.TotalPrice = line.Quantity * line.LengthM * line.Price;
+                _db.UpsertQuoteLine(line);
+            }
+
+            MessageBox.Show("Quote saved.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            RefreshGrid();
+        }
+
         private void gridQuote_CurrentCellDirtyStateChanged(object sender, EventArgs e)
         {
             if (gridQuote.IsCurrentCellDirty)

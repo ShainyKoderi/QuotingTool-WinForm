@@ -3,9 +3,10 @@ using System.Drawing;
 using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text;
 using System.Windows.Forms;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using QuotingTool.Data;
 
 namespace QuotingTool.Forms
@@ -101,13 +102,13 @@ namespace QuotingTool.Forms
             if (_project == null) return;
             using var sfd = new SaveFileDialog
             {
-                Filter = "HTML Files (*.html)|*.html",
-                DefaultExt = "html",
-                FileName = $"QuoteLetter_{_project.ProjectName}_{DateTime.Today:yyyyMMdd}.html"
+                Filter = "PDF Files (*.pdf)|*.pdf",
+                DefaultExt = "pdf",
+                FileName = $"QuoteLetter_{SanitizeFileNamePart(_project.ProjectName)}_{DateTime.Today:yyyyMMdd}.pdf"
             };
             if (sfd.ShowDialog(this) == DialogResult.OK)
             {
-                File.WriteAllText(sfd.FileName, BuildHtml(), Encoding.UTF8);
+                BuildPdf(sfd.FileName);
                 MessageBox.Show($"Letter saved to:\n{sfd.FileName}", "Save as PDF", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
@@ -124,58 +125,89 @@ namespace QuotingTool.Forms
             e.Graphics.DrawImage(bmp, bounds.Left, bounds.Top, width, height);
         }
 
-        private string BuildHtml()
+        private void BuildPdf(string filePath)
         {
             var project = _project ?? new Project();
-            string Encode(string value) => WebUtility.HtmlEncode(value ?? string.Empty);
-            return $@"<!DOCTYPE html>
-<html>
-<head>
-<meta charset='utf-8' />
-<title>Quote Letter</title>
-<style>
-body {{ font-family: Segoe UI, Arial, sans-serif; margin: 40px; color: #222; }}
-.header {{ display: flex; justify-content: space-between; margin-bottom: 28px; }}
-.brand {{ color: #008080; font-weight: 700; font-size: 28px; }}
-.meta p {{ margin: 0; text-align: right; line-height: 1.4; }}
-.field-row {{ margin: 10px 0; }}
-.label {{ display: inline-block; width: 90px; font-weight: 600; }}
-.box {{ margin: 18px 0; }}
-.summary {{ margin: 24px 0; border-collapse: collapse; width: 100%; }}
-.summary td {{ border: 1px solid #d0d0d0; padding: 8px 10px; }}
-.footer {{ display: flex; justify-content: space-between; margin-top: 24px; font-weight: 600; }}
-.small {{ margin-top: 24px; font-size: 12px; line-height: 1.5; color: #444; }}
-</style>
-</head>
-<body>
-<div class='header'>
-<div class='brand'>CAPRAL ALUMINIUM</div>
-<div class='meta'>
-<p>Capral Limited</p>
-<p>ABN 78 004 213 692</p>
-<p>Building System Group and Distribution</p>
-<p>T: 1300 366 517 &nbsp; F: 1300 133 975</p>
-<p>www.capral.com.au</p>
-</div>
-</div>
-<div class='field-row'><span class='label'>To</span>{Encode(project.CustomerName)}</div>
-<div class='field-row'><span class='label'>Attention</span>{Encode(string.IsNullOrWhiteSpace(project.AttentionTo) ? project.Attention : project.AttentionTo)}</div>
-<div class='field-row'><span class='label'>Date</span>{Encode((project.RevisionDate ?? DateTime.Today).ToString("dd MMMM yyyy"))}</div>
-<div class='field-row'><span class='label'>Re</span>{Encode(project.ProjectName)}</div>
-<div class='box'>{Encode(LetterBodyText).Replace("\n", "<br />")}</div>
-<table class='summary'>
-<tr><td><strong>Colour</strong></td><td>{Encode(string.IsNullOrWhiteSpace(project.FinishName) ? project.FinishType : project.FinishName)}</td></tr>
-<tr><td><strong>Project Price $</strong></td><td>{Encode(_projectPrice.ToString("C2"))}</td></tr>
-<tr><td><strong>Delivery $</strong></td><td>{Encode(project.DeliveryCharge.ToString("C2"))}</td></tr>
-</table>
-<div class='footer'><div>All prices exclude GST</div><div>Quote valid for {Encode(project.QuoteValidity)}</div></div>
-<div class='small'>
-<p>Standard terms and conditions apply. Please review Capral Limited's standard conditions of sale before ordering.</p>
-<p>Delivery timing, final quantities, and any project-specific variations remain subject to written confirmation and acceptance by Capral Limited.</p>
-</div>
-<div class='box'>{Encode(string.IsNullOrWhiteSpace(project.AccountManager) ? project.QuotedBy : project.AccountManager)}</div>
-</body>
-</html>";
+            var attention = string.IsNullOrWhiteSpace(project.AttentionTo) ? project.Attention : project.AttentionTo;
+            var colour = string.IsNullOrWhiteSpace(project.FinishName) ? project.FinishType : project.FinishName;
+            var quotedBy = string.IsNullOrWhiteSpace(project.AccountManager) ? project.QuotedBy : project.AccountManager;
+            var quoteValidity = string.IsNullOrWhiteSpace(project.QuoteValidity) ? "30 days" : project.QuoteValidity;
+            var letterParagraphs = LetterBodyText.Trim().Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
+            const string terms = "Standard terms and conditions apply. Please review Capral Limited's standard conditions of sale before ordering.\n\nDelivery timing, final quantities, and any project-specific variations remain subject to written confirmation and acceptance by Capral Limited.";
+
+            Document.Create(document =>
+            {
+                document.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(32);
+                    page.DefaultTextStyle(x => x.FontFamily("Segoe UI").FontSize(10));
+                    page.Content().Column(column =>
+                    {
+                        column.Spacing(10);
+                        column.Item().Row(row =>
+                        {
+                            row.RelativeItem().Text("CAPRAL ALUMINIUM").Bold().FontSize(22).FontColor(Colors.Teal.Darken2);
+                            row.ConstantItem(220).AlignRight().Column(meta =>
+                            {
+                                meta.Item().Text("Capral Limited");
+                                meta.Item().Text("ABN 78 004 213 692");
+                                meta.Item().Text("Building System Group and Distribution");
+                                meta.Item().Text("T: 1300 366 517   F: 1300 133 975");
+                                meta.Item().Text("www.capral.com.au");
+                            });
+                        });
+
+                        column.Item().Text($"To: {project.CustomerName}");
+                        column.Item().Text($"Attention: {attention}");
+                        column.Item().Text($"Date: {(project.RevisionDate ?? DateTime.Today):dd MMMM yyyy}");
+                        column.Item().Text($"Re: {project.ProjectName}");
+
+                        foreach (var paragraph in letterParagraphs)
+                            column.Item().Text(paragraph.Trim());
+
+                        column.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.ConstantColumn(180);
+                                columns.RelativeColumn();
+                            });
+
+                            static IContainer CellStyle(IContainer container) => container.Border(1).BorderColor(Colors.Grey.Lighten2).Padding(6);
+
+                            table.Cell().Element(CellStyle).Text("Colour").Bold();
+                            table.Cell().Element(CellStyle).Text(colour);
+                            table.Cell().Element(CellStyle).Text("Project Price $").Bold();
+                            table.Cell().Element(CellStyle).Text(_projectPrice.ToString("C2"));
+                            table.Cell().Element(CellStyle).Text("Delivery $").Bold();
+                            table.Cell().Element(CellStyle).Text(project.DeliveryCharge.ToString("C2"));
+                        });
+
+                        column.Item().Row(row =>
+                        {
+                            row.RelativeItem().Text("All prices exclude GST").Bold();
+                            row.RelativeItem().AlignRight().Text($"Quote valid for {quoteValidity}").Bold();
+                        });
+
+                        column.Item().Text(terms);
+                        column.Item().Text(quotedBy);
+                    });
+                });
+            }).GeneratePdf(filePath);
+        }
+
+        private static string SanitizeFileNamePart(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return "Project";
+
+            var invalid = Path.GetInvalidFileNameChars();
+            var buffer = new char[value.Length];
+            for (int i = 0; i < value.Length; i++)
+                buffer[i] = invalid.Contains(value[i]) ? '_' : value[i];
+
+            return new string(buffer);
         }
     }
 }
