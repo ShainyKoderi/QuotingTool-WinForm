@@ -12,263 +12,64 @@ namespace QuotingTool.Forms
 
         private void InitializeComponent()
         {
-            pnlScroll = new System.Windows.Forms.Panel();
-            lblTitle = new System.Windows.Forms.Label();
-            lblCustomer = new System.Windows.Forms.Label();
-            txtCustomerName = new System.Windows.Forms.TextBox();
-            lblProject = new System.Windows.Forms.Label();
-            txtProjectName = new System.Windows.Forms.TextBox();
-            lblRevDate = new System.Windows.Forms.Label();
-            dtpRevisionDate = new System.Windows.Forms.DateTimePicker();
-            lblLME = new System.Windows.Forms.Label();
-            txtLMERate = new System.Windows.Forms.TextBox();
-            lblBillet = new System.Windows.Forms.Label();
-            txtBilletPremium = new System.Windows.Forms.TextBox();
-            lblRegion = new System.Windows.Forms.Label();
-            cmbRegion = new System.Windows.Forms.ComboBox();
-            lblQuotedBy = new System.Windows.Forms.Label();
-            txtQuotedBy = new System.Windows.Forms.TextBox();
-            lblAccountMgr = new System.Windows.Forms.Label();
-            txtAccountManager = new System.Windows.Forms.TextBox();
-            lblAttention = new System.Windows.Forms.Label();
-            txtAttention = new System.Windows.Forms.TextBox();
-            lblMarketSeg = new System.Windows.Forms.Label();
-            cmbMarketSegment = new System.Windows.Forms.ComboBox();
-            lblProductSeg = new System.Windows.Forms.Label();
-            cmbProductSegment = new System.Windows.Forms.ComboBox();
-            lblNotes = new System.Windows.Forms.Label();
-            txtProjectNotes = new System.Windows.Forms.TextBox();
-            lblFinishType = new System.Windows.Forms.Label();
-            cmbFinishType = new System.Windows.Forms.ComboBox();
-            lblFinishApplicator = new System.Windows.Forms.Label();
-            cmbFinishApplicator = new System.Windows.Forms.ComboBox();
-            lblFinishGroup = new System.Windows.Forms.Label();
-            txtFinishGroup = new System.Windows.Forms.TextBox();
-            lblFinishName = new System.Windows.Forms.Label();
-            txtFinishName = new System.Windows.Forms.TextBox();
-            lblFinishCustom = new System.Windows.Forms.Label();
-            txtFinishCustomName = new System.Windows.Forms.TextBox();
-            lblSapCode = new System.Windows.Forms.Label();
-            txtFinishSapCode = new System.Windows.Forms.TextBox();
-            lblThreshold = new System.Windows.Forms.Label();
-            cmbThresholdChoice = new System.Windows.Forms.ComboBox();
-            lblLocalLogo = new System.Windows.Forms.Label();
-            cmbLocalLogo = new System.Windows.Forms.ComboBox();
-            lblGenerateMfAlt = new System.Windows.Forms.Label();
-            cmbGenerateMillFinishAlternative = new System.Windows.Forms.ComboBox();
-            lblQuoteValidity = new System.Windows.Forms.Label();
-            txtQuoteValidity = new System.Windows.Forms.TextBox();
-            lblCustomerSapDiscount = new System.Windows.Forms.Label();
-            txtCustomerSapDiscount = new System.Windows.Forms.TextBox();
-            lblDeliveryCharge = new System.Windows.Forms.Label();
-            txtDeliveryCharge = new System.Windows.Forms.TextBox();
-            btnImportCre8 = new System.Windows.Forms.Button();
-            btnSave = new System.Windows.Forms.Button();
+            pnlScroll = new Panel();
+            lblTitle = new Label();
+            lblCustomer = new Label();
+            txtCustomerName = new TextBox();
+            lblProject = new Label();
+            txtProjectName = new TextBox();
+            lblRevDate = new Label();
+            dtpRevisionDate = new DateTimePicker();
+            lblLME = new Label();
+            txtLMERate = new TextBox();
+            lblBillet = new Label();
+            txtBilletPremium = new TextBox();
+            lblRegion = new Label();
+            cmbRegion = new ComboBox();
+            lblQuotedBy = new Label();
+            txtQuotedBy = new TextBox();
+            lblAccountMgr = new Label();
+            txtAccountManager = new TextBox();
+            lblAttention = new Label();
+            txtAttention = new TextBox();
+            lblMarketSeg = new Label();
+            cmbMarketSegment = new ComboBox();
+            lblProductSeg = new Label();
+            cmbProductSegment = new ComboBox();
+            lblNotes = new Label();
+            txtProjectNotes = new TextBox();
+            lblFinishType = new Label();
+            cmbFinishType = new ComboBox();
+            lblFinishApplicator = new Label();
+            cmbFinishApplicator = new ComboBox();
+            lblFinishGroup = new Label();
+            txtFinishGroup = new TextBox();
+            lblFinishName = new Label();
+            txtFinishName = new TextBox();
+            lblFinishCustom = new Label();
+            txtFinishCustomName = new TextBox();
+            lblSapCode = new Label();
+            txtFinishSapCode = new TextBox();
+            lblThreshold = new Label();
+            cmbThresholdChoice = new ComboBox();
+            lblLocalLogo = new Label();
+            cmbLocalLogo = new ComboBox();
+            lblGenerateMfAlt = new Label();
+            cmbGenerateMillFinishAlternative = new ComboBox();
+            lblQuoteValidity = new Label();
+            txtQuoteValidity = new TextBox();
+            lblCustomerSapDiscount = new Label();
+            txtCustomerSapDiscount = new TextBox();
+            lblDeliveryCharge = new Label();
+            txtDeliveryCharge = new TextBox();
+            btnImportCre8 = new Button();
+            btnSave = new Button();
             pnlScroll.SuspendLayout();
             SuspendLayout();
-            
+            // 
+            // pnlScroll
+            // 
             pnlScroll.AutoScroll = true;
-            pnlScroll.Dock = System.Windows.Forms.DockStyle.Fill;
-
-            lblTitle.Font = new System.Drawing.Font("Segoe UI", 13F, System.Drawing.FontStyle.Bold);
-            lblTitle.Location = new System.Drawing.Point(20, 20);
-            lblTitle.Size = new System.Drawing.Size(500, 28);
-            lblTitle.Text = "1. Project Details";
-
-            lblCustomer.AutoSize = true;
-            lblCustomer.Location = new System.Drawing.Point(20, 63);
-            lblCustomer.Text = "Customer Name:";
-            txtCustomerName.Location = new System.Drawing.Point(220, 60);
-            txtCustomerName.Size = new System.Drawing.Size(320, 23);
-
-            lblProject.AutoSize = true;
-            lblProject.Location = new System.Drawing.Point(20, 93);
-            lblProject.Text = "Project Name:";
-            txtProjectName.Location = new System.Drawing.Point(220, 90);
-            txtProjectName.Size = new System.Drawing.Size(320, 23);
-
-            lblRevDate.AutoSize = true;
-            lblRevDate.Location = new System.Drawing.Point(20, 123);
-            lblRevDate.Text = "Revision Date:";
-            dtpRevisionDate.Format = System.Windows.Forms.DateTimePickerFormat.Short;
-            dtpRevisionDate.Location = new System.Drawing.Point(220, 120);
-            dtpRevisionDate.Size = new System.Drawing.Size(180, 23);
-
-            lblLME.AutoSize = true;
-            lblLME.Location = new System.Drawing.Point(20, 153);
-            lblLME.Text = "LME Rate (read-only):";
-            txtLMERate.BackColor = System.Drawing.SystemColors.Control;
-            txtLMERate.Location = new System.Drawing.Point(220, 150);
-            txtLMERate.ReadOnly = true;
-            txtLMERate.Size = new System.Drawing.Size(140, 23);
-
-            lblBillet.AutoSize = true;
-            lblBillet.Location = new System.Drawing.Point(20, 183);
-            lblBillet.Text = "Billet Premium (read-only):";
-            txtBilletPremium.BackColor = System.Drawing.SystemColors.Control;
-            txtBilletPremium.Location = new System.Drawing.Point(220, 180);
-            txtBilletPremium.ReadOnly = true;
-            txtBilletPremium.Size = new System.Drawing.Size(140, 23);
-
-            lblRegion.AutoSize = true;
-            lblRegion.Location = new System.Drawing.Point(20, 223);
-            lblRegion.Text = "Region:";
-            cmbRegion.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
-            cmbRegion.Items.AddRange(new object[] { "NQ", "NSW", "NT", "SA", "SEQ", "TAS", "VIC", "WA" });
-            cmbRegion.Location = new System.Drawing.Point(220, 220);
-            cmbRegion.Size = new System.Drawing.Size(320, 23);
-
-            lblQuotedBy.AutoSize = true;
-            lblQuotedBy.Location = new System.Drawing.Point(20, 253);
-            lblQuotedBy.Text = "Quoted By:";
-            txtQuotedBy.Location = new System.Drawing.Point(220, 250);
-            txtQuotedBy.Size = new System.Drawing.Size(320, 23);
-
-            lblAccountMgr.AutoSize = true;
-            lblAccountMgr.Location = new System.Drawing.Point(20, 283);
-            lblAccountMgr.Text = "Account Manager:";
-            txtAccountManager.Location = new System.Drawing.Point(220, 280);
-            txtAccountManager.Size = new System.Drawing.Size(320, 23);
-
-            lblAttention.AutoSize = true;
-            lblAttention.Location = new System.Drawing.Point(20, 313);
-            lblAttention.Text = "Attention To:";
-            txtAttention.Location = new System.Drawing.Point(220, 310);
-            txtAttention.Size = new System.Drawing.Size(320, 23);
-            txtAttention.Text = "To whom it may concern";
-
-            lblMarketSeg.AutoSize = true;
-            lblMarketSeg.Location = new System.Drawing.Point(20, 343);
-            lblMarketSeg.Text = "Market Segment:";
-            cmbMarketSegment.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
-            cmbMarketSegment.Items.AddRange(new object[]
-            {
-                "Private Residential - Detached", "Private Residential - Other", "Public Dwelling", "Office", "Retail", "Hotel",
-                "Factory", "Warehouse", "Education", "Health", "Entertainment/Recreation", "Other"
-            });
-            cmbMarketSegment.Location = new System.Drawing.Point(220, 340);
-            cmbMarketSegment.Size = new System.Drawing.Size(320, 23);
-
-            lblProductSeg.AutoSize = true;
-            lblProductSeg.Location = new System.Drawing.Point(20, 373);
-            lblProductSeg.Text = "Product Segment:";
-            cmbProductSegment.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
-            cmbProductSegment.Items.AddRange(new object[] { "Commercial", "Residential", "Security", "Industrial", "Shower & Robe" });
-            cmbProductSegment.Location = new System.Drawing.Point(220, 370);
-            cmbProductSegment.Size = new System.Drawing.Size(320, 23);
-
-            lblNotes.AutoSize = true;
-            lblNotes.Location = new System.Drawing.Point(20, 403);
-            lblNotes.Text = "Project Notes:";
-            txtProjectNotes.Location = new System.Drawing.Point(220, 400);
-            txtProjectNotes.Multiline = true;
-            txtProjectNotes.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            txtProjectNotes.Size = new System.Drawing.Size(320, 80);
-
-            lblFinishType.AutoSize = true;
-            lblFinishType.Location = new System.Drawing.Point(20, 493);
-            lblFinishType.Text = "Finish Type:";
-            cmbFinishType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
-            cmbFinishType.Items.AddRange(new object[] { "Mill Finish", "Powder", "Anodised" });
-            cmbFinishType.Location = new System.Drawing.Point(220, 490);
-            cmbFinishType.Size = new System.Drawing.Size(320, 23);
-
-            lblFinishApplicator.AutoSize = true;
-            lblFinishApplicator.Location = new System.Drawing.Point(20, 523);
-            lblFinishApplicator.Text = "Finish Applicator:";
-            cmbFinishApplicator.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
-            cmbFinishApplicator.Items.AddRange(new object[]
-            {
-                "n/a", "Capral P&P - Bremer (AP)", "Capral P&P - Campbellfield (AP)", "Capral P&P - Canningvale (PP)",
-                "Capral P&P - HWood Non-Bulk (AP)", "Capral P&P - HWood Bulk (AP)", "Capral Mill (AP)", "AAF powdercoat",
-                "Powderline WA", "Capral/AAF QLD anodising", "WA Anodisers", "Other - pls check pricing"
-            });
-            cmbFinishApplicator.Location = new System.Drawing.Point(220, 520);
-            cmbFinishApplicator.Size = new System.Drawing.Size(320, 23);
-
-            lblFinishGroup.AutoSize = true;
-            lblFinishGroup.Location = new System.Drawing.Point(20, 553);
-            lblFinishGroup.Text = "Finish Group:";
-            txtFinishGroup.Location = new System.Drawing.Point(220, 550);
-            txtFinishGroup.Size = new System.Drawing.Size(320, 23);
-
-            lblFinishName.AutoSize = true;
-            lblFinishName.Location = new System.Drawing.Point(20, 583);
-            lblFinishName.Text = "Finish Name:";
-            txtFinishName.Location = new System.Drawing.Point(220, 580);
-            txtFinishName.Size = new System.Drawing.Size(320, 23);
-
-            lblFinishCustom.AutoSize = true;
-            lblFinishCustom.Location = new System.Drawing.Point(20, 613);
-            lblFinishCustom.Text = "Finish Custom Name:";
-            txtFinishCustomName.Location = new System.Drawing.Point(220, 610);
-            txtFinishCustomName.Size = new System.Drawing.Size(320, 23);
-
-            lblSapCode.AutoSize = true;
-            lblSapCode.Location = new System.Drawing.Point(20, 643);
-            lblSapCode.Text = "Finish SAP Code:";
-            txtFinishSapCode.Location = new System.Drawing.Point(220, 640);
-            txtFinishSapCode.Size = new System.Drawing.Size(140, 23);
-
-            lblThreshold.AutoSize = true;
-            lblThreshold.Location = new System.Drawing.Point(20, 673);
-            lblThreshold.Text = "Threshold Choice:";
-            cmbThresholdChoice.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
-            cmbThresholdChoice.Items.AddRange(new object[] { "No", "Anodised Thresholds", "20um Clear", "25um Clear" });
-            cmbThresholdChoice.Location = new System.Drawing.Point(220, 670);
-            cmbThresholdChoice.Size = new System.Drawing.Size(320, 23);
-
-            lblLocalLogo.AutoSize = true;
-            lblLocalLogo.Location = new System.Drawing.Point(20, 703);
-            lblLocalLogo.Text = "Add LocAl Logos:";
-            cmbLocalLogo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
-            cmbLocalLogo.Items.AddRange(new object[] { "None", "Green", "SuperGreen" });
-            cmbLocalLogo.Location = new System.Drawing.Point(220, 700);
-            cmbLocalLogo.Size = new System.Drawing.Size(320, 23);
-
-            lblGenerateMfAlt.AutoSize = true;
-            lblGenerateMfAlt.Location = new System.Drawing.Point(20, 733);
-            lblGenerateMfAlt.Text = "Generate Mill Finish Alternative:";
-            cmbGenerateMillFinishAlternative.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            cmbGenerateMillFinishAlternative.Items.AddRange(new object[] { "Yes", "No" });
-            cmbGenerateMillFinishAlternative.Location = new System.Drawing.Point(220, 730);
-            cmbGenerateMillFinishAlternative.Size = new System.Drawing.Size(140, 23);
-            cmbGenerateMillFinishAlternative.SelectedIndex = 1;
-
-            lblQuoteValidity.AutoSize = true;
-            lblQuoteValidity.Location = new System.Drawing.Point(20, 763);
-            lblQuoteValidity.Text = "Quote Validity:";
-            txtQuoteValidity.Location = new System.Drawing.Point(220, 760);
-            txtQuoteValidity.Size = new System.Drawing.Size(140, 23);
-            txtQuoteValidity.Text = "30 days";
-
-            lblCustomerSapDiscount.AutoSize = true;
-            lblCustomerSapDiscount.Location = new System.Drawing.Point(20, 793);
-            lblCustomerSapDiscount.Text = "Customer SAP Discount %:";
-            txtCustomerSapDiscount.Location = new System.Drawing.Point(220, 790);
-            txtCustomerSapDiscount.Size = new System.Drawing.Size(140, 23);
-
-            lblDeliveryCharge.AutoSize = true;
-            lblDeliveryCharge.Location = new System.Drawing.Point(20, 823);
-            lblDeliveryCharge.Text = "Delivery Charge:";
-            txtDeliveryCharge.Location = new System.Drawing.Point(220, 820);
-            txtDeliveryCharge.Size = new System.Drawing.Size(140, 23);
-            txtDeliveryCharge.Text = "97.00";
-
-            btnImportCre8.Location = new System.Drawing.Point(220, 850);
-            btnImportCre8.Size = new System.Drawing.Size(140, 30);
-            btnImportCre8.Text = "Import CRE8";
-            btnImportCre8.Click += new System.EventHandler(btnImportCre8_Click);
-
-            btnSave.BackColor = System.Drawing.Color.FromArgb(0, 120, 215);
-            btnSave.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            btnSave.ForeColor = System.Drawing.Color.White;
-            btnSave.Location = new System.Drawing.Point(380, 848);
-            btnSave.Size = new System.Drawing.Size(130, 34);
-            btnSave.Text = "Save";
-            btnSave.UseVisualStyleBackColor = false;
-            btnSave.Click += new System.EventHandler(btnSave_Click);
-
             pnlScroll.Controls.Add(lblTitle);
             pnlScroll.Controls.Add(lblCustomer);
             pnlScroll.Controls.Add(txtCustomerName);
@@ -320,10 +121,451 @@ namespace QuotingTool.Forms
             pnlScroll.Controls.Add(txtDeliveryCharge);
             pnlScroll.Controls.Add(btnImportCre8);
             pnlScroll.Controls.Add(btnSave);
-
-            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(700, 700);
+            pnlScroll.Dock = DockStyle.Fill;
+            pnlScroll.Location = new Point(0, 0);
+            pnlScroll.Name = "pnlScroll";
+            pnlScroll.Size = new Size(700, 700);
+            pnlScroll.TabIndex = 0;
+            // 
+            // lblTitle
+            // 
+            lblTitle.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
+            lblTitle.Location = new Point(20, 20);
+            lblTitle.Name = "lblTitle";
+            lblTitle.Size = new Size(205, 28);
+            lblTitle.TabIndex = 0;
+            lblTitle.Text = "1. Project Details";
+            // 
+            // lblCustomer
+            // 
+            lblCustomer.AutoSize = true;
+            lblCustomer.Location = new Point(20, 63);
+            lblCustomer.Name = "lblCustomer";
+            lblCustomer.Size = new Size(97, 15);
+            lblCustomer.TabIndex = 1;
+            lblCustomer.Text = "Customer Name:";
+            // 
+            // txtCustomerName
+            // 
+            txtCustomerName.Location = new Point(220, 60);
+            txtCustomerName.Name = "txtCustomerName";
+            txtCustomerName.Size = new Size(320, 23);
+            txtCustomerName.TabIndex = 2;
+            // 
+            // lblProject
+            // 
+            lblProject.AutoSize = true;
+            lblProject.Location = new Point(20, 93);
+            lblProject.Name = "lblProject";
+            lblProject.Size = new Size(82, 15);
+            lblProject.TabIndex = 3;
+            lblProject.Text = "Project Name:";
+            // 
+            // txtProjectName
+            // 
+            txtProjectName.Location = new Point(220, 90);
+            txtProjectName.Name = "txtProjectName";
+            txtProjectName.Size = new Size(320, 23);
+            txtProjectName.TabIndex = 4;
+            // 
+            // lblRevDate
+            // 
+            lblRevDate.AutoSize = true;
+            lblRevDate.Location = new Point(20, 123);
+            lblRevDate.Name = "lblRevDate";
+            lblRevDate.Size = new Size(81, 15);
+            lblRevDate.TabIndex = 5;
+            lblRevDate.Text = "Revision Date:";
+            // 
+            // dtpRevisionDate
+            // 
+            dtpRevisionDate.Format = DateTimePickerFormat.Short;
+            dtpRevisionDate.Location = new Point(220, 120);
+            dtpRevisionDate.Name = "dtpRevisionDate";
+            dtpRevisionDate.Size = new Size(180, 23);
+            dtpRevisionDate.TabIndex = 6;
+            // 
+            // lblLME
+            // 
+            lblLME.AutoSize = true;
+            lblLME.Location = new Point(20, 153);
+            lblLME.Name = "lblLME";
+            lblLME.Size = new Size(121, 15);
+            lblLME.TabIndex = 7;
+            lblLME.Text = "LME Rate (read-only):";
+            // 
+            // txtLMERate
+            // 
+            txtLMERate.BackColor = SystemColors.Control;
+            txtLMERate.Location = new Point(220, 150);
+            txtLMERate.Name = "txtLMERate";
+            txtLMERate.ReadOnly = true;
+            txtLMERate.Size = new Size(140, 23);
+            txtLMERate.TabIndex = 8;
+            // 
+            // lblBillet
+            // 
+            lblBillet.AutoSize = true;
+            lblBillet.Location = new Point(20, 183);
+            lblBillet.Name = "lblBillet";
+            lblBillet.Size = new Size(150, 15);
+            lblBillet.TabIndex = 9;
+            lblBillet.Text = "Billet Premium (read-only):";
+            // 
+            // txtBilletPremium
+            // 
+            txtBilletPremium.BackColor = SystemColors.Control;
+            txtBilletPremium.Location = new Point(220, 180);
+            txtBilletPremium.Name = "txtBilletPremium";
+            txtBilletPremium.ReadOnly = true;
+            txtBilletPremium.Size = new Size(140, 23);
+            txtBilletPremium.TabIndex = 10;
+            // 
+            // lblRegion
+            // 
+            lblRegion.AutoSize = true;
+            lblRegion.Location = new Point(20, 223);
+            lblRegion.Name = "lblRegion";
+            lblRegion.Size = new Size(47, 15);
+            lblRegion.TabIndex = 11;
+            lblRegion.Text = "Region:";
+            // 
+            // cmbRegion
+            // 
+            cmbRegion.Items.AddRange(new object[] { "NQ", "NSW", "NT", "SA", "SEQ", "TAS", "VIC", "WA" });
+            cmbRegion.Location = new Point(220, 220);
+            cmbRegion.Name = "cmbRegion";
+            cmbRegion.Size = new Size(320, 23);
+            cmbRegion.TabIndex = 12;
+            // 
+            // lblQuotedBy
+            // 
+            lblQuotedBy.AutoSize = true;
+            lblQuotedBy.Location = new Point(20, 253);
+            lblQuotedBy.Name = "lblQuotedBy";
+            lblQuotedBy.Size = new Size(66, 15);
+            lblQuotedBy.TabIndex = 13;
+            lblQuotedBy.Text = "Quoted By:";
+            // 
+            // txtQuotedBy
+            // 
+            txtQuotedBy.Location = new Point(220, 250);
+            txtQuotedBy.Name = "txtQuotedBy";
+            txtQuotedBy.Size = new Size(320, 23);
+            txtQuotedBy.TabIndex = 14;
+            // 
+            // lblAccountMgr
+            // 
+            lblAccountMgr.AutoSize = true;
+            lblAccountMgr.Location = new Point(20, 283);
+            lblAccountMgr.Name = "lblAccountMgr";
+            lblAccountMgr.Size = new Size(105, 15);
+            lblAccountMgr.TabIndex = 15;
+            lblAccountMgr.Text = "Account Manager:";
+            // 
+            // txtAccountManager
+            // 
+            txtAccountManager.Location = new Point(220, 280);
+            txtAccountManager.Name = "txtAccountManager";
+            txtAccountManager.Size = new Size(320, 23);
+            txtAccountManager.TabIndex = 16;
+            // 
+            // lblAttention
+            // 
+            lblAttention.AutoSize = true;
+            lblAttention.Location = new Point(20, 313);
+            lblAttention.Name = "lblAttention";
+            lblAttention.Size = new Size(76, 15);
+            lblAttention.TabIndex = 17;
+            lblAttention.Text = "Attention To:";
+            // 
+            // txtAttention
+            // 
+            txtAttention.Location = new Point(220, 310);
+            txtAttention.Name = "txtAttention";
+            txtAttention.Size = new Size(320, 23);
+            txtAttention.TabIndex = 18;
+            txtAttention.Text = "To whom it may concern";
+            // 
+            // lblMarketSeg
+            // 
+            lblMarketSeg.AutoSize = true;
+            lblMarketSeg.Location = new Point(20, 343);
+            lblMarketSeg.Name = "lblMarketSeg";
+            lblMarketSeg.Size = new Size(97, 15);
+            lblMarketSeg.TabIndex = 19;
+            lblMarketSeg.Text = "Market Segment:";
+            // 
+            // cmbMarketSegment
+            // 
+            cmbMarketSegment.Items.AddRange(new object[] { "Private Residential - Detached", "Private Residential - Other", "Public Dwelling", "Office", "Retail", "Hotel", "Factory", "Warehouse", "Education", "Health", "Entertainment/Recreation", "Other" });
+            cmbMarketSegment.Location = new Point(220, 340);
+            cmbMarketSegment.Name = "cmbMarketSegment";
+            cmbMarketSegment.Size = new Size(320, 23);
+            cmbMarketSegment.TabIndex = 20;
+            // 
+            // lblProductSeg
+            // 
+            lblProductSeg.AutoSize = true;
+            lblProductSeg.Location = new Point(20, 373);
+            lblProductSeg.Name = "lblProductSeg";
+            lblProductSeg.Size = new Size(102, 15);
+            lblProductSeg.TabIndex = 21;
+            lblProductSeg.Text = "Product Segment:";
+            // 
+            // cmbProductSegment
+            // 
+            cmbProductSegment.Items.AddRange(new object[] { "Commercial", "Residential", "Security", "Industrial", "Shower & Robe" });
+            cmbProductSegment.Location = new Point(220, 370);
+            cmbProductSegment.Name = "cmbProductSegment";
+            cmbProductSegment.Size = new Size(320, 23);
+            cmbProductSegment.TabIndex = 22;
+            // 
+            // lblNotes
+            // 
+            lblNotes.AutoSize = true;
+            lblNotes.Location = new Point(20, 403);
+            lblNotes.Name = "lblNotes";
+            lblNotes.Size = new Size(81, 15);
+            lblNotes.TabIndex = 23;
+            lblNotes.Text = "Project Notes:";
+            // 
+            // txtProjectNotes
+            // 
+            txtProjectNotes.Location = new Point(220, 400);
+            txtProjectNotes.Multiline = true;
+            txtProjectNotes.Name = "txtProjectNotes";
+            txtProjectNotes.ScrollBars = ScrollBars.Vertical;
+            txtProjectNotes.Size = new Size(320, 80);
+            txtProjectNotes.TabIndex = 24;
+            // 
+            // lblFinishType
+            // 
+            lblFinishType.AutoSize = true;
+            lblFinishType.Location = new Point(20, 493);
+            lblFinishType.Name = "lblFinishType";
+            lblFinishType.Size = new Size(69, 15);
+            lblFinishType.TabIndex = 25;
+            lblFinishType.Text = "Finish Type:";
+            // 
+            // cmbFinishType
+            // 
+            cmbFinishType.Items.AddRange(new object[] { "Mill Finish", "Powder", "Anodised" });
+            cmbFinishType.Location = new Point(220, 490);
+            cmbFinishType.Name = "cmbFinishType";
+            cmbFinishType.Size = new Size(320, 23);
+            cmbFinishType.TabIndex = 26;
+            // 
+            // lblFinishApplicator
+            // 
+            lblFinishApplicator.AutoSize = true;
+            lblFinishApplicator.Location = new Point(20, 523);
+            lblFinishApplicator.Name = "lblFinishApplicator";
+            lblFinishApplicator.Size = new Size(99, 15);
+            lblFinishApplicator.TabIndex = 27;
+            lblFinishApplicator.Text = "Finish Applicator:";
+            // 
+            // cmbFinishApplicator
+            // 
+            cmbFinishApplicator.Items.AddRange(new object[] { "n/a", "Capral P&P - Bremer (AP)", "Capral P&P - Campbellfield (AP)", "Capral P&P - Canningvale (PP)", "Capral P&P - HWood Non-Bulk (AP)", "Capral P&P - HWood Bulk (AP)", "Capral Mill (AP)", "AAF powdercoat", "Powderline WA", "Capral/AAF QLD anodising", "WA Anodisers", "Other - pls check pricing" });
+            cmbFinishApplicator.Location = new Point(220, 520);
+            cmbFinishApplicator.Name = "cmbFinishApplicator";
+            cmbFinishApplicator.Size = new Size(320, 23);
+            cmbFinishApplicator.TabIndex = 28;
+            // 
+            // lblFinishGroup
+            // 
+            lblFinishGroup.AutoSize = true;
+            lblFinishGroup.Location = new Point(20, 553);
+            lblFinishGroup.Name = "lblFinishGroup";
+            lblFinishGroup.Size = new Size(77, 15);
+            lblFinishGroup.TabIndex = 29;
+            lblFinishGroup.Text = "Finish Group:";
+            // 
+            // txtFinishGroup
+            // 
+            txtFinishGroup.Location = new Point(220, 550);
+            txtFinishGroup.Name = "txtFinishGroup";
+            txtFinishGroup.Size = new Size(320, 23);
+            txtFinishGroup.TabIndex = 30;
+            // 
+            // lblFinishName
+            // 
+            lblFinishName.AutoSize = true;
+            lblFinishName.Location = new Point(20, 583);
+            lblFinishName.Name = "lblFinishName";
+            lblFinishName.Size = new Size(76, 15);
+            lblFinishName.TabIndex = 31;
+            lblFinishName.Text = "Finish Name:";
+            // 
+            // txtFinishName
+            // 
+            txtFinishName.Location = new Point(220, 580);
+            txtFinishName.Name = "txtFinishName";
+            txtFinishName.Size = new Size(320, 23);
+            txtFinishName.TabIndex = 32;
+            // 
+            // lblFinishCustom
+            // 
+            lblFinishCustom.AutoSize = true;
+            lblFinishCustom.Location = new Point(20, 613);
+            lblFinishCustom.Name = "lblFinishCustom";
+            lblFinishCustom.Size = new Size(121, 15);
+            lblFinishCustom.TabIndex = 33;
+            lblFinishCustom.Text = "Finish Custom Name:";
+            // 
+            // txtFinishCustomName
+            // 
+            txtFinishCustomName.Location = new Point(220, 610);
+            txtFinishCustomName.Name = "txtFinishCustomName";
+            txtFinishCustomName.Size = new Size(320, 23);
+            txtFinishCustomName.TabIndex = 34;
+            // 
+            // lblSapCode
+            // 
+            lblSapCode.AutoSize = true;
+            lblSapCode.Location = new Point(20, 643);
+            lblSapCode.Name = "lblSapCode";
+            lblSapCode.Size = new Size(96, 15);
+            lblSapCode.TabIndex = 35;
+            lblSapCode.Text = "Finish SAP Code:";
+            // 
+            // txtFinishSapCode
+            // 
+            txtFinishSapCode.Location = new Point(220, 640);
+            txtFinishSapCode.Name = "txtFinishSapCode";
+            txtFinishSapCode.Size = new Size(140, 23);
+            txtFinishSapCode.TabIndex = 36;
+            // 
+            // lblThreshold
+            // 
+            lblThreshold.AutoSize = true;
+            lblThreshold.Location = new Point(20, 673);
+            lblThreshold.Name = "lblThreshold";
+            lblThreshold.Size = new Size(103, 15);
+            lblThreshold.TabIndex = 37;
+            lblThreshold.Text = "Threshold Choice:";
+            // 
+            // cmbThresholdChoice
+            // 
+            cmbThresholdChoice.Items.AddRange(new object[] { "No", "Anodised Thresholds", "20um Clear", "25um Clear" });
+            cmbThresholdChoice.Location = new Point(220, 670);
+            cmbThresholdChoice.Name = "cmbThresholdChoice";
+            cmbThresholdChoice.Size = new Size(320, 23);
+            cmbThresholdChoice.TabIndex = 38;
+            // 
+            // lblLocalLogo
+            // 
+            lblLocalLogo.AutoSize = true;
+            lblLocalLogo.Location = new Point(20, 703);
+            lblLocalLogo.Name = "lblLocalLogo";
+            lblLocalLogo.Size = new Size(100, 15);
+            lblLocalLogo.TabIndex = 39;
+            lblLocalLogo.Text = "Add LocAl Logos:";
+            // 
+            // cmbLocalLogo
+            // 
+            cmbLocalLogo.Items.AddRange(new object[] { "None", "Green", "SuperGreen" });
+            cmbLocalLogo.Location = new Point(220, 700);
+            cmbLocalLogo.Name = "cmbLocalLogo";
+            cmbLocalLogo.Size = new Size(320, 23);
+            cmbLocalLogo.TabIndex = 40;
+            // 
+            // lblGenerateMfAlt
+            // 
+            lblGenerateMfAlt.AutoSize = true;
+            lblGenerateMfAlt.Location = new Point(20, 733);
+            lblGenerateMfAlt.Name = "lblGenerateMfAlt";
+            lblGenerateMfAlt.Size = new Size(174, 15);
+            lblGenerateMfAlt.TabIndex = 41;
+            lblGenerateMfAlt.Text = "Generate Mill Finish Alternative:";
+            // 
+            // cmbGenerateMillFinishAlternative
+            // 
+            cmbGenerateMillFinishAlternative.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbGenerateMillFinishAlternative.Items.AddRange(new object[] { "Yes", "No" });
+            cmbGenerateMillFinishAlternative.Location = new Point(220, 730);
+            cmbGenerateMillFinishAlternative.Name = "cmbGenerateMillFinishAlternative";
+            cmbGenerateMillFinishAlternative.Size = new Size(140, 23);
+            cmbGenerateMillFinishAlternative.TabIndex = 42;
+            // 
+            // lblQuoteValidity
+            // 
+            lblQuoteValidity.AutoSize = true;
+            lblQuoteValidity.Location = new Point(20, 763);
+            lblQuoteValidity.Name = "lblQuoteValidity";
+            lblQuoteValidity.Size = new Size(84, 15);
+            lblQuoteValidity.TabIndex = 43;
+            lblQuoteValidity.Text = "Quote Validity:";
+            // 
+            // txtQuoteValidity
+            // 
+            txtQuoteValidity.Location = new Point(220, 760);
+            txtQuoteValidity.Name = "txtQuoteValidity";
+            txtQuoteValidity.Size = new Size(140, 23);
+            txtQuoteValidity.TabIndex = 44;
+            txtQuoteValidity.Text = "30 days";
+            // 
+            // lblCustomerSapDiscount
+            // 
+            lblCustomerSapDiscount.AutoSize = true;
+            lblCustomerSapDiscount.Location = new Point(20, 793);
+            lblCustomerSapDiscount.Name = "lblCustomerSapDiscount";
+            lblCustomerSapDiscount.Size = new Size(149, 15);
+            lblCustomerSapDiscount.TabIndex = 45;
+            lblCustomerSapDiscount.Text = "Customer SAP Discount %:";
+            // 
+            // txtCustomerSapDiscount
+            // 
+            txtCustomerSapDiscount.Location = new Point(220, 790);
+            txtCustomerSapDiscount.Name = "txtCustomerSapDiscount";
+            txtCustomerSapDiscount.Size = new Size(140, 23);
+            txtCustomerSapDiscount.TabIndex = 46;
+            // 
+            // lblDeliveryCharge
+            // 
+            lblDeliveryCharge.AutoSize = true;
+            lblDeliveryCharge.Location = new Point(20, 823);
+            lblDeliveryCharge.Name = "lblDeliveryCharge";
+            lblDeliveryCharge.Size = new Size(93, 15);
+            lblDeliveryCharge.TabIndex = 47;
+            lblDeliveryCharge.Text = "Delivery Charge:";
+            // 
+            // txtDeliveryCharge
+            // 
+            txtDeliveryCharge.Location = new Point(220, 820);
+            txtDeliveryCharge.Name = "txtDeliveryCharge";
+            txtDeliveryCharge.Size = new Size(140, 23);
+            txtDeliveryCharge.TabIndex = 48;
+            txtDeliveryCharge.Text = "97.00";
+            // 
+            // btnImportCre8
+            // 
+            btnImportCre8.Location = new Point(412, 14);
+            btnImportCre8.Name = "btnImportCre8";
+            btnImportCre8.Size = new Size(128, 30);
+            btnImportCre8.TabIndex = 49;
+            btnImportCre8.Text = "Import CRE8";
+            btnImportCre8.Click += btnImportCre8_Click;
+            // 
+            // btnSave
+            // 
+            btnSave.BackColor = Color.FromArgb(0, 120, 215);
+            btnSave.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnSave.ForeColor = Color.White;
+            btnSave.Location = new Point(545, 14);
+            btnSave.Name = "btnSave";
+            btnSave.Size = new Size(126, 34);
+            btnSave.TabIndex = 50;
+            btnSave.Text = "Save";
+            btnSave.UseVisualStyleBackColor = false;
+            btnSave.Click += btnSave_Click;
+            // 
+            // ProjectDetailsForm
+            // 
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(700, 700);
             Controls.Add(pnlScroll);
             Name = "ProjectDetailsForm";
             Text = "Project Details";
