@@ -17,7 +17,6 @@ namespace QuotingTool.Forms
             menuFile = new System.Windows.Forms.ToolStripMenuItem();
             menuFileNewProject = new System.Windows.Forms.ToolStripMenuItem();
             menuFileOpenProject = new System.Windows.Forms.ToolStripMenuItem();
-            menuFileSave = new System.Windows.Forms.ToolStripMenuItem();
             menuFileSep1 = new System.Windows.Forms.ToolStripSeparator();
             menuFileExit = new System.Windows.Forms.ToolStripMenuItem();
             menuTools = new System.Windows.Forms.ToolStripMenuItem();
@@ -31,7 +30,6 @@ namespace QuotingTool.Forms
             toolStrip = new System.Windows.Forms.ToolStrip();
             btnNewProject = new System.Windows.Forms.ToolStripButton();
             btnOpenProject = new System.Windows.Forms.ToolStripButton();
-            btnSave = new System.Windows.Forms.ToolStripButton();
             toolStripSep1 = new System.Windows.Forms.ToolStripSeparator();
             btnExportQuote = new System.Windows.Forms.ToolStripButton();
             toolStripSep2 = new System.Windows.Forms.ToolStripSeparator();
@@ -58,7 +56,7 @@ namespace QuotingTool.Forms
             menuStrip.Location = new System.Drawing.Point(0, 0);
             menuStrip.Size = new System.Drawing.Size(1200, 24);
 
-            menuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { menuFileNewProject, menuFileOpenProject, menuFileSave, menuFileSep1, menuFileExit });
+            menuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { menuFileNewProject, menuFileOpenProject, menuFileSep1, menuFileExit });
             menuFile.Text = "&File";
             menuFileNewProject.Text = "&New Project";
             menuFileNewProject.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N;
@@ -66,9 +64,6 @@ namespace QuotingTool.Forms
             menuFileOpenProject.Text = "&Open Project...";
             menuFileOpenProject.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O;
             menuFileOpenProject.Click += new System.EventHandler(menuFileOpenProject_Click);
-            menuFileSave.Text = "&Save";
-            menuFileSave.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S;
-            menuFileSave.Click += new System.EventHandler(menuFileSave_Click);
             menuFileExit.Text = "E&xit";
             menuFileExit.Click += new System.EventHandler(menuFileExit_Click);
 
@@ -90,15 +85,13 @@ namespace QuotingTool.Forms
             menuHelpAbout.Text = "&About";
             menuHelpAbout.Click += new System.EventHandler(menuHelpAbout_Click);
 
-            toolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { btnNewProject, btnOpenProject, btnSave, toolStripSep1, btnExportQuote, toolStripSep2, btnFixLengths, btnResetPrices, btnRefresh });
+            toolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { btnNewProject, btnOpenProject, toolStripSep1, btnExportQuote, toolStripSep2, btnFixLengths, btnResetPrices, btnRefresh });
             toolStrip.Location = new System.Drawing.Point(0, 24);
             toolStrip.Size = new System.Drawing.Size(1200, 25);
             btnNewProject.Text = "New Project";
             btnNewProject.Click += new System.EventHandler(btnNewProject_Click);
             btnOpenProject.Text = "Open Project";
             btnOpenProject.Click += new System.EventHandler(btnOpenProject_Click);
-            btnSave.Text = "Save";
-            btnSave.Click += new System.EventHandler(btnSave_Click);
             btnExportQuote.Text = "Export Quote";
             btnExportQuote.Click += new System.EventHandler(btnExportQuote_Click);
             btnFixLengths.Text = "Fix Lengths";
@@ -182,7 +175,6 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.ToolStripMenuItem menuFile;
         private System.Windows.Forms.ToolStripMenuItem menuFileNewProject;
         private System.Windows.Forms.ToolStripMenuItem menuFileOpenProject;
-        private System.Windows.Forms.ToolStripMenuItem menuFileSave;
         private System.Windows.Forms.ToolStripSeparator menuFileSep1;
         private System.Windows.Forms.ToolStripMenuItem menuFileExit;
         private System.Windows.Forms.ToolStripMenuItem menuTools;
@@ -196,7 +188,6 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.ToolStrip toolStrip;
         private System.Windows.Forms.ToolStripButton btnNewProject;
         private System.Windows.Forms.ToolStripButton btnOpenProject;
-        private System.Windows.Forms.ToolStripButton btnSave;
         private System.Windows.Forms.ToolStripSeparator toolStripSep1;
         private System.Windows.Forms.ToolStripButton btnExportQuote;
         private System.Windows.Forms.ToolStripSeparator toolStripSep2;

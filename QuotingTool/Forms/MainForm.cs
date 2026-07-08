@@ -107,15 +107,6 @@ namespace QuotingTool.Forms
                 SetCurrentProject(form.SelectedProjectId);
         }
 
-        private void btnSave_Click(object sender, EventArgs e)
-        {
-            if (tabControl.SelectedTab == projectDetailsTab && projectDetailsTab.Controls[0] is ProjectDetailsForm pdf)
-                pdf.SaveProject();
-            else if (tabControl.SelectedTab == editPricingTab && editPricingTab.Controls[0] is EditPricingForm epf)
-                epf.SavePricing();
-            else
-                MessageBox.Show("Nothing to save on the current tab.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
 
         private void btnExportQuote_Click(object sender, EventArgs e)
         {
@@ -169,7 +160,6 @@ namespace QuotingTool.Forms
 
         private void menuFileNewProject_Click(object sender, EventArgs e) => btnNewProject_Click(sender, e);
         private void menuFileOpenProject_Click(object sender, EventArgs e) => btnOpenProject_Click(sender, e);
-        private void menuFileSave_Click(object sender, EventArgs e) => btnSave_Click(sender, e);
         private void menuFileExit_Click(object sender, EventArgs e) => Application.Exit();
         private void menuToolsFixLengths_Click(object sender, EventArgs e) => btnFixLengths_Click(sender, e);
         private void menuToolsResetPrices_Click(object sender, EventArgs e) => btnResetPrices_Click(sender, e);

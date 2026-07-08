@@ -34,7 +34,7 @@ Data Layer (Dapper + SQL Server)
 - **UI**: `WinForms` (.NET 8) — tabbed main window with 7 screens
 - **Services**: One service class per original Office Script plus app-specific services for formulas, summaries, sundry items, and SAP export
 - **Data**: `ADO.NET` + `Dapper` connected to SQL Server
-- **Export**: `ClosedXML` for Excel (.xlsx) export; built-in CSV export; HTML-based quote letter / no-pricing output
+- **Export**: `ClosedXML` for Excel (.xlsx) export; built-in CSV export; `QuestPDF`-based quote letter / no-pricing PDF output
 - **BOM Import**: `CsvHelper` for CSV file parsing
 
 ---
@@ -68,6 +68,7 @@ QuotingTool/
     QuoteSummaryService.cs  ← App-specific summary and margin calculations
     SundryItemsService.cs   ← CRUD helper for sundry items
     SapExportService.cs     ← Clipboard export for SAP-friendly tabular data
+    Cre8ImportService.cs    ← Best-effort CRE8 project-details CSV import
   Forms/
     MainForm.cs/.Designer.cs           ← Main tabbed window
     ProjectDetailsForm.cs/.Designer.cs ← Tab 1: Project details
@@ -164,10 +165,12 @@ QuotingTool/
 
 ### New user-facing capabilities
 
-- Generate a **Quote Letter** with customer/project metadata, price summary, delivery charge, and quote validity
-- Generate a **No Pricing** quote view for customer-facing schedules without dollar values
+- Generate a **Quote Letter** with customer/project metadata, price summary, delivery charge, and quote validity, then save it as a native PDF
+- Generate a **No Pricing** quote view for customer-facing schedules without dollar values, then save it as a native PDF
+- Use prominent per-form **Save** actions on Project Details, Quote, Edit Pricing, and Sundry Items instead of a shared MainForm save button
 - Maintain **Sundry Items** in a dedicated dialog with running total calculation
 - Copy quote lines to clipboard in **SAP-ready tab-separated format**
+- Import inferred **CRE8** project-details CSV data into the currently open project
 - View richer **Edit Pricing** metrics including totals, IP upcharges, summary margins, and threshold data
 
 ---
@@ -285,9 +288,8 @@ Compared to the original Excel workbook:
 1. **No live Excel event model** — recalculation is driven by WinForms actions and save/update flows
 2. **Some DATA-sheet formulas remain unresolved** — especially values requiring Excel evaluation of XLOOKUP/LAMBDA/dynamic arrays
 3. **Threshold cost and some finishing logic are approximate or partially stubbed**
-4. **Quote letter / no-pricing export currently saves HTML files** rather than generating native PDF directly
-5. **CRE8 import button is present as a placeholder** and is not fully implemented
-6. **VBA macro code, pivot cache data, embedded workbook assets, and some hidden-sheet structures are still not directly extractable**
+4. **CRE8 import uses an inferred/best-effort column mapping** until a real CRE8 sample/export specification is available
+5. **VBA macro code, pivot cache data, embedded workbook assets, and some hidden-sheet structures are still not directly extractable**
 
 ---
 
@@ -301,6 +303,7 @@ Compared to the original Excel workbook:
 | `Microsoft.Extensions.Configuration` | 8.0.0 | Configuration framework |
 | `Microsoft.Extensions.Configuration.Json` | 8.0.0 | JSON config file support |
 | `CsvHelper` | 33.0.1 | CSV file import |
+| `QuestPDF` | 2024.10.3 | PDF generation for quote letter and no-pricing export |
 
 ---
 
@@ -308,4 +311,6 @@ Compared to the original Excel workbook:
 
 - The repository default branch is `main`.
 - The repository language composition is currently **100% C#**.
+- The MainForm toolbar keeps New Project, Open Project, Export Quote, Fix Lengths, Reset Prices, and Refresh; save actions now live on the relevant forms/tabs.
+- The File menu no longer includes a shared Save command for the same reason.
 - The README reflects changes through the latest repository updates, including the SQL connection string change committed after the major quote-letter/sundry feature merge.

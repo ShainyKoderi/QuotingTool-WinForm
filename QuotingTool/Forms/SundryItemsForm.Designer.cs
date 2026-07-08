@@ -51,19 +51,23 @@ namespace QuotingTool.Forms
             btnDeleteSelected.Text = "Delete Selected";
             btnDeleteSelected.Click += new System.EventHandler(btnDeleteSelected_Click);
 
-            btnSaveAll.Location = new System.Drawing.Point(244, 12);
-            btnSaveAll.Size = new System.Drawing.Size(100, 28);
+            btnSaveAll.BackColor = System.Drawing.Color.FromArgb(0, 120, 215);
+            btnSaveAll.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            btnSaveAll.ForeColor = System.Drawing.Color.White;
+            btnSaveAll.Location = new System.Drawing.Point(244, 9);
+            btnSaveAll.Size = new System.Drawing.Size(120, 34);
             btnSaveAll.Text = "Save All";
+            btnSaveAll.UseVisualStyleBackColor = false;
             btnSaveAll.Click += new System.EventHandler(btnSaveAll_Click);
 
-            btnRecalculate.Location = new System.Drawing.Point(350, 12);
+            btnRecalculate.Location = new System.Drawing.Point(370, 12);
             btnRecalculate.Size = new System.Drawing.Size(100, 28);
             btnRecalculate.Text = "Recalculate";
             btnRecalculate.Click += new System.EventHandler(btnRecalculate_Click);
 
             lblSundryTotal.AutoSize = true;
             lblSundryTotal.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            lblSundryTotal.Location = new System.Drawing.Point(470, 17);
+            lblSundryTotal.Location = new System.Drawing.Point(490, 17);
             lblSundryTotal.Text = "Sundry Total: $0.00";
 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);

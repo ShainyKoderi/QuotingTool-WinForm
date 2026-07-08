@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using QuestPDF.Infrastructure;
 using QuotingTool.Forms;
 
 namespace QuotingTool
@@ -9,6 +10,7 @@ namespace QuotingTool
         [STAThread]
         static void Main()
         {
+            QuestPDF.Settings.License = LicenseType.Community;
             ApplicationConfiguration.Initialize();
             Application.Run(new MainForm());
         }
