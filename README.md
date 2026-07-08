@@ -1,18 +1,29 @@
 # QuotingTool – Aluminium Extrusion Pricing Quotation Tool
 
-A complete **C# WinForms desktop application** (.NET 8) with **SQL Server** that replicates the functionality of 14 Office Scripts converted from Excel VBA macros.
+A complete **C# WinForms desktop application** (.NET 8) with **SQL Server** that replicates the functionality of 14 Office Scripts converted from Excel VBA macros, and now includes quote letter generation, no-pricing quote output, sundry item management, SAP clipboard export, and expanded pricing/project data support.
 
 ---
 
 ## 📋 Project Description
 
-This application is a **Project Pricing Quotation Tool** for managing aluminium extrusion quotes. It was migrated from a set of Excel VBA macros (converted to Office Scripts) into a maintainable, database-backed desktop application.
+This application is a **Project Pricing Quotation Tool** for managing aluminium extrusion quotes. It was migrated from a set of Excel VBA macros (converted to Office Scripts) into a maintainable, desktop-based C# application backed by SQL Server.
+
+The latest updates add:
+
+- **Quote Letter** preview/print/export workflow
+- **Quote No Pricing** customer-facing output without prices
+- **Sundry Items** maintenance with totals stored in the database
+- **SAP export** clipboard formatting for quote lines
+- **Quote summary** persistence and margin calculations
+- **Expanded project and edit pricing fields** extracted from the workbook
+- **Improved quote line persistence** with total price and line numbering
+- **Updated SQL connection configuration** for Windows-authenticated SQL Server use
 
 ---
 
 ## 🏗️ Architecture Overview
 
-```
+```text
 UI Layer (WinForms)
     ↓
 Service Layer (Business Logic)
@@ -20,27 +31,28 @@ Service Layer (Business Logic)
 Data Layer (Dapper + SQL Server)
 ```
 
-- **UI**: `WinForms` (.NET 8) — tabbed main window with 5 screens
-- **Services**: One service class per original Office Script (12 services)
-- **Data**: `ADO.NET` + `Dapper` connected to SQL Server LocalDB
-- **Export**: `ClosedXML` for Excel (.xlsx) export; built-in CSV export
+- **UI**: `WinForms` (.NET 8) — tabbed main window with 7 screens
+- **Services**: One service class per original Office Script plus app-specific services for formulas, summaries, sundry items, and SAP export
+- **Data**: `ADO.NET` + `Dapper` connected to SQL Server
+- **Export**: `ClosedXML` for Excel (.xlsx) export; built-in CSV export; HTML-based quote letter / no-pricing output
 - **BOM Import**: `CsvHelper` for CSV file parsing
 
 ---
 
 ## 📁 Project Structure
 
-```
+```text
 QuotingTool.sln
 QuotingTool/
   QuotingTool.csproj
   Program.cs
   appsettings.json
   Data/
-    DatabaseContext.cs      ← Connection + all repository methods
-    Models.cs               ← C# model classes (Project, QuoteLine, etc.)
-    SqlSchema.sql           ← SQL Server schema (auto-run on first launch)
+    DatabaseContext.cs      ← Connection + repository methods + normalization helpers
+    Models.cs               ← C# model classes (Project, QuoteLine, EditPricing, SundryItem, QuoteSummary, etc.)
+    SqlSchema.sql           ← SQL Server schema + additive migration guards
   Services/
+    FormulaCalculationService.cs ← Core workbook formula translations
     PageSetupService.cs     ← Script 01: Page layout & print area
     LengthFixService.cs     ← Script 02: mm → m length conversion
     ResetPriceService.cs    ← Script 03: Reset price formulas from master
@@ -53,14 +65,20 @@ QuotingTool/
     PivotRefreshService.cs  ← Script 12: Refresh summary totals
     IPResetService.cs       ← Script 13: Reset IP formula columns
     NavigationService.cs    ← Script 14: Navigate between tabs
+    QuoteSummaryService.cs  ← App-specific summary and margin calculations
+    SundryItemsService.cs   ← CRUD helper for sundry items
+    SapExportService.cs     ← Clipboard export for SAP-friendly tabular data
   Forms/
-    MainForm.cs/.Designer.cs          ← Main tabbed window
+    MainForm.cs/.Designer.cs           ← Main tabbed window
     ProjectDetailsForm.cs/.Designer.cs ← Tab 1: Project details
-    QuoteForm.cs/.Designer.cs         ← Tab 2: Quote lines grid
-    EditPricingForm.cs/.Designer.cs   ← Tab 3: Pricing configuration
-    BomImportForm.cs/.Designer.cs     ← Tab 4: BOM CSV import
-    MonthlyUpdateForm.cs/.Designer.cs ← Tab 5: Monthly rate update
-    OpenProjectDialog.cs              ← Project selection dialog
+    QuoteForm.cs/.Designer.cs          ← Tab 2: Quote lines grid
+    EditPricingForm.cs/.Designer.cs    ← Tab 3: Pricing configuration
+    QuoteLetterForm.cs/.Designer.cs    ← Tab 4: Quote letter preview/output
+    QuoteNoPricingForm.cs/.Designer.cs ← Tab 5: No-pricing quote output
+    BomImportForm.cs/.Designer.cs      ← Tab 6: BOM CSV import
+    MonthlyUpdateForm.cs/.Designer.cs  ← Tab 7: Monthly rate update
+    SundryItemsForm.cs/.Designer.cs    ← Dialog: sundry item maintenance
+    OpenProjectDialog.cs               ← Project selection dialog
   Helpers/
     ExcelExporter.cs        ← Export to .xlsx / .csv (ClosedXML)
     ProtectionHelper.cs     ← Sheet lock/unlock (DB-backed)
@@ -72,8 +90,13 @@ QuotingTool/
 
 - **Visual Studio 2022** (Community or higher)
 - **.NET 8 SDK** (`net8.0-windows`)
-- **SQL Server LocalDB** (ships with Visual Studio)
-  - Or change the connection string in `appsettings.json` to point to any SQL Server instance
+- **SQL Server** reachable from the configured connection string
+  - Current default connection string uses:
+    - Server: `SLWSC16SQP01`
+    - Database: `QuotingToolDb`
+    - Windows Authentication
+    - `TrustServerCertificate=True`
+- If required, edit `QuotingTool/appsettings.json` for your own SQL Server instance
 
 ---
 
@@ -93,16 +116,16 @@ QuotingTool/
      dotnet restore
      ```
 
-4. **Configure the database** (optional)
-   - Edit `QuotingTool/appsettings.json` if you want a different SQL Server instance
-   - Default: `(localdb)\MSSQLLocalDB` — no setup required
+4. **Configure the database connection**
+   - Review `QuotingTool/appsettings.json`
+   - Update the SQL Server name if `SLWSC16SQP01` is not available in your environment
 
 5. **Build and run**
    ```bash
    dotnet build
    dotnet run --project QuotingTool/QuotingTool.csproj
    ```
-   - On first launch, the database schema is created automatically (`SqlSchema.sql` is executed)
+   - On first launch, the database schema is created or updated automatically (`SqlSchema.sql` is executed)
 
 ---
 
@@ -117,7 +140,7 @@ QuotingTool/
 | 05 | `05_EditPricing_RowVisibility.ts` | `EditPricingRowVisibilityService` | Calculate visible/hidden rows in Edit Pricing |
 | 06 | `06_MonthlyUpdate_Open.ts` | `MonthlyUpdateService.OpenMonthlyUpdate` | Unlock maintenance sheets |
 | 07 | `07_MonthlyUpdate_Close.ts` | `MonthlyUpdateService.CloseMonthlyUpdate` | Save rates, reset prices, lock sheets |
-| 08 | `08_ExportQuoteData_InWorkbook.ts` | `ExportQuoteService` | Validate pricing & collect all 6 blocks |
+| 08 | `08_ExportQuoteData_InWorkbook.ts` | `ExportQuoteService` | Validate pricing & collect all quote blocks |
 | 09 | `09_BOM_UniqueAndMode.ts` | `BomService.GetUniqueFinishes / GetMostCommonFinish` | Analyse BOM finish values |
 | 10 | `10_ImportBOM_Distribute.ts` | `BomService.ImportBomFromCsv / DistributeBomToQuote` | Import CSV and distribute to quote pages |
 | 11 | `11_ImportPrices_Distribute.ts` | `ImportPricesService` | Copy BOM prices to quote lines |
@@ -127,21 +150,131 @@ QuotingTool/
 
 ---
 
-## 📐 Key Constants
+## 🧩 Current Application Features
 
-| Constant | Values |
+### Main tabs
+
+1. **Project Details**
+2. **Quote**
+3. **Edit Pricing**
+4. **Quote Letter**
+5. **No Pricing**
+6. **BOM Import**
+7. **Monthly Update**
+
+### New user-facing capabilities
+
+- Generate a **Quote Letter** with customer/project metadata, price summary, delivery charge, and quote validity
+- Generate a **No Pricing** quote view for customer-facing schedules without dollar values
+- Maintain **Sundry Items** in a dedicated dialog with running total calculation
+- Copy quote lines to clipboard in **SAP-ready tab-separated format**
+- View richer **Edit Pricing** metrics including totals, IP upcharges, summary margins, and threshold data
+
+---
+
+## 🗃️ Database and Model Updates
+
+### Expanded `Projects` fields
+
+Recent updates added or normalized support for:
+
+- `AttentionTo`
+- `QuoteValidity`
+- `AddLocAlLogos`
+- `GenerateMillFinishAlternative`
+- `DeliveryCharge`
+- `CustomerSapDiscount`
+- `AccountManager`
+- `ProjectNotes`
+- `FinishGroup`
+- `FinishName`
+- `FinishSapCode`
+
+Normalization logic in `DatabaseContext` keeps legacy/new field pairs aligned, including:
+
+- `Attention` ↔ `AttentionTo`
+- `LocalLogo` ↔ `AddLocAlLogos`
+- `GenerateMfAlt` ↔ `GenerateMillFinishAlternative`
+
+### Expanded `QuoteLines` fields
+
+- `TotalPrice`
+- `LineNumber`
+
+### Expanded `EditPricing` fields
+
+Includes additional workbook-derived and app-derived fields such as:
+
+- `PricingNotes`
+- `TotalKg`
+- `TotalFinishingM2`
+- `TotalPieces`
+- `IP1UpchargePerKg`
+- `IP2UpchargePerKg`
+- `IP3PanoramicFixedKgRate`
+- `IP1MarginPct`
+- `IP2MarginPct`
+- `IP3MarginPct`
+- `MillFinishMarginPct`
+- `FinishingMarginPct`
+- `FinishingCostPricePerM2`
+- `AnodisedThresholdCostPerM2`
+- `ThermalBreakMarginPct`
+
+### New tables
+
+| Table | Purpose |
+|---|---|
+| `SundryItems` | Stores manual sundry charges by project |
+| `QuoteSummary` | Stores calculated pricing/margin summary totals by project |
+
+`SqlSchema.sql` now includes additive `IF COL_LENGTH(...) IS NULL` and `IF NOT EXISTS` guards so schema upgrades can run safely on existing databases.
+
+---
+
+## 📐 Key Constants and Defaults
+
+| Constant / Default | Value |
 |---|---|
 | Page block row ranges | [12,51], [68,107], [123,162], [178,217], [233,272], [288,327] |
 | LastRow per page count (1-6) | 56, 111, 166, 221, 276, 331 |
 | Page count thresholds | > 40 rows → 2 pages; > 80 → 3; > 120 → 4; > 160 → 5; > 200 → 6 |
-| Subsill surcharge | $12 per unit |
-| Default prices (B42/B44/B48/B50) | 99 |
+| Default delivery charge | 97.00 |
+| Default quote validity | 30 days |
+| IP1 default upcharge | 1.00 $/kg |
+| IP2 default upcharge | 2.00 $/kg |
+| IP3 panoramic fixed rate | 25.85 $/kg |
+| AP → PP factor | 1.9 |
+| Quote summary mill-finish cost ratio | 0.87 |
 
 ---
 
-## 📸 Screenshots
+## 📊 Workbook Extraction and Translation Status
 
-_Screenshots will be added after initial deployment._
+### Sheets supported in the app
+
+The app now covers workbook content across:
+
+- `1.Project Details`
+- `2.Quote`
+- `3.Edit Pricing`
+- `4.Quote Letter`
+- `4b. Quote no pricing`
+- `BOM_Import`
+- `Quote_Data`
+- workbook reference sheets such as `Validation`, `Pricing Matrix`, `Colour_Groups`, and partial `DATA`/`DATA_EDGE`
+
+### Formula translation location
+
+Core translations are in:
+
+- `QuotingTool/Services/FormulaCalculationService.cs`
+
+Additional summary logic is in:
+
+- `QuotingTool/Services/QuoteSummaryService.cs`
+
+See `FORMULA_NOTES.md` for workbook formulas that are fully translated, approximated, stubbed, or still blocked by missing workbook data.
 
 ---
 
@@ -149,12 +282,12 @@ _Screenshots will be added after initial deployment._
 
 Compared to the original Excel workbook:
 
-1. **No UserForms** — all input is done via WinForms controls (equivalent functionality)
-2. **No live cell events** — recalculation is triggered by buttons rather than automatic on cell change
-3. **No file dialogs for printing** — use the Export button to generate Excel/CSV; printing is handled by the OS from the exported file
-4. **No pivot tables** — `PivotRefreshService` provides equivalent aggregated summary data
-5. **No Excel formula syntax** — price formulas are stored as decimal values in `MasterFormulas`; the service restores these values rather than re-evaluating formula strings
-6. **Password "party"** — the original workbook used this password for sheet protection; this app uses database-level role security instead (tracked via `SheetLocks` table)
+1. **No live Excel event model** — recalculation is driven by WinForms actions and save/update flows
+2. **Some DATA-sheet formulas remain unresolved** — especially values requiring Excel evaluation of XLOOKUP/LAMBDA/dynamic arrays
+3. **Threshold cost and some finishing logic are approximate or partially stubbed**
+4. **Quote letter / no-pricing export currently saves HTML files** rather than generating native PDF directly
+5. **CRE8 import button is present as a placeholder** and is not fully implemented
+6. **VBA macro code, pivot cache data, embedded workbook assets, and some hidden-sheet structures are still not directly extractable**
 
 ---
 
@@ -171,98 +304,8 @@ Compared to the original Excel workbook:
 
 ---
 
-## 📊 What Was Extracted from `Project Pricing_Quotation Tool.xlsm`
+## 📎 Notes
 
-The `.xlsm` file was read using **openpyxl** (Python) after being uploaded to the
-repository root.  The following content was extracted and incorporated into the app.
-
-### Sheets Found (17 total)
-
-| Sheet Name | Type | Notes |
-|---|---|---|
-| `DATA` | Reference | Product cost tables, sundry data. Formula cells not evaluable without Excel. |
-| `DATA_EDGE` | Reference | EDGE product pricing. VeryHidden in VBA. |
-| `Validation` | Reference | All dropdown list values. Seeded to `ValidationData` table. |
-| `Pricing Matrix` | Reference | Metal/TB/finish/subsill breakpoint tables. Seeded to 5 tables. |
-| `Colour_Groups` | Reference | 91 colour entries. VeryHidden in VBA. Seeded to `ColourGroups` table. |
-| `Revision Control` | Admin | Version/date tracking. Maps to `RevisionControl` table. |
-| `1.Project Details` | Input | 18+ project fields. All mapped to `Projects` table. |
-| `2.Quote` | Input/Calc | Main quote grid. 6 page blocks × up to ~40 rows. |
-| `2b.Quote MF ALT` | Input/Calc | Mill Finish ALT quote variant. |
-| `3.Edit Pricing` | Config | Pricing config. Maps to `EditPricing` table. |
-| `3.EDGE` | Config | EDGE product pricing config. |
-| `4.Quote Letter` | Output | Quote letter / customer-facing export. |
-| `4b. Quote no pricing` | Output | Quote letter without prices. |
-| `4c.Quote MF ALT` | Output | Mill Finish ALT quote letter. |
-| `5.Edit_PH_IP` | Config | PH (passive house) and IP (ingress protection) settings. |
-| `BOM_Import` | Input | Bill of Materials import. Maps to `BomLines` table. |
-| `Quote_Data` | Summary | Pivot / summary data sheet. |
-
-### Named Ranges Found (108 total — key ones listed)
-
-| Named Range | Refers To | Purpose |
-|---|---|---|
-| `pg1_foot` … `pg6_foot` | `2.Quote!B56`, etc. | Footer row reference per page |
-| `AP_PP_factor` | `Pricing Matrix!K5` = 1.9 | AP → PP conversion factor |
-| `Sundry_Data` | `DATA!N8:R58` | Sundry item cost lookup table |
-| `ThresholdChoice` | `1.Project Details!B??` | "No" / "20um Clear" / "25um Clear" |
-| `Threshold_Code` | `Validation!E10:F11` | Threshold SAP code lookup |
-| `SAP_Colour_Code` | `Colour_Groups` lookup | Final SAP colour code |
-| `MetalRate_Table` | `Pricing Matrix!B7:C13` | Metal cost breakpoints |
-| `TB_Rate_Table` | `Pricing Matrix!B14:C21` | Thermal break breakpoints |
-| `Finish_BP_Table` | `Pricing Matrix!B51:C60` | Finish cost breakpoints |
-| `Subsill_Tier_Table` | `Pricing Matrix!B63:C68` | Subsill tier prices |
-
-### Formulas Translated to C#
-
-All translations are in `QuotingTool/Services/FormulaCalculationService.cs`.
-
-| Excel Formula / Cell | C# Method | Sheet |
-|---|---|---|
-| `I12 = AH + AI + AS + K` | `CalculatePriceEach(...)` | 2.Quote |
-| `J12 = I12 * G12` | `CalculateSellTotal(qty, price)` | 2.Quote |
-| `K12 = AZ + BC` | `CalculateSlotSellEach(...)` | 2.Quote |
-| `AY12 = tier_cost * H * G` | `CalculateSubsillCost(...)` | 2.Quote |
-| `AZ12 = tier_sell * H (×2.5 for Tier 4)` | `CalculateSubsillSellEach(...)` | 2.Quote |
-| `M12 = SAP code VLOOKUP` | `CalculateSapColourCode(...)` | 2.Quote |
-| `BA12 = VLOOKUP(C12, Sundry_Data, 4)` | *stub — see FORMULA_NOTES.md* | 2.Quote |
-| `Metal breakpoint lookup` | `LookupMetalTypicalPrice(kgPerM)` | Pricing Matrix |
-| `Powder cost lookup` | `LookupPowderCostByVendorAndGroup(...)` | Pricing Matrix |
-| `Finish breakpoint lookup` | `LookupFinishFactor(kgPerM)` | Pricing Matrix |
-| `Subsill tier lookup` | `LookupSubsillTierCost(tier)` | Pricing Matrix |
-| `B57 = threshold cost` | Read-only stub in EditPricingForm | 3.Edit Pricing |
-
-### Column M (`SapColourCode`) in 2.Quote
-
-- **Header**: "SAP Colour Code"
-- **Formula**: `=IF(C="","", IF(AND(BF>0, NOT(ThresholdChoice="No")), VLOOKUP(ThresholdChoice, Threshold_Code, 2), IF(L="No", SAP_Colour_Code, "NON")))`
-- **Added to**: `QuoteLines` table (column `SapColourCode`), `QuoteLine` model, `QuoteForm` grid (column M header).
-
-### New Database Tables Added from .xlsm
-
-| Table | Source Sheet | Rows Seeded |
-|---|---|---|
-| `ColourGroups` | `Colour_Groups` | ~91 |
-| `ValidationData` | `Validation` | ~50 |
-| `MetalBreakpoints` | `Pricing Matrix` rows 7-13 | 7 |
-| `ThermalBreakBreakpoints` | `Pricing Matrix` rows 14-21 | 8 |
-| `PowderCostTable` | `Pricing Matrix` rows 26-40 | 48 |
-| `FinishBreakpoints` | `Pricing Matrix` rows 51-60 | 10 |
-| `SubsillTierPrices` | `Pricing Matrix` rows 63-68 | 6 |
-
-### New Project Fields Added from `1.Project Details`
-
-Region, QuotedBy, AccountManager, Attention, MarketSegment, ProductSegment,
-ProjectNotes, FinishType, FinishApplicator, FinishGroup, FinishName,
-FinishCustomName, FinishSapCode, ThresholdChoice, LocalLogo, GenerateMfAlt,
-RevisionNumber, QuoteDate.
-
-### Items That Could Not Be Extracted
-
-See `FORMULA_NOTES.md` for full details.
-
-- VBA macro code (not readable by openpyxl)
-- Pivot table cache
-- `DATA` sheet formula-derived values (XLOOKUP/LAMBDA not evaluated)
-- `DATA_EDGE` full structure
-- Embedded image/logo assets
+- The repository default branch is `main`.
+- The repository language composition is currently **100% C#**.
+- The README reflects changes through the latest repository updates, including the SQL connection string change committed after the major quote-letter/sundry feature merge.
