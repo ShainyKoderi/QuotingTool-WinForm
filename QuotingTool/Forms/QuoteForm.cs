@@ -204,8 +204,29 @@ namespace QuotingTool.Forms
                 if (gridQuote.Rows.Count == 0 || gridQuote.Columns.Count == 0) return;
                 if (gridQuote.Rows.Count != _lines.Count) return;
                 int rowIndex = gridQuote.Rows.Count - 1;
-                gridQuote.CurrentCell = gridQuote.Rows[rowIndex].Cells[0];
-                gridQuote.FirstDisplayedScrollingRowIndex = rowIndex;
+                try
+                {
+                    DataGridViewColumn? firstVisibleColumn = null;
+                    foreach (DataGridViewColumn column in gridQuote.Columns)
+                    {
+                        if (column.Visible)
+                        {
+                            firstVisibleColumn = column;
+                            break;
+                        }
+                    }
+
+                    if (firstVisibleColumn != null)
+                    {
+                        gridQuote.CurrentCell = gridQuote.Rows[rowIndex].Cells[firstVisibleColumn.Index];
+                        gridQuote.FirstDisplayedScrollingRowIndex = rowIndex;
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                    // Best-effort UX convenience only; ignore if the grid cannot
+                    // accept a current-cell/scroll change (e.g. mid-layout, no visible columns, etc.)
+                }
             }));
         }
 
