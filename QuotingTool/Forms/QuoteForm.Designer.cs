@@ -22,6 +22,8 @@ namespace QuotingTool.Forms
             btnCopyForSap = new System.Windows.Forms.Button();
             btnSundryItems = new System.Windows.Forms.Button();
             btnSave = new System.Windows.Forms.Button();
+            btnAddRow = new System.Windows.Forms.Button();
+            btnDeleteSelected = new System.Windows.Forms.Button();
             gridQuote = new System.Windows.Forms.DataGridView();
             pnlToolbar = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)gridQuote).BeginInit();
@@ -82,10 +84,21 @@ namespace QuotingTool.Forms
             btnSave.UseVisualStyleBackColor = false;
             btnSave.Click += new System.EventHandler(btnSave_Click);
 
+            btnAddRow.Location = new System.Drawing.Point(850, 80);
+            btnAddRow.Size = new System.Drawing.Size(120, 28);
+            btnAddRow.Text = "Add Row";
+            btnAddRow.Click += new System.EventHandler(btnAddRow_Click);
+
+            btnDeleteSelected.Location = new System.Drawing.Point(980, 80);
+            btnDeleteSelected.Size = new System.Drawing.Size(120, 28);
+            btnDeleteSelected.Text = "Delete Row";
+            btnDeleteSelected.Click += new System.EventHandler(btnDeleteSelected_Click);
+
             pnlToolbar.Controls.AddRange(new System.Windows.Forms.Control[]
             {
                 lblTitle, lblPageSelector, cmbPageSelector, lblPrintArea,
-                btnFixLengths, btnResetPrices, btnExportQuote, btnCopyForSap, btnSundryItems, btnSave
+                btnFixLengths, btnResetPrices, btnExportQuote, btnCopyForSap, btnSundryItems, btnSave,
+                btnAddRow, btnDeleteSelected
             });
             pnlToolbar.Dock = System.Windows.Forms.DockStyle.Top;
             pnlToolbar.Height = 120;
@@ -119,6 +132,8 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.Button btnCopyForSap;
         private System.Windows.Forms.Button btnSundryItems;
         private System.Windows.Forms.Button btnSave;
+        private System.Windows.Forms.Button btnAddRow;
+        private System.Windows.Forms.Button btnDeleteSelected;
         private System.Windows.Forms.DataGridView gridQuote;
         private System.Windows.Forms.Panel pnlToolbar;
     }

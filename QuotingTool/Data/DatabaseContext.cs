@@ -223,6 +223,12 @@ namespace QuotingTool.Data
             conn.Execute("DELETE FROM QuoteLines WHERE ProjectId=@projectId", new { projectId });
         }
 
+        public void DeleteQuoteLine(int id)
+        {
+            using var conn = GetConnection();
+            conn.Execute("DELETE FROM QuoteLines WHERE Id=@id", new { id });
+        }
+
         public void UpdateQuoteLinePrice(int projectId, int pageBlock, int rowInBlock, decimal price)
         {
             using var conn = GetConnection();

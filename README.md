@@ -173,6 +173,7 @@ QuotingTool/
 - Import inferred **CRE8** project-details CSV data into the currently open project
 - View richer **Edit Pricing** metrics including totals, IP upcharges, summary margins, and threshold data
 - Use per-tab action buttons: **Fix Lengths**, **Reset Prices**, **Export Quote**, and **Copy for SAP** live on the **Quote** tab; **Refresh Summary** lives on the **Edit Pricing** tab near the summary section
+- Manually maintain quote lines directly on the **Quote** tab using **Add Row** / **Delete Row** in addition to **BOM Import**
 
 ---
 

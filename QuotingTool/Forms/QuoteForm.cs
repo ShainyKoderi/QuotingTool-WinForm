@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
@@ -15,6 +16,10 @@ namespace QuotingTool.Forms
         private readonly ResetPriceService _resetPrice;
         private readonly ExportQuoteService _exportQuote;
         private readonly SapExportService _sapExport;
+        private const int MaxQuotePages = 6;
+        private const int MaxRowsPerPage = 40;
+        private const int MaxQuoteLines = MaxQuotePages * MaxRowsPerPage;
+        private BindingList<QuoteLine> _lines = new();
         private int _projectId;
         private bool _bindingGrid;
 
@@ -41,14 +46,14 @@ namespace QuotingTool.Forms
         {
             if (_projectId <= 0) return;
             _bindingGrid = true;
-            var lines = new List<QuoteLine>(_db.GetQuoteLines(_projectId));
-            foreach (var line in lines)
+            _lines = new BindingList<QuoteLine>(_db.GetQuoteLines(_projectId).ToList());
+            foreach (var line in _lines)
             {
                 if (line.LineNumber <= 0)
                     line.LineNumber = line.RowInBlock;
                 line.TotalPrice = line.Quantity * line.LengthM * line.Price;
             }
-            gridQuote.DataSource = lines;
+            gridQuote.DataSource = _lines;
             _bindingGrid = false;
         }
 
@@ -166,6 +171,55 @@ namespace QuotingTool.Forms
             form.ShowDialog(this);
         }
 
+        private void btnAddRow_Click(object sender, EventArgs e)
+        {
+            if (_projectId <= 0) return;
+
+            int maxSlotIndex = _lines
+                .Where(l => l.PageBlock > 0 && l.RowInBlock > 0)
+                .Select(l => ((l.PageBlock - 1) * MaxRowsPerPage) + (l.RowInBlock - 1))
+                .DefaultIfEmpty(-1)
+                .Max();
+
+            int nextIndex = maxSlotIndex + 1;
+            if (nextIndex >= MaxQuoteLines)
+            {
+                MessageBox.Show("Maximum of 240 quote lines (6 pages) reached.", "Add Row",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var line = new QuoteLine
+            {
+                ProjectId = _projectId,
+                PageBlock = (nextIndex / MaxRowsPerPage) + 1,
+                RowInBlock = (nextIndex % MaxRowsPerPage) + 1,
+                LineNumber = _lines.Select(l => l.LineNumber).DefaultIfEmpty(0).Max() + 1
+            };
+
+            _lines.Add(line);
+
+            BeginInvoke(new Action(() =>
+            {
+                if (gridQuote.Rows.Count == 0 || gridQuote.Columns.Count == 0) return;
+                if (gridQuote.Rows.Count != _lines.Count) return;
+                int rowIndex = gridQuote.Rows.Count - 1;
+                gridQuote.CurrentCell = gridQuote.Rows[rowIndex].Cells[0];
+                gridQuote.FirstDisplayedScrollingRowIndex = rowIndex;
+            }));
+        }
+
+        private void btnDeleteSelected_Click(object sender, EventArgs e)
+        {
+            if (_projectId <= 0) return;
+            if (gridQuote.CurrentRow?.DataBoundItem is not QuoteLine line) return;
+
+            if (line.Id > 0)
+                _db.DeleteQuoteLine(line.Id);
+
+            _lines.Remove(line);
+        }
+
         private void btnSave_Click(object sender, EventArgs e)
         {
             if (_projectId <= 0)
@@ -178,8 +232,7 @@ namespace QuotingTool.Forms
                 gridQuote.CommitEdit(DataGridViewDataErrorContexts.Commit);
             gridQuote.EndEdit();
 
-            var lines = (gridQuote.DataSource as IEnumerable<QuoteLine>)?.ToList()
-                ?? _db.GetQuoteLines(_projectId).ToList();
+            var lines = _lines.ToList();
 
             foreach (var line in lines)
             {
