@@ -138,6 +138,7 @@ namespace QuotingTool.Services
                 }
                 catch
                 {
+                    // Best-effort header alias matching: ignore missing/invalid fields and continue scanning aliases.
                 }
             }
 
@@ -149,6 +150,7 @@ namespace QuotingTool.Services
             }
             catch
             {
+                // Best-effort fallback column access: if the inferred position is absent, leave the field unchanged.
             }
 
             return null;
@@ -168,7 +170,22 @@ namespace QuotingTool.Services
         }
 
         private static string Normalize(string value)
-            => new string((value ?? string.Empty).Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant();
+        {
+            value ??= string.Empty;
+            var buffer = new char[value.Length];
+            int count = 0;
+
+            for (int i = 0; i < value.Length; i++)
+            {
+                char ch = value[i];
+                if (!char.IsLetterOrDigit(ch))
+                    continue;
+
+                buffer[count++] = char.ToUpperInvariant(ch);
+            }
+
+            return new string(buffer, 0, count);
+        }
 
         private static decimal ParseDecimal(string value, decimal fallback)
         {

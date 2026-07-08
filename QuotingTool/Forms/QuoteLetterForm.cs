@@ -202,10 +202,12 @@ namespace QuotingTool.Forms
             if (string.IsNullOrWhiteSpace(value))
                 return "Project";
 
-            foreach (var invalid in Path.GetInvalidFileNameChars())
-                value = value.Replace(invalid, '_');
+            var invalid = Path.GetInvalidFileNameChars();
+            var buffer = new char[value.Length];
+            for (int i = 0; i < value.Length; i++)
+                buffer[i] = invalid.Contains(value[i]) ? '_' : value[i];
 
-            return value;
+            return new string(buffer);
         }
     }
 }
