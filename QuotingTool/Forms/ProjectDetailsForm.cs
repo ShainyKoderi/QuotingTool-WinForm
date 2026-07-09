@@ -129,5 +129,7 @@ namespace QuotingTool.Forms
 
         private static decimal ParseDecimal(string text, decimal fallback = 0m)
             => decimal.TryParse(text, out var value) ? value : fallback;
+
+       
     }
 }
