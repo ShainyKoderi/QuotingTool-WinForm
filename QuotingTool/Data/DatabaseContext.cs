@@ -108,6 +108,27 @@ namespace QuotingTool.Data
                     }
                 }
             }
+
+            // Run extrusion (Section) master seed separately, guarded on its own table so
+            // it also seeds for existing databases that already have ColourGroups populated.
+            var extrusionMasterCount = conn.ExecuteScalar<int>("SELECT COUNT(1) FROM ExtrusionMaster");
+            if (extrusionMasterCount == 0)
+            {
+                var extrusionSeedPath = Path.Combine(AppContext.BaseDirectory, "Data", "ExtrusionMasterSeed.sql");
+                if (!File.Exists(extrusionSeedPath))
+                    extrusionSeedPath = Path.Combine(AppContext.BaseDirectory, "ExtrusionMasterSeed.sql");
+
+                if (File.Exists(extrusionSeedPath))
+                {
+                    var extrusionSeedSql = File.ReadAllText(extrusionSeedPath);
+                    foreach (var batch in extrusionSeedSql.Split(new[] { "\nGO\n", "\nGO\r\n" }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        var trimmed = batch.Trim();
+                        if (!string.IsNullOrWhiteSpace(trimmed))
+                            conn.Execute(trimmed);
+                    }
+                }
+            }
         }
 
         // ── Projects ─────────────────────────────────────────────────────────
@@ -227,6 +248,22 @@ namespace QuotingTool.Data
         {
             using var conn = GetConnection();
             conn.Execute("DELETE FROM QuoteLines WHERE Id=@id", new { id });
+        }
+
+        // ── ExtrusionMaster (Section lookup) ────────────────────────────────
+
+        public IEnumerable<ExtrusionMaster> GetExtrusionMasterList()
+        {
+            using var conn = GetConnection();
+            return conn.Query<ExtrusionMaster>("SELECT * FROM ExtrusionMaster ORDER BY Section");
+        }
+
+        public ExtrusionMaster? GetExtrusionMasterBySection(string section)
+        {
+            if (string.IsNullOrWhiteSpace(section)) return null;
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<ExtrusionMaster>(
+                "SELECT * FROM ExtrusionMaster WHERE Section=@section", new { section });
         }
 
         public void UpdateQuoteLinePrice(int projectId, int pageBlock, int rowInBlock, decimal price)
