@@ -24,7 +24,30 @@ namespace QuotingTool.Forms
             InitializeComponent();
         }
 
-        private void MainForm_Load(object sender, EventArgs e) => LoadLastProject();
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
+            LoadLastProject();
+        }
+
+        private void TabControl_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (CurrentProjectId <= 0) return;
+            var selected = tabControl.SelectedTab;
+            if (selected == null) return;
+            if (selected.Controls.Count == 0) return;
+
+            // Reload the newly-active tab so that pricing / project data is always fresh.
+            // This prevents stale cached values (e.g. _metalPricePerKg in QuoteForm) when
+            // the user edits pricing on one tab and then switches to another.
+            var form = selected.Controls[0];
+            if (form is QuoteForm qf)
+                qf.LoadProject(CurrentProjectId);
+            else if (form is EditPricingForm epf)
+                epf.LoadProject(CurrentProjectId);
+            else if (form is ProjectDetailsForm pdf)
+                pdf.LoadProject(CurrentProjectId);
+        }
 
         private void LoadLastProject()
         {

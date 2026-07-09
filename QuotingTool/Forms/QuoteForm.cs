@@ -387,6 +387,9 @@ namespace QuotingTool.Forms
             if (_bindingGrid || e.RowIndex < 0 || _projectId <= 0) return;
             if (gridQuote.Rows[e.RowIndex].DataBoundItem is not QuoteLine line) return;
 
+            // Refresh metal price in case the Edit Pricing tab was saved since this tab loaded.
+            _metalPricePerKg = _db.GetEditPricing(_projectId)?.MetalPrice ?? _metalPricePerKg;
+
             var columnName = gridQuote.Columns[e.ColumnIndex].Name;
             line.LineNumber = line.LineNumber <= 0 ? e.RowIndex + 1 : line.LineNumber;
 
