@@ -204,6 +204,18 @@ namespace QuotingTool.Data
         public DateTime UpdatedAt { get; set; }
     }
 
+    // Maps to "DATA" sheet / "Table5" Excel table (Section master lookup)
+    // Used to populate the Section dropdown on the Quote tab and to
+    // auto-fill Description/Alloy/Temper when a Section is selected.
+    public class ExtrusionMaster
+    {
+        public string Section { get; set; } = string.Empty;       // col A
+        public string Description { get; set; } = string.Empty;   // col B (Basic material)
+        public decimal MassPerM { get; set; }                     // col D (Mass / M, kg/m)
+        public string DefaultAlloy { get; set; } = "6060";
+        public string DefaultTemper { get; set; } = "T5";
+    }
+
     // Master formula backup (col BA in original Excel)
     public class MasterFormula
     {

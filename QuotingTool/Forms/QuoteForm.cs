@@ -22,6 +22,8 @@ namespace QuotingTool.Forms
         private BindingList<QuoteLine> _lines = new();
         private int _projectId;
         private bool _bindingGrid;
+        private Dictionary<string, ExtrusionMaster> _extrusionMasterByCode = new(StringComparer.OrdinalIgnoreCase);
+        private decimal _metalPricePerKg;
 
         public QuoteForm(DatabaseContext db)
         {
@@ -32,12 +34,23 @@ namespace QuotingTool.Forms
             _exportQuote = new ExportQuoteService(db);
             _sapExport = new SapExportService(db);
             InitializeComponent();
+            LoadExtrusionMaster();
             ConfigureGridColumns();
+        }
+
+        private void LoadExtrusionMaster()
+        {
+            // Section is the primary key in ExtrusionMaster; guard defensively against
+            // any case-insensitive collisions when building the case-insensitive lookup.
+            _extrusionMasterByCode = new Dictionary<string, ExtrusionMaster>(StringComparer.OrdinalIgnoreCase);
+            foreach (var master in _db.GetExtrusionMasterList())
+                _extrusionMasterByCode[master.Section] = master;
         }
 
         public void LoadProject(int projectId)
         {
             _projectId = projectId;
+            _metalPricePerKg = _db.GetEditPricing(projectId)?.MetalPrice ?? 0m;
             RefreshGrid();
             UpdatePrintAreaLabel();
         }
@@ -51,10 +64,57 @@ namespace QuotingTool.Forms
             {
                 if (line.LineNumber <= 0)
                     line.LineNumber = line.RowInBlock;
-                line.TotalPrice = line.Quantity * line.Price;
+                ApplySectionLookup(line);
+                RecalculatePrice(line);
             }
             gridQuote.DataSource = _lines;
             _bindingGrid = false;
+        }
+
+        /// <summary>
+        /// Auto-loads Description/Alloy/Temper for a quote line based on its selected
+        /// Section (ExtrusionCode), mirroring the Table5 VLOOKUP formulas in the workbook.
+        /// </summary>
+        private void ApplySectionLookup(QuoteLine line)
+        {
+            if (string.IsNullOrWhiteSpace(line.ExtrusionCode))
+            {
+                line.Description = string.Empty;
+                return;
+            }
+
+            if (!_extrusionMasterByCode.TryGetValue(line.ExtrusionCode, out var master))
+                return;
+
+            line.Description = master.Description;
+            if (string.IsNullOrWhiteSpace(line.Alloy))
+                line.Alloy = master.DefaultAlloy;
+            if (string.IsNullOrWhiteSpace(line.Temper))
+                line.Temper = master.DefaultTemper;
+        }
+
+        /// <summary>
+        /// $ Each is calculated from Length: MassPerM (kg/m, from the Section master) ×
+        /// Length (m) × the project's metal sell price ($/kg from Edit Pricing).
+        /// </summary>
+        private void RecalculatePrice(QuoteLine line)
+        {
+            line.Price = CanCalculatePrice(line, out var massPerM)
+                ? massPerM * line.LengthM * _metalPricePerKg
+                : 0m;
+
+            line.TotalPrice = line.Quantity * line.Price;
+        }
+
+        private bool CanCalculatePrice(QuoteLine line, out decimal massPerM)
+        {
+            massPerM = 0m;
+            if (string.IsNullOrWhiteSpace(line.ExtrusionCode)) return false;
+            if (!_extrusionMasterByCode.TryGetValue(line.ExtrusionCode, out var master)) return false;
+            if (master.MassPerM <= 0 || line.LengthM <= 0 || _metalPricePerKg <= 0) return false;
+
+            massPerM = master.MassPerM;
+            return true;
         }
 
         private void UpdatePrintAreaLabel()
@@ -66,8 +126,18 @@ namespace QuotingTool.Forms
         private void ConfigureGridColumns()
         {
             gridQuote.AutoGenerateColumns = true;
+            gridQuote.DataError += (s, e) =>
+            {
+                // The Section combo box only accepts values from ExtrusionMaster; suppress
+                // the formatting exception for legacy/custom codes not in that list, but keep
+                // the row's typed value instead of silently discarding it.
+                e.ThrowException = false;
+                System.Diagnostics.Debug.WriteLine(
+                    $"gridQuote DataError at row {e.RowIndex}, col {e.ColumnIndex}: {e.Exception?.Message}");
+            };
             gridQuote.DataBindingComplete += (s, e) =>
             {
+                EnsureSectionComboColumn();
                 SetColHeader("PageBlock", "Page", 50, false);
                 SetColHeader("LineNumber", "Ln", 50, false);
                 SetColHeader("RowInBlock", "Row", 50, true);
@@ -86,9 +156,47 @@ namespace QuotingTool.Forms
                 SetColHeader("SubsillFlag", "SS?", 60, false);
                 HideCol("Id");
                 HideCol("ProjectId");
-                if (gridQuote.Columns.Contains("TotalPrice"))
-                    gridQuote.Columns["TotalPrice"].ReadOnly = true;
+                // Description/Alloy/Temper auto-load from the Section master; $ Each and
+                // $ Total are calculated from Length, so none of these are manually edited.
+                SetReadOnly("Description", true);
+                SetReadOnly("Alloy", true);
+                SetReadOnly("Temper", true);
+                SetReadOnly("Price", true);
+                SetReadOnly("TotalPrice", true);
             };
+        }
+
+        /// <summary>
+        /// Replaces the auto-generated Section (ExtrusionCode) text column with a dropdown
+        /// (ComboBox) column populated from the ExtrusionMaster list, so users pick a valid
+        /// Section instead of typing it freehand.
+        /// </summary>
+        private void EnsureSectionComboColumn()
+        {
+            if (!gridQuote.Columns.Contains("ExtrusionCode")) return;
+            if (gridQuote.Columns["ExtrusionCode"] is DataGridViewComboBoxColumn) return;
+
+            int index = gridQuote.Columns["ExtrusionCode"].Index;
+            gridQuote.Columns.Remove("ExtrusionCode");
+
+            var combo = new DataGridViewComboBoxColumn
+            {
+                Name = "ExtrusionCode",
+                DataPropertyName = "ExtrusionCode",
+                HeaderText = "Section",
+                Width = 110,
+                DisplayStyle = DataGridViewComboBoxDisplayStyle.ComboBox,
+                FlatStyle = FlatStyle.Standard,
+                Sorted = true
+            };
+            combo.Items.AddRange(_extrusionMasterByCode.Keys.Cast<object>().ToArray());
+            gridQuote.Columns.Insert(index, combo);
+        }
+
+        private void SetReadOnly(string propName, bool readOnly)
+        {
+            if (gridQuote.Columns.Contains(propName))
+                gridQuote.Columns[propName].ReadOnly = readOnly;
         }
 
         private void SetColHeader(string propName, string header, int width, bool hide)
@@ -259,7 +367,8 @@ namespace QuotingTool.Forms
             {
                 line.ProjectId = _projectId;
                 line.LineNumber = line.LineNumber <= 0 ? line.RowInBlock : line.LineNumber;
-                line.TotalPrice = line.Quantity * line.Price;
+                ApplySectionLookup(line);
+                RecalculatePrice(line);
                 _db.UpsertQuoteLine(line);
             }
 
@@ -278,11 +387,28 @@ namespace QuotingTool.Forms
             if (_bindingGrid || e.RowIndex < 0 || _projectId <= 0) return;
             if (gridQuote.Rows[e.RowIndex].DataBoundItem is not QuoteLine line) return;
 
+            var columnName = gridQuote.Columns[e.ColumnIndex].Name;
             line.LineNumber = line.LineNumber <= 0 ? e.RowIndex + 1 : line.LineNumber;
-            line.TotalPrice = line.Quantity * line.Price;
-            if (gridQuote.Columns.Contains("TotalPrice"))
-                gridQuote.Rows[e.RowIndex].Cells["TotalPrice"].Value = line.TotalPrice;
+
+            if (columnName == "ExtrusionCode")
+                ApplySectionLookup(line);
+
+            RecalculatePrice(line);
+
+            var row = gridQuote.Rows[e.RowIndex];
+            SetCellValue(row, "Description", line.Description);
+            SetCellValue(row, "Alloy", line.Alloy);
+            SetCellValue(row, "Temper", line.Temper);
+            SetCellValue(row, "Price", line.Price);
+            SetCellValue(row, "TotalPrice", line.TotalPrice);
+
             _db.UpsertQuoteLine(line);
+        }
+
+        private void SetCellValue(DataGridViewRow row, string columnName, object? value)
+        {
+            if (gridQuote.Columns.Contains(columnName))
+                row.Cells[columnName].Value = value;
         }
     }
 }

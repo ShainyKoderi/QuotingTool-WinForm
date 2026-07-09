@@ -60,6 +60,18 @@ CREATE TABLE QuoteLines (
     Temper NVARCHAR(50)             -- col F (auto from O col via VLOOKUP)
 );
 
+-- ExtrusionMaster table (maps to "DATA" sheet / "Table5" Excel table)
+-- Used to populate the Section dropdown on 2.Quote, and to auto-fill
+-- Description/Alloy/Temper when a Section is selected.
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ExtrusionMaster')
+CREATE TABLE ExtrusionMaster (
+    Section NVARCHAR(50) NOT NULL PRIMARY KEY, -- col A (Table5[Section])
+    Description NVARCHAR(500),                 -- col B (Table5[Basic material])
+    MassPerM DECIMAL(18,4) DEFAULT 0,           -- col D (Table5[Mass / M], kg/m)
+    DefaultAlloy NVARCHAR(50) DEFAULT '6060',   -- standard alloy (Validation!H16)
+    DefaultTemper NVARCHAR(50) DEFAULT 'T5'     -- standard temper (Validation!H27)
+);
+
 -- QuoteFooters table (maps to named ranges pg1_foot .. pg6_foot)
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'QuoteFooters')
 CREATE TABLE QuoteFooters (
