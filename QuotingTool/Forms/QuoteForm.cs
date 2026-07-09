@@ -40,9 +40,9 @@ namespace QuotingTool.Forms
 
         private void LoadExtrusionMaster()
         {
+            // Section is the primary key in ExtrusionMaster, so no duplicates are possible.
             _extrusionMasterByCode = _db.GetExtrusionMasterList()
-                .GroupBy(m => m.Section, StringComparer.OrdinalIgnoreCase)
-                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+                .ToDictionary(m => m.Section, StringComparer.OrdinalIgnoreCase);
         }
 
         public void LoadProject(int projectId)
@@ -97,14 +97,21 @@ namespace QuotingTool.Forms
         /// </summary>
         private void RecalculatePrice(QuoteLine line)
         {
-            if (!string.IsNullOrWhiteSpace(line.ExtrusionCode) &&
-                _extrusionMasterByCode.TryGetValue(line.ExtrusionCode, out var master) &&
-                master.MassPerM > 0 && line.LengthM > 0 && _metalPricePerKg > 0)
-            {
-                line.Price = master.MassPerM * line.LengthM * _metalPricePerKg;
-            }
+            if (CanCalculatePrice(line, out var massPerM))
+                line.Price = massPerM * line.LengthM * _metalPricePerKg;
 
             line.TotalPrice = line.Quantity * line.Price;
+        }
+
+        private bool CanCalculatePrice(QuoteLine line, out decimal massPerM)
+        {
+            massPerM = 0m;
+            if (string.IsNullOrWhiteSpace(line.ExtrusionCode)) return false;
+            if (!_extrusionMasterByCode.TryGetValue(line.ExtrusionCode, out var master)) return false;
+            if (master.MassPerM <= 0 || line.LengthM <= 0 || _metalPricePerKg <= 0) return false;
+
+            massPerM = master.MassPerM;
+            return true;
         }
 
         private void UpdatePrintAreaLabel()
@@ -116,7 +123,15 @@ namespace QuotingTool.Forms
         private void ConfigureGridColumns()
         {
             gridQuote.AutoGenerateColumns = true;
-            gridQuote.DataError += (s, e) => { e.ThrowException = false; };
+            gridQuote.DataError += (s, e) =>
+            {
+                // The Section combo box only accepts values from ExtrusionMaster; suppress
+                // the formatting exception for legacy/custom codes not in that list, but keep
+                // the row's typed value instead of silently discarding it.
+                e.ThrowException = false;
+                System.Diagnostics.Debug.WriteLine(
+                    $"gridQuote DataError at row {e.RowIndex}, col {e.ColumnIndex}: {e.Exception?.Message}");
+            };
             gridQuote.DataBindingComplete += (s, e) =>
             {
                 EnsureSectionComboColumn();

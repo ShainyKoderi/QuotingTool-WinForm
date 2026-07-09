@@ -111,8 +111,9 @@ namespace QuotingTool.Data
 
             // Run extrusion (Section) master seed separately, guarded on its own table so
             // it also seeds for existing databases that already have ColourGroups populated.
-            var extrusionMasterCount = conn.ExecuteScalar<int>("SELECT COUNT(1) FROM ExtrusionMaster");
-            if (extrusionMasterCount == 0)
+            var extrusionMasterHasRows = conn.ExecuteScalar<int?>(
+                "SELECT TOP 1 1 FROM ExtrusionMaster") != null;
+            if (!extrusionMasterHasRows)
             {
                 var extrusionSeedPath = Path.Combine(AppContext.BaseDirectory, "Data", "ExtrusionMasterSeed.sql");
                 if (!File.Exists(extrusionSeedPath))
