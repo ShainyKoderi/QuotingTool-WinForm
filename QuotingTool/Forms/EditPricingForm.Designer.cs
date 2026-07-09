@@ -672,7 +672,7 @@ namespace QuotingTool.Forms
             grpFinishingPricing.Font      = oliveFont;
             grpFinishingPricing.ForeColor = ClrOlive;
             grpFinishingPricing.Location  = new System.Drawing.Point(18, gY);
-            grpFinishingPricing.Size      = new System.Drawing.Size(1010, 275);
+            grpFinishingPricing.Size      = new System.Drawing.Size(1010, 320);
             grpFinishingPricing.Text      = "Powder / Finishing Pricing";
 
             int fcLx = 12, fcCx = 290, fcTypX = 400, fcMinX = 478, fcMaxX = 550;
@@ -747,7 +747,7 @@ namespace QuotingTool.Forms
             lblFCMaxHdr.Size      = new System.Drawing.Size(55, 18);
             lblFCMaxHdr.Text      = "Max";
 
-            // Row: POA/Other Vendor Cost
+            // Row: Finishing Cost Price $/m² (computed)
             fcRow += 20;
             lblFinishingCostPricePerM2.AutoSize  = false;
             lblFinishingCostPricePerM2.Font      = labelFont;
@@ -759,17 +759,19 @@ namespace QuotingTool.Forms
             txtFinishingCostPricePerM2.Location  = new System.Drawing.Point(fcTypX, fcRow);
             txtFinishingCostPricePerM2.Size      = new System.Drawing.Size(70, 23);
 
+            // Row: POA/Other Vendor Cost $/m² (Price_B42 backing field – visible)
+            fcRow += fcRh;
             lblB42.AutoSize  = false;
-            lblB42.Font      = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Italic);
-            lblB42.ForeColor = System.Drawing.Color.Gray;
-            lblB42.Location  = new System.Drawing.Point(fcLx + 285, fcRow + 4);
-            lblB42.Size      = new System.Drawing.Size(100, 15);
-            lblB42.Text      = "(POA/Other Vendor)";
-            txtB42.Visible   = false;   // backing field; value still written to ep.Price_B42 in code-behind
-            txtB42.Location  = new System.Drawing.Point(fcMinX, fcRow);
-            txtB42.Size      = new System.Drawing.Size(60, 23);
+            lblB42.Font      = labelFont;
+            lblB42.Location  = new System.Drawing.Point(fcLx, fcRow + 2);
+            lblB42.Size      = new System.Drawing.Size(280, 18);
+            lblB42.Text      = "POA/Other Vendor Cost $/m²";
+            txtB42.BackColor = ClrInputBg;
+            txtB42.Font      = RegFont();
+            txtB42.Location  = new System.Drawing.Point(fcTypX, fcRow);
+            txtB42.Size      = new System.Drawing.Size(70, 23);
 
-            // Row: Finishing Sell Price
+            // Row: Finishing Sell Price $/m²
             fcRow += fcRh;
             lblFinishingPrice.AutoSize  = false;
             lblFinishingPrice.Font      = labelFont;
@@ -781,15 +783,17 @@ namespace QuotingTool.Forms
             txtFinishingPrice.Location  = new System.Drawing.Point(fcTypX, fcRow);
             txtFinishingPrice.Size      = new System.Drawing.Size(70, 23);
 
+            // Row: Finishing Sell Price override $/m² (Price_B44 – for POA/custom scenarios)
+            fcRow += fcRh;
             lblB44.AutoSize  = false;
-            lblB44.Font      = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Italic);
-            lblB44.ForeColor = System.Drawing.Color.Gray;
-            lblB44.Location  = new System.Drawing.Point(fcLx + 285, fcRow + 4);
-            lblB44.Size      = new System.Drawing.Size(90, 15);
-            lblB44.Text      = "(Sell override)";
-            txtB44.Visible   = false;   // backing field mirroring Excel B44
-            txtB44.Location  = new System.Drawing.Point(fcMinX, fcRow);
-            txtB44.Size      = new System.Drawing.Size(60, 23);
+            lblB44.Font      = labelFont;
+            lblB44.Location  = new System.Drawing.Point(fcLx, fcRow + 2);
+            lblB44.Size      = new System.Drawing.Size(280, 18);
+            lblB44.Text      = "Finishing Sell Price override $/m²";
+            txtB44.BackColor = ClrInputBg;
+            txtB44.Font      = RegFont();
+            txtB44.Location  = new System.Drawing.Point(fcTypX, fcRow);
+            txtB44.Size      = new System.Drawing.Size(70, 23);
 
             // Row: Margin %
             fcRow += fcRh;
@@ -875,7 +879,7 @@ namespace QuotingTool.Forms
             // ═════════════════════════════════════════════════════════════════
             // GROUP 7 – Anodised Thresholds
             // ═════════════════════════════════════════════════════════════════
-            gY += 281;
+            gY += 326;
             grpAnodisedThresholds.Font      = oliveFont;
             grpAnodisedThresholds.ForeColor = ClrOlive;
             grpAnodisedThresholds.Location  = new System.Drawing.Point(18, gY);
@@ -972,13 +976,13 @@ namespace QuotingTool.Forms
             colCategory.FillWeight       = 25;
             colCategory.DefaultCellStyle.Font = headerFont;
 
-            colTotal.DataPropertyName = "Total";
+            colTotal.DataPropertyName = "TotalCost";
             colTotal.HeaderText       = "Total (Cost)";
             colTotal.FillWeight       = 18;
             colTotal.DefaultCellStyle.Format    = "C2";
             colTotal.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
 
-            colTotalValue.DataPropertyName = "TotalValue";
+            colTotalValue.DataPropertyName = "TotalSellValue";
             colTotalValue.HeaderText       = "Total Value";
             colTotalValue.FillWeight       = 18;
             colTotalValue.DefaultCellStyle.Format    = "C2";

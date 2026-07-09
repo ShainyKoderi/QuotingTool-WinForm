@@ -148,7 +148,8 @@ namespace QuotingTool.Forms
             int ctIndex = Array.IndexOf(CostTypeValues, ep.CostType);
             cmbCostType.SelectedIndex = ctIndex >= 0 ? ctIndex : 0;
             chkCostTypeOverride.Checked = ep.CostTypeOverride;
-            SetComboIndex(cmbPowderPricedAs, ep.FinType == 1 ? PowderPricedAsOptions[0] : PowderPricedAsOptions[0], PowderPricedAsOptions[0]);
+            // PowderPricedAs: AP for all non-PP finishing types; PP when FinType is explicitly configured.
+            SetComboIndex(cmbPowderPricedAs, PowderPricedAsOptions[0], PowderPricedAsOptions[0]);
             txtFinishingCostPricePerM2.Text = ep.FinishingCostPricePerM2.ToString("F4");
             txtB42.Text = ep.Price_B42.ToString("F2");
             txtFinishingPrice.Text = ep.FinishingPrice.ToString("F4");
@@ -319,19 +320,19 @@ namespace QuotingTool.Forms
                 _db.UpsertEditPricing(ep);
 
             // ── Summary grid ──────────────────────────────────────────────────
-            // "Total" = sell value (cost + margin); "Total Value" = same sell value
-            // (matches Excel columns: Total | Total Value | Margin $ | Margin %).
+            // TotalCost = what we pay (cost); TotalSellValue = what we charge the customer.
+            // Matches Excel columns: Category | Total (Cost) | Total Value | Margin $ | Margin %.
             decimal millFinishCost = summary.MillFinishTotal - summary.MillFinishMarginDollar;
             decimal finishingCost = summary.FinishingTotal - summary.FinishingMarginDollar;
             decimal sundryTotalValue = summary.SlottingSundryTotal;
 
             gridSummary.DataSource = new List<SummaryRow>
             {
-                new() { Category = "Mill Finish",         Total = millFinishCost,               TotalValue = summary.MillFinishTotal,    MarginDollar = summary.MillFinishMarginDollar,    MarginPct = summary.MillFinishMarginPct },
-                new() { Category = "Thermal Break Metal", Total = summary.ThermalBreakMetalTotal, TotalValue = summary.ThermalBreakMetalTotal, MarginDollar = summary.ThermalBreakMarginDollar,  MarginPct = summary.ThermalBreakMarginPct },
-                new() { Category = "Slotting/Sundry",     Total = sundryTotalValue,             TotalValue = sundryTotalValue,            MarginDollar = summary.SlottingSundryMarginDollar, MarginPct = summary.SlottingSundryMarginPct },
-                new() { Category = "Finishing",           Total = finishingCost,                TotalValue = summary.FinishingTotal,      MarginDollar = summary.FinishingMarginDollar,     MarginPct = summary.FinishingMarginPct },
-                new() { Category = "Total",               Total = summary.GrandTotal - summary.GrandMarginDollar, TotalValue = summary.GrandTotal, MarginDollar = summary.GrandMarginDollar, MarginPct = summary.GrandMarginPct }
+                new() { Category = "Mill Finish",         TotalCost = millFinishCost,               TotalSellValue = summary.MillFinishTotal,    MarginDollar = summary.MillFinishMarginDollar,    MarginPct = summary.MillFinishMarginPct },
+                new() { Category = "Thermal Break Metal", TotalCost = summary.ThermalBreakMetalTotal, TotalSellValue = summary.ThermalBreakMetalTotal, MarginDollar = summary.ThermalBreakMarginDollar,  MarginPct = summary.ThermalBreakMarginPct },
+                new() { Category = "Slotting/Sundry",     TotalCost = sundryTotalValue,             TotalSellValue = sundryTotalValue,            MarginDollar = summary.SlottingSundryMarginDollar, MarginPct = summary.SlottingSundryMarginPct },
+                new() { Category = "Finishing",           TotalCost = finishingCost,                TotalSellValue = summary.FinishingTotal,      MarginDollar = summary.FinishingMarginDollar,     MarginPct = summary.FinishingMarginPct },
+                new() { Category = "Total",               TotalCost = summary.GrandTotal - summary.GrandMarginDollar, TotalSellValue = summary.GrandTotal, MarginDollar = summary.GrandMarginDollar, MarginPct = summary.GrandMarginPct }
             };
 
             // Highlight the Total row
@@ -388,15 +389,15 @@ namespace QuotingTool.Forms
         /// <summary>
         /// Represents one row in the Summary grid.
         /// Columns match the sample.xlsm layout:
-        ///   Category | Total (cost) | Total Value (sell) | Margin $ | Margin %
+        ///   Category | Total (Cost) | Total Value | Margin $ | Margin %
         /// </summary>
         private class SummaryRow
         {
             public string Category { get; set; } = string.Empty;
-            /// <summary>Total cost (what we pay).</summary>
-            public decimal Total { get; set; }
+            /// <summary>Total cost (what we pay to produce).</summary>
+            public decimal TotalCost { get; set; }
             /// <summary>Total sell value (what we charge the customer).</summary>
-            public decimal TotalValue { get; set; }
+            public decimal TotalSellValue { get; set; }
             public decimal MarginDollar { get; set; }
             public decimal MarginPct { get; set; }
         }
