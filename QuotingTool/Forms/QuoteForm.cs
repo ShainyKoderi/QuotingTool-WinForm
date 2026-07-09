@@ -40,9 +40,11 @@ namespace QuotingTool.Forms
 
         private void LoadExtrusionMaster()
         {
-            // Section is the primary key in ExtrusionMaster, so no duplicates are possible.
-            _extrusionMasterByCode = _db.GetExtrusionMasterList()
-                .ToDictionary(m => m.Section, StringComparer.OrdinalIgnoreCase);
+            // Section is the primary key in ExtrusionMaster; guard defensively against
+            // any case-insensitive collisions when building the case-insensitive lookup.
+            _extrusionMasterByCode = new Dictionary<string, ExtrusionMaster>(StringComparer.OrdinalIgnoreCase);
+            foreach (var master in _db.GetExtrusionMasterList())
+                _extrusionMasterByCode[master.Section] = master;
         }
 
         public void LoadProject(int projectId)
@@ -97,8 +99,9 @@ namespace QuotingTool.Forms
         /// </summary>
         private void RecalculatePrice(QuoteLine line)
         {
-            if (CanCalculatePrice(line, out var massPerM))
-                line.Price = massPerM * line.LengthM * _metalPricePerKg;
+            line.Price = CanCalculatePrice(line, out var massPerM)
+                ? massPerM * line.LengthM * _metalPricePerKg
+                : 0m;
 
             line.TotalPrice = line.Quantity * line.Price;
         }
