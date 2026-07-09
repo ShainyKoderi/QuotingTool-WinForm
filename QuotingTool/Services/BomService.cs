@@ -158,7 +158,7 @@ namespace QuotingTool.Services
                     LengthM         = bom.LengthM,
                     Price           = bom.ImportedPrice,
                     SellPrice       = 0,
-                    TotalPrice      = bom.Quantity * bom.LengthM * bom.ImportedPrice,
+                    TotalPrice      = bom.Quantity * bom.ImportedPrice,
                     SubsillFlag     = bom.SubsillFlag,
                     SubsillSurcharge = surcharge
                 });
