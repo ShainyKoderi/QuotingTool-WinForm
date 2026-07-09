@@ -61,8 +61,8 @@ namespace QuotingTool.Data
             if (line.LineNumber <= 0)
                 line.LineNumber = line.RowInBlock > 0 ? line.RowInBlock : 1;
 
-            if (line.TotalPrice == 0m && line.Quantity != 0m && line.LengthM != 0m && line.Price != 0m)
-                line.TotalPrice = line.Quantity * line.LengthM * line.Price;
+            if (line.TotalPrice == 0m && line.Quantity != 0m && line.Price != 0m)
+                line.TotalPrice = line.Quantity * line.Price;
         }
 
         /// <summary>

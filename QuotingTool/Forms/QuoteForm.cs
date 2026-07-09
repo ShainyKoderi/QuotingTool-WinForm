@@ -51,7 +51,7 @@ namespace QuotingTool.Forms
             {
                 if (line.LineNumber <= 0)
                     line.LineNumber = line.RowInBlock;
-                line.TotalPrice = line.Quantity * line.LengthM * line.Price;
+                line.TotalPrice = line.Quantity * line.Price;
             }
             gridQuote.DataSource = _lines;
             _bindingGrid = false;
@@ -259,7 +259,7 @@ namespace QuotingTool.Forms
             {
                 line.ProjectId = _projectId;
                 line.LineNumber = line.LineNumber <= 0 ? line.RowInBlock : line.LineNumber;
-                line.TotalPrice = line.Quantity * line.LengthM * line.Price;
+                line.TotalPrice = line.Quantity * line.Price;
                 _db.UpsertQuoteLine(line);
             }
 
@@ -279,7 +279,7 @@ namespace QuotingTool.Forms
             if (gridQuote.Rows[e.RowIndex].DataBoundItem is not QuoteLine line) return;
 
             line.LineNumber = line.LineNumber <= 0 ? e.RowIndex + 1 : line.LineNumber;
-            line.TotalPrice = line.Quantity * line.LengthM * line.Price;
+            line.TotalPrice = line.Quantity * line.Price;
             if (gridQuote.Columns.Contains("TotalPrice"))
                 gridQuote.Rows[e.RowIndex].Cells["TotalPrice"].Value = line.TotalPrice;
             _db.UpsertQuoteLine(line);
