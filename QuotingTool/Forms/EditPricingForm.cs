@@ -13,6 +13,12 @@ namespace QuotingTool.Forms
         private const decimal DefaultIP2Upcharge = 2.00m;
         private const decimal DefaultIP3Rate = 25.85m;
         private const decimal DefaultAnodisedThresholdCost = 10.65m;
+        private static readonly System.Drawing.Color ClrOlive = System.Drawing.Color.FromArgb(107, 127, 41);
+        private static readonly System.Drawing.Color ClrOliveRow = System.Drawing.Color.FromArgb(226, 239, 218);
+        private static readonly System.Drawing.Color ClrInputBg = System.Drawing.Color.LightYellow;
+        private static readonly System.Drawing.Color ClrReadOnly = System.Drawing.Color.FromArgb(242, 242, 242);
+        private static readonly System.Drawing.Color ClrTotals = System.Drawing.Color.FromArgb(255, 199, 206);
+        private static readonly System.Drawing.Color ClrHdr = System.Drawing.Color.FromArgb(198, 224, 180);
 
         private readonly DatabaseContext _db;
         private readonly ShowHideBulkService _showHide;
@@ -359,6 +365,12 @@ namespace QuotingTool.Forms
 
         private static decimal ParseDecimal(string text, decimal fallback = 0m)
             => decimal.TryParse(text, out decimal value) ? value : fallback;
+
+        private static System.Drawing.Font BoldFont(float size = 9F)
+            => new System.Drawing.Font("Segoe UI", size, System.Drawing.FontStyle.Bold);
+
+        private static System.Drawing.Font RegFont(float size = 9F)
+            => new System.Drawing.Font("Segoe UI", size);
 
         private static decimal CalculateMarginPct(decimal sell, decimal cost)
             => sell > 0m ? (sell - cost) / sell * 100m : 0m;
