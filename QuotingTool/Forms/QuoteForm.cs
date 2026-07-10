@@ -109,6 +109,8 @@ namespace QuotingTool.Forms
                 slottingSundryEach: slottingSundryEach);
 
             line.TotalPrice = FormulaCalculationService.CalculateSellTotal(line.Price, line.Quantity);
+            // Keep legacy SellPrice (col J) synchronized with TotalPrice so existing
+            // exports/queries that still read SellPrice receive the recalculated value.
             line.SellPrice = line.TotalPrice;
         }
 
