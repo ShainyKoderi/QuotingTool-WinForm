@@ -19,6 +19,10 @@ namespace QuotingTool.Forms
         private const int MaxQuotePages = 6;
         private const int MaxRowsPerPage = 40;
         private const int MaxQuoteLines = MaxQuotePages * MaxRowsPerPage;
+        private const int QtyColumnWidth = 70;
+        private const int LengthColumnWidth = 90;
+        private const int PriceColumnWidth = 90;
+        private const int TotalColumnWidth = 90;
         private BindingList<QuoteLine> _lines = new();
         private int _projectId;
         private bool _bindingGrid;
@@ -99,22 +103,27 @@ namespace QuotingTool.Forms
         /// </summary>
         private void RecalculatePrice(QuoteLine line)
         {
-            line.Price = CanCalculatePrice(line, out var massPerM)
-                ? massPerM * line.LengthM * _metalPricePerKg
-                : 0m;
+            var millFinishEach = CalculateMillFinishEach(line);
+            var slottingSundryEach = line.SubsillSurcharge;
 
-            line.TotalPrice = line.Quantity * line.Price;
+            line.Price = FormulaCalculationService.CalculatePriceEach(
+                millFinishEach,
+                ipEach: 0m,
+                sfSellEach: 0m,
+                slottingSundryEach: slottingSundryEach);
+
+            line.TotalPrice = FormulaCalculationService.CalculateSellTotal(line.Price, line.Quantity);
+            // Keep legacy SellPrice (col J) synchronized with TotalPrice so existing
+            // exports/queries that still read SellPrice receive the recalculated value.
+            line.SellPrice = line.TotalPrice;
         }
 
-        private bool CanCalculatePrice(QuoteLine line, out decimal massPerM)
+        private decimal CalculateMillFinishEach(QuoteLine line)
         {
-            massPerM = 0m;
-            if (string.IsNullOrWhiteSpace(line.ExtrusionCode)) return false;
-            if (!_extrusionMasterByCode.TryGetValue(line.ExtrusionCode, out var master)) return false;
-            if (master.MassPerM <= 0 || line.LengthM <= 0 || _metalPricePerKg <= 0) return false;
-
-            massPerM = master.MassPerM;
-            return true;
+            if (string.IsNullOrWhiteSpace(line.ExtrusionCode)) return 0m;
+            if (!_extrusionMasterByCode.TryGetValue(line.ExtrusionCode, out var master)) return 0m;
+            if (master.MassPerM <= 0 || line.LengthM <= 0 || _metalPricePerKg <= 0) return 0m;
+            return master.MassPerM * line.LengthM * _metalPricePerKg;
         }
 
         private void UpdatePrintAreaLabel()
@@ -126,6 +135,7 @@ namespace QuotingTool.Forms
         private void ConfigureGridColumns()
         {
             gridQuote.AutoGenerateColumns = true;
+            gridQuote.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
             gridQuote.DataError += (s, e) =>
             {
                 // The Section combo box only accepts values from ExtrusionMaster; suppress
@@ -145,10 +155,10 @@ namespace QuotingTool.Forms
                 SetColHeader("Description", "Description", 250, false);
                 SetColHeader("Alloy", "Alloy", 70, false);
                 SetColHeader("Temper", "Temper", 70, false);
-                SetColHeader("Quantity", "Qty", 60, false);
-                SetColHeader("LengthM", "Length (m)", 90, false);
-                SetColHeader("Price", "$ Each", 90, false);
-                SetColHeader("TotalPrice", "$ Total", 90, false);
+                SetColHeader("Quantity", "Qty", QtyColumnWidth, false);
+                SetColHeader("LengthM", "Length (m)", LengthColumnWidth, false);
+                SetColHeader("Price", "$ Each", PriceColumnWidth, false);
+                SetColHeader("TotalPrice", "$ Total", TotalColumnWidth, false);
                 SetColHeader("SellPrice", "Sell Price", 90, true);
                 SetColHeader("SubsillSurcharge", "Slotting (K)", 90, false);
                 SetColHeader("IgnoreFinish", "Ign Fin", 80, false);
@@ -163,6 +173,12 @@ namespace QuotingTool.Forms
                 SetReadOnly("Temper", true);
                 SetReadOnly("Price", true);
                 SetReadOnly("TotalPrice", true);
+
+                SetColFormat("Quantity", "0.##", DataGridViewContentAlignment.MiddleRight);
+                SetColFormat("LengthM", "0.###", DataGridViewContentAlignment.MiddleRight);
+                SetColFormat("Price", "0.0000", DataGridViewContentAlignment.MiddleRight);
+                SetColFormat("TotalPrice", "0.0000", DataGridViewContentAlignment.MiddleRight);
+                SetColFormat("SubsillSurcharge", "0.0000", DataGridViewContentAlignment.MiddleRight);
             };
         }
 
@@ -212,6 +228,14 @@ namespace QuotingTool.Forms
         {
             if (gridQuote.Columns.Contains(propName))
                 gridQuote.Columns[propName].Visible = false;
+        }
+
+        private void SetColFormat(string propName, string format, DataGridViewContentAlignment alignment)
+        {
+            if (!gridQuote.Columns.Contains(propName)) return;
+            var style = gridQuote.Columns[propName].DefaultCellStyle;
+            style.Format = format;
+            style.Alignment = alignment;
         }
 
         private void cmbPageSelector_SelectedIndexChanged(object sender, EventArgs e)

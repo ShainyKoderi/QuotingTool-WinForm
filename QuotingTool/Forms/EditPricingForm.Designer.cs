@@ -10,19 +10,6 @@ namespace QuotingTool.Forms
             base.Dispose(disposing);
         }
 
-        // ── Colour constants (matching sample.xlsm colour scheme) ─────────────
-        private static readonly System.Drawing.Color ClrOlive    = System.Drawing.Color.FromArgb(107, 127,  41); // section label/header
-        private static readonly System.Drawing.Color ClrOliveRow = System.Drawing.Color.FromArgb(226, 239, 218); // group background tint
-        private static readonly System.Drawing.Color ClrInputBg  = System.Drawing.Color.LightYellow;             // editable cells
-        private static readonly System.Drawing.Color ClrReadOnly = System.Drawing.Color.FromArgb(242, 242, 242); // computed read-only
-        private static readonly System.Drawing.Color ClrTotals   = System.Drawing.Color.FromArgb(255, 199, 206); // totals row (pink)
-        private static readonly System.Drawing.Color ClrHdr      = System.Drawing.Color.FromArgb(198, 224, 180); // group-box title bg
-
-        private static System.Drawing.Font BoldFont(float size = 9F)
-            => new System.Drawing.Font("Segoe UI", size, System.Drawing.FontStyle.Bold);
-        private static System.Drawing.Font RegFont(float size = 9F)
-            => new System.Drawing.Font("Segoe UI", size);
-
         private void InitializeComponent()
         {
             // ── Declare all controls ──────────────────────────────────────────
