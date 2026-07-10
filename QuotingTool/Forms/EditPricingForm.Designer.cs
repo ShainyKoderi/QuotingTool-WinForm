@@ -19,9 +19,14 @@ namespace QuotingTool.Forms
         private static readonly System.Drawing.Color ClrHdr      = System.Drawing.Color.FromArgb(198, 224, 180); // group-box title bg
 
         private static System.Drawing.Font BoldFont(float size = 9F)
-            => new System.Drawing.Font("Segoe UI", size, System.Drawing.FontStyle.Bold);
+        {
+            return new System.Drawing.Font("Segoe UI", size, System.Drawing.FontStyle.Bold);
+        }
+
         private static System.Drawing.Font RegFont(float size = 9F)
-            => new System.Drawing.Font("Segoe UI", size);
+        {
+            return new System.Drawing.Font("Segoe UI", size);
+        }
 
         private void InitializeComponent()
         {
