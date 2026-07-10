@@ -19,6 +19,10 @@ namespace QuotingTool.Forms
         private const int MaxQuotePages = 6;
         private const int MaxRowsPerPage = 40;
         private const int MaxQuoteLines = MaxQuotePages * MaxRowsPerPage;
+        private const int QtyColumnWidth = 70;
+        private const int LengthColumnWidth = 90;
+        private const int PriceColumnWidth = 90;
+        private const int TotalColumnWidth = 90;
         private BindingList<QuoteLine> _lines = new();
         private int _projectId;
         private bool _bindingGrid;
@@ -151,10 +155,10 @@ namespace QuotingTool.Forms
                 SetColHeader("Description", "Description", 250, false);
                 SetColHeader("Alloy", "Alloy", 70, false);
                 SetColHeader("Temper", "Temper", 70, false);
-                SetColHeader("Quantity", "Qty", 70, false);
-                SetColHeader("LengthM", "Length (m)", 90, false);
-                SetColHeader("Price", "$ Each", 90, false);
-                SetColHeader("TotalPrice", "$ Total", 90, false);
+                SetColHeader("Quantity", "Qty", QtyColumnWidth, false);
+                SetColHeader("LengthM", "Length (m)", LengthColumnWidth, false);
+                SetColHeader("Price", "$ Each", PriceColumnWidth, false);
+                SetColHeader("TotalPrice", "$ Total", TotalColumnWidth, false);
                 SetColHeader("SellPrice", "Sell Price", 90, true);
                 SetColHeader("SubsillSurcharge", "Slotting (K)", 90, false);
                 SetColHeader("IgnoreFinish", "Ign Fin", 80, false);

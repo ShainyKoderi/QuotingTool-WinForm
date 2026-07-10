@@ -13,6 +13,12 @@ namespace QuotingTool.Forms
         private const decimal DefaultIP2Upcharge = 2.00m;
         private const decimal DefaultIP3Rate = 25.85m;
         private const decimal DefaultAnodisedThresholdCost = 10.65m;
+        private static readonly System.Drawing.Font FontBold13 = new("Segoe UI", 13F, System.Drawing.FontStyle.Bold);
+        private static readonly System.Drawing.Font FontBold10 = new("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+        private static readonly System.Drawing.Font FontBold9 = new("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+        private static readonly System.Drawing.Font FontBold85 = new("Segoe UI", 8.5F, System.Drawing.FontStyle.Bold);
+        private static readonly System.Drawing.Font FontReg9 = new("Segoe UI", 9F);
+        private static readonly System.Drawing.Font FontReg8 = new("Segoe UI", 8F);
         private static readonly System.Drawing.Color ClrOlive = System.Drawing.Color.FromArgb(107, 127, 41);
         private static readonly System.Drawing.Color ClrOliveRow = System.Drawing.Color.FromArgb(226, 239, 218);
         private static readonly System.Drawing.Color ClrInputBg = System.Drawing.Color.LightYellow;
@@ -367,10 +373,20 @@ namespace QuotingTool.Forms
             => decimal.TryParse(text, out decimal value) ? value : fallback;
 
         private static System.Drawing.Font BoldFont(float size = 9F)
-            => new System.Drawing.Font("Segoe UI", size, System.Drawing.FontStyle.Bold);
+            => size switch
+            {
+                13F => FontBold13,
+                10F => FontBold10,
+                8.5F => FontBold85,
+                _ => FontBold9
+            };
 
         private static System.Drawing.Font RegFont(float size = 9F)
-            => new System.Drawing.Font("Segoe UI", size);
+            => size switch
+            {
+                8F => FontReg8,
+                _ => FontReg9
+            };
 
         private static decimal CalculateMarginPct(decimal sell, decimal cost)
             => sell > 0m ? (sell - cost) / sell * 100m : 0m;
