@@ -1,6 +1,6 @@
 # QuotingTool – Aluminium Extrusion Pricing Quotation Tool
 
-A complete **C# WinForms desktop application** (.NET 8) with **SQL Server** that replicates the functionality of 14 Office Scripts converted from Excel VBA macros, and now includes quote letter generation, no-pricing quote output, sundry item management, SAP clipboard export, and expanded pricing/project data support.
+A complete **C# WinForms desktop application** (.NET 8) with **SQL Server** that replicates the functionality of 14 Office Scripts converted from Excel VBA macros, and now includes quote letter generation, no-pricing quote output, sundry item management, SAP clipboard export, and expanded pricing/project data support.
 
 ---
 
@@ -31,7 +31,7 @@ Service Layer (Business Logic)
 Data Layer (Dapper + SQL Server)
 ```
 
-- **UI**: `WinForms` (.NET 8) — tabbed main window with 7 screens
+- **UI**: `WinForms` (.NET 8) — tabbed main window with 7 screens
 - **Services**: One service class per original Office Script plus app-specific services for formulas, summaries, sundry items, and SAP export
 - **Data**: `ADO.NET` + `Dapper` connected to SQL Server
 - **Export**: `ClosedXML` for Excel (.xlsx) export; built-in CSV export; `QuestPDF`-based quote letter / no-pricing PDF output
@@ -51,6 +51,8 @@ QuotingTool/
     DatabaseContext.cs      ← Connection + repository methods + normalization helpers
     Models.cs               ← C# model classes (Project, QuoteLine, EditPricing, SundryItem, QuoteSummary, etc.)
     SqlSchema.sql           ← SQL Server schema + additive migration guards
+    SeedData.sql            ← Reference/lookup data seeded on first launch
+    ExtrusionMasterSeed.sql ← Extrusion section master data from DATA sheet Table5
   Services/
     FormulaCalculationService.cs ← Core workbook formula translations
     PageSetupService.cs     ← Script 01: Page layout & print area
@@ -134,7 +136,7 @@ QuotingTool/
 
 | # | Original Office Script | Service Class | Description |
 |---|---|---|---|
-| 01 | `01_PageSetup_SetPageLayout.ts` | `PageSetupService` | Set active pages (1-6), update footer colours & print area |
+| 01 | `01_PageSetup_SetPageLayout.ts` | `PageSetupService` | Set active pages (1–6), update footer colours & print area |
 | 02 | `02_LengthFix_mm_to_m.ts` | `LengthFixService` | Convert lengths > 1000 from mm to m |
 | 03 | `03_ResetPriceFormulas.ts` | `ResetPriceService` | Restore prices from master formula backup |
 | 04 | `04_ShowHideBulk.ts` | `ShowHideBulkService` | Toggle CostTypeOverride (show/hide bulk pricing rows) |
@@ -177,6 +179,36 @@ QuotingTool/
 
 ---
 
+## 📐 2.Quote Sheet – Calculation Pipeline
+
+The `$ Each` (col I) for each quote line is the sum of four components:
+
+```
+$ Each (I) = MF Each (AH) + IP Each (AI) + SF Sell Each (AS) + Slotting/Sundry ea (K)
+$ Total (J) = $ Each (I) × Qty (G)
+```
+
+### Component breakdown
+
+| Component | Excel Col | Formula | Key inputs |
+|---|---|---|---|
+| MF Each | AH | `kg each × MetalSellPrice (B33)` for standard; PLS/PDB use TB cost tables | `Y` (kg/m), `H` (length), `B33` ($/kg) |
+| IP Each | AI | `kg each × IP rate` (G33/H33/I33) | `AV` (IP category 0–3), IP rates from `EditPricing` |
+| SF Sell Each | AS | AP or PP area × SF Sell $/m² (AP12) | `AC`/`AF` (area), `AP` ($/m²), `AQ` (AP or PP path) |
+| Slotting/Sundry ea | K | `AZ (SlotSellEach) + BC (SundrySellEach)` | Subsill tier from `SubsillTierPrices`, sundry from `Sundry_Data` |
+
+### Metal price calculation chain
+
+```
+LME Rate + Billet Premium = B3   (from Table_Costs / RevisionControl)
+B3 + Internal Spread       = B5  (metal cost total, e.g. 8.73 $/kg, June 2026)
+User enters / VLOOKUP      = B33 (metal sell price, e.g. 9–12 $/kg depending on volume)
+kg/m (from ExtrusionMaster) × Length (m) = kg each
+kg each × B33 = MF Each (col AH, standard path)
+```
+
+---
+
 ## 🗃️ Database and Model Updates
 
 ### Expanded `Projects` fields
@@ -214,24 +246,56 @@ Includes additional workbook-derived and app-derived fields such as:
 - `TotalKg`
 - `TotalFinishingM2`
 - `TotalPieces`
-- `IP1UpchargePerKg`
-- `IP2UpchargePerKg`
-- `IP3PanoramicFixedKgRate`
-- `IP1MarginPct`
-- `IP2MarginPct`
-- `IP3MarginPct`
+- `IP1UpchargePerKg` – default **1.00 $/kg** (workbook `3.Edit Pricing!G33`)
+- `IP2UpchargePerKg` – default **2.00 $/kg** (workbook `3.Edit Pricing!H33`)
+- `IP3PanoramicFixedKgRate` – default **25.85 $/kg** (workbook `3.Edit Pricing!I33`, derived from `Table_Costs`)
+- `IP1MarginPct`, `IP2MarginPct`, `IP3MarginPct`
 - `MillFinishMarginPct`
 - `FinishingMarginPct`
-- `FinishingCostPricePerM2`
-- `AnodisedThresholdCostPerM2`
+- `FinishingCostPricePerM2` – default **10.50 $/m²** (workbook `Pricing Matrix!E44`)
+- `AnodisedThresholdCostPerM2` – default **10.65 $/m²** (workbook `Pricing Matrix!E49`)
 - `ThermalBreakMarginPct`
 
-### New tables
+### Current tables
 
-| Table | Purpose |
-|---|---|
-| `SundryItems` | Stores manual sundry charges by project |
-| `QuoteSummary` | Stores calculated pricing/margin summary totals by project |
+| Table | Source sheet | Purpose |
+|---|---|---|
+| `Projects` | 1.Project Details | Project metadata |
+| `QuoteLines` | 2.Quote | Line items (section, qty, length, price) |
+| `ExtrusionMaster` | DATA – Table5 | Section code lookup with kg/m |
+| `EditPricing` | 3.Edit Pricing | Pricing configuration per project |
+| `BomLines` | BOM_Import | Imported BOM CSV rows |
+| `RevisionControl` | Revision Control | Monthly LME/billet rate history |
+| `SundryItems` | Manual entry | Sundry charges per project |
+| `QuoteSummary` | Quote_Data / 3.Edit Pricing | Calculated margin summary per project |
+| `MetalBreakpoints` | Pricing Matrix rows 8–13 | Metal sell price tier lookup |
+| `ThermalBreakBreakpoints` | Pricing Matrix rows 16–21 | TB margin/list price tier lookup |
+| `PowderCostTable` | Pricing Matrix rows 28–40 | Finishing cost $/m² by vendor and group |
+| `FinishBreakpoints` | Pricing Matrix rows 54–60 | Finishing margin tier lookup |
+| `SubsillTierPrices` | Pricing Matrix rows 65–68 | Subsill cost and sell $/m |
+| `ColourGroups` | Colour_Groups (VeryHidden) | SAP colour code master |
+| `ValidationData` | Validation | Dropdown list data |
+| `QuoteFooters` | Named ranges pg1_foot…pg6_foot | Per-page footer colour |
+| `PrintSettings` | — | Page count / print area per project |
+| `MasterFormulas` | col BA backup | Formula expression backup |
+| `SheetLocks` | — | Sheet lock state |
+
+### Missing tables / fields required for full calculation fidelity
+
+The following are identified as needed for complete `2.Quote` formula translation but are not yet in the database:
+
+| Required item | Used by formula | Suggested location |
+|---|---|---|
+| `THRESHOLDS` named range (list of threshold section codes) | Col BF threshold flag | New `ThresholdSections` table |
+| PH product hierarchy code per section (DATA col H) | Col AU PH lookup | `ExtrusionMaster.PhCode` |
+| IP category per PH code (`5.Edit_PH_IP` col D) | Col AV IP grade | New `IPMasterData` table |
+| AP per metre per section (DATA col E, mm units) | Cols AB–AD, AO, AR, AS | `ExtrusionMaster.ApMm` |
+| PP per metre per section (DATA col F, mm units) | Cols AE–AG, AO, AR, AS | `ExtrusionMaster.PpMm` |
+| Subsill tier per section (DATA col K) | Col V auto-fill | `ExtrusionMaster.SubsillTier` |
+| Thermal-break type per section (DATA col M) | Col P formula | `ExtrusionMaster.ThermalBreakType` |
+| IP grade per quote line | Col AI IP each | `QuoteLines.IpGrade` |
+| PDB metal cost base (Pricing Matrix F4) | Col AH PDB path | New `PricingConstants` or `EditPricing` field |
+| ALF cost per metre (Pricing Matrix F5) | Col AH PDB path | Same as above |
 
 `SqlSchema.sql` now includes additive `IF COL_LENGTH(...) IS NULL` and `IF NOT EXISTS` guards so schema upgrades can run safely on existing databases.
 
@@ -239,18 +303,33 @@ Includes additional workbook-derived and app-derived fields such as:
 
 ## 📐 Key Constants and Defaults
 
+### Workbook-derived constants (June 2026 rates from Sample.xlsm)
+
+| Constant | Value | Workbook source |
+|---|---|---|
+| LME + billet premium | 5.61 $/kg | Pricing Matrix B3 |
+| Internal spread | 3.12 $/kg | Pricing Matrix B4 |
+| Metal cost total | 8.73 $/kg | Pricing Matrix B5 = B3+B4 |
+| Extra spread (F3) | 0.35 $/kg | Pricing Matrix F3 |
+| PDB metal cost base | 9.08 $/kg | Pricing Matrix F4 = B5+F3 |
+| ALF cost per metre | 6.46 $/m | Pricing Matrix F5 |
+| AP to PP factor | 1.9 | Pricing Matrix K5 |
+| Standard delivery charge | $97 | Pricing Matrix H3 |
+| Finishing cost $/m² (standard) | 10.50 | Pricing Matrix E44 |
+| Anodised threshold cost $/m² | 10.65 | Pricing Matrix E49 |
+| IP1 upcharge default | 1.00 $/kg | 3.Edit Pricing G33 |
+| IP2 upcharge default | 2.00 $/kg | 3.Edit Pricing H33 |
+| IP3 panoramic rate (approx) | ≈25.85 $/kg | 3.Edit Pricing I33 via Table_Costs |
+
+### Application layout constants
+
 | Constant / Default | Value |
 |---|---|
 | Page block row ranges | [12,51], [68,107], [123,162], [178,217], [233,272], [288,327] |
-| LastRow per page count (1-6) | 56, 111, 166, 221, 276, 331 |
+| LastRow per page count (1–6) | 56, 111, 166, 221, 276, 331 |
 | Page count thresholds | > 40 rows → 2 pages; > 80 → 3; > 120 → 4; > 160 → 5; > 200 → 6 |
-| Default delivery charge | 97.00 |
 | Default quote validity | 30 days |
-| IP1 default upcharge | 1.00 $/kg |
-| IP2 default upcharge | 2.00 $/kg |
-| IP3 panoramic fixed rate | 25.85 $/kg |
-| AP → PP factor | 1.9 |
-| Quote summary mill-finish cost ratio | 0.87 |
+| Quote summary mill-finish cost ratio | 0.87 (approximation) |
 
 ---
 
@@ -279,7 +358,11 @@ Additional summary logic is in:
 
 - `QuotingTool/Services/QuoteSummaryService.cs`
 
-See `FORMULA_NOTES.md` for workbook formulas that are fully translated, approximated, stubbed, or still blocked by missing workbook data.
+See `FORMULA_NOTES.md` for:
+- the full column-by-column formula reference for `2.Quote`
+- actual workbook values for all pricing reference tables (Section 6)
+- identified gaps between current seed data and actual workbook values
+- missing tables/fields needed for full calculation fidelity
 
 ---
 
@@ -289,9 +372,12 @@ Compared to the original Excel workbook:
 
 1. **No live Excel event model** — recalculation is driven by WinForms actions and save/update flows
 2. **Some DATA-sheet formulas remain unresolved** — especially values requiring Excel evaluation of XLOOKUP/LAMBDA/dynamic arrays
-3. **Threshold cost and some finishing logic are approximate or partially stubbed**
-4. **CRE8 import uses an inferred/best-effort column mapping** until a real CRE8 sample/export specification is available
-5. **VBA macro code, pivot cache data, embedded workbook assets, and some hidden-sheet structures are still not directly extractable**
+3. **Threshold cost and finishing logic are approximate or partially stubbed** — the per-line AO/AP/AS calculations are not yet computed; finishing is project-level only
+4. **IP grade not persisted per line** — `QuoteLines.IpGrade` column does not yet exist; IP upcharge (`$ Each` AI component) is currently passed as `0m`
+5. **Seed data in `SeedData.sql` uses placeholder/estimated values** for `MetalBreakpoints`, `ThermalBreakBreakpoints`, `FinishBreakpoints`, `SubsillTierPrices`, and `PowderCostTable`; the actual workbook values (as of June 2026) are documented in `FORMULA_NOTES.md` Section 6
+6. **`ExtrusionMaster` is missing columns** needed for full per-line calculation: `ApMm`, `PpMm`, `SubsillTier`, `ThermalBreakType`, `PhCode`
+7. **CRE8 import uses an inferred/best-effort column mapping** until a real CRE8 sample/export specification is available
+8. **VBA macro code, pivot cache data, embedded workbook assets, and some hidden-sheet structures are still not directly extractable**
 
 ---
 
