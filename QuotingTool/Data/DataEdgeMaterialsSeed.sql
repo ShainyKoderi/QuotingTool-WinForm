@@ -907,7 +907,9 @@ INSERT INTO DataEdgeMaterials (MatRefNo, MatRefDescription, SapMatNo) VALUES
 ('C9598', 'C9598 Max 40mm Flush Filler', 'EP23532'),
 ('C9599', 'C9599 94 x 50 S/Mating Blind Mullion', 'EP23533'),
 ('C9600', 'C9600 100 x 44 CSG Frame', 'EP23534'),
-('C9601', 'C9601 100 x 25 CSG Narrow Frame', 'EP23535'),
+('C9601', 'C9601 100 x 25 CSG Narrow Frame', 'EP23535');
+
+INSERT INTO DataEdgeMaterials (MatRefNo, MatRefDescription, SapMatNo) VALUES
 ('C9603', 'C9603 100 x 44 Plain Frame', 'EP23536'),
 ('C9604', 'C9604 100 x 25 Plain Frame', 'EP23537'),
 ('C9605', 'C9605 100 x 44 CSG Sill', 'EP23538'),
