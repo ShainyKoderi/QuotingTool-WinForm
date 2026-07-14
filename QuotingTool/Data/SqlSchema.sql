@@ -300,6 +300,7 @@ IF COL_LENGTH('Projects','CustomerSapDiscount') IS NULL ALTER TABLE Projects ADD
 -- Add missing columns to QuoteLines
 IF COL_LENGTH('QuoteLines','TotalPrice') IS NULL ALTER TABLE QuoteLines ADD TotalPrice DECIMAL(18,4) DEFAULT 0;
 IF COL_LENGTH('QuoteLines','LineNumber') IS NULL ALTER TABLE QuoteLines ADD LineNumber INT DEFAULT 0;
+IF COL_LENGTH('QuoteLines','IpGrade') IS NULL ALTER TABLE QuoteLines ADD IpGrade INT DEFAULT 0;
 
 -- Add missing columns to EditPricing
 IF COL_LENGTH('EditPricing','PricingNotes') IS NULL ALTER TABLE EditPricing ADD PricingNotes NVARCHAR(2000);
@@ -354,4 +355,25 @@ CREATE TABLE QuoteSummary (
     GrandMarginDollar DECIMAL(18,4) DEFAULT 0,
     GrandMarginPct DECIMAL(18,4) DEFAULT 0,
     UpdatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- Add new columns to ExtrusionMaster (DATA sheet cols E, F, H, K, M)
+IF COL_LENGTH('ExtrusionMaster','ApMm') IS NULL ALTER TABLE ExtrusionMaster ADD ApMm DECIMAL(18,4) DEFAULT 0;
+IF COL_LENGTH('ExtrusionMaster','PpMm') IS NULL ALTER TABLE ExtrusionMaster ADD PpMm DECIMAL(18,4) DEFAULT 0;
+IF COL_LENGTH('ExtrusionMaster','SubsillTier') IS NULL ALTER TABLE ExtrusionMaster ADD SubsillTier INT DEFAULT 0;
+IF COL_LENGTH('ExtrusionMaster','ThermalBreakType') IS NULL ALTER TABLE ExtrusionMaster ADD ThermalBreakType NVARCHAR(10) DEFAULT 'No';
+IF COL_LENGTH('ExtrusionMaster','PhCode') IS NULL ALTER TABLE ExtrusionMaster ADD PhCode NVARCHAR(50) NULL;
+
+-- ThresholdSections table: section codes in the THRESHOLDS named range (Validation col N)
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='ThresholdSections')
+CREATE TABLE ThresholdSections (
+    Section NVARCHAR(50) NOT NULL PRIMARY KEY
+);
+
+-- IPMasterData table: PH product hierarchy code → IP ingress protection category (0-3)
+-- Source: 5.Edit_PH_IP sheet, cols B (PH) and D (IP Category)
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='IPMasterData')
+CREATE TABLE IPMasterData (
+    PhCode NVARCHAR(50) NOT NULL PRIMARY KEY,
+    IpCategory INT NOT NULL DEFAULT 0
 );

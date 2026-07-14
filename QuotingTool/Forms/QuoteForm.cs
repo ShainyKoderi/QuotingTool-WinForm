@@ -28,6 +28,14 @@ namespace QuotingTool.Forms
         private bool _bindingGrid;
         private Dictionary<string, ExtrusionMaster> _extrusionMasterByCode = new(StringComparer.OrdinalIgnoreCase);
         private decimal _metalPricePerKg;
+        // IP upcharge rates loaded from EditPricing (default to workbook constants when no project pricing exists)
+        private decimal _ip1RatePerKg = 1.00m;
+        private decimal _ip2RatePerKg = 2.00m;
+        private decimal _ip3RatePerKg = 25.85m;
+        // PH code → IP category (0-3) lookup, sourced from 5.Edit_PH_IP sheet via IPMasterData table
+        private Dictionary<string, int> _ipMasterByCodes = new(StringComparer.Ordinal);
+        // Section codes in the THRESHOLDS named range; used for the BF column threshold flag
+        private HashSet<string> _thresholdSections = new(StringComparer.OrdinalIgnoreCase);
 
         public QuoteForm(DatabaseContext db)
         {
@@ -39,6 +47,7 @@ namespace QuotingTool.Forms
             _sapExport = new SapExportService(db);
             InitializeComponent();
             LoadExtrusionMaster();
+            LoadIPMasterData();
             ConfigureGridColumns();
         }
 
@@ -51,10 +60,33 @@ namespace QuotingTool.Forms
                 _extrusionMasterByCode[master.Section] = master;
         }
 
+        private void LoadIPMasterData()
+        {
+            try
+            {
+                _ipMasterByCodes = _db.GetIPMasterByCodes();
+                _thresholdSections = _db.GetThresholdSections();
+            }
+            catch
+            {
+                // Tables may not yet exist on first launch before schema migration completes;
+                // fall back to empty lookups so the form still opens.
+                _ipMasterByCodes = new Dictionary<string, int>(StringComparer.Ordinal);
+                _thresholdSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            }
+        }
+
         public void LoadProject(int projectId)
         {
             _projectId = projectId;
-            _metalPricePerKg = _db.GetEditPricing(projectId)?.MetalPrice ?? 0m;
+            var pricing = _db.GetEditPricing(projectId);
+            _metalPricePerKg = pricing?.MetalPrice ?? 0m;
+            if (pricing != null)
+            {
+                _ip1RatePerKg = pricing.IP1UpchargePerKg > 0 ? pricing.IP1UpchargePerKg : 1.00m;
+                _ip2RatePerKg = pricing.IP2UpchargePerKg > 0 ? pricing.IP2UpchargePerKg : 2.00m;
+                _ip3RatePerKg = pricing.IP3PanoramicFixedKgRate > 0 ? pricing.IP3PanoramicFixedKgRate : 25.85m;
+            }
             RefreshGrid();
             UpdatePrintAreaLabel();
         }
@@ -62,8 +94,15 @@ namespace QuotingTool.Forms
         private void RefreshGrid()
         {
             if (_projectId <= 0) return;
-            // Always reload metal price so changes saved on the Edit Pricing tab are reflected here.
-            _metalPricePerKg = _db.GetEditPricing(_projectId)?.MetalPrice ?? 0m;
+            // Always reload metal price and IP rates so changes saved on the Edit Pricing tab are reflected here.
+            var pricing = _db.GetEditPricing(_projectId);
+            _metalPricePerKg = pricing?.MetalPrice ?? 0m;
+            if (pricing != null)
+            {
+                _ip1RatePerKg = pricing.IP1UpchargePerKg > 0 ? pricing.IP1UpchargePerKg : 1.00m;
+                _ip2RatePerKg = pricing.IP2UpchargePerKg > 0 ? pricing.IP2UpchargePerKg : 2.00m;
+                _ip3RatePerKg = pricing.IP3PanoramicFixedKgRate > 0 ? pricing.IP3PanoramicFixedKgRate : 25.85m;
+            }
             _bindingGrid = true;
             _lines = new BindingList<QuoteLine>(_db.GetQuoteLines(_projectId).ToList());
             foreach (var line in _lines)
@@ -78,8 +117,13 @@ namespace QuotingTool.Forms
         }
 
         /// <summary>
-        /// Auto-loads Description/Alloy/Temper for a quote line based on its selected
-        /// Section (ExtrusionCode), mirroring the Table5 VLOOKUP formulas in the workbook.
+        /// Auto-loads Description/Alloy/Temper/SubsillFlag/IpGrade for a quote line based on its
+        /// selected Section (ExtrusionCode), mirroring the Table5 VLOOKUP formulas in the workbook.
+        ///
+        /// Col D formula (simplified): * prefix when TB type is PDB/PLS; base description from Table5[2];
+        ///   " **MILL FINISH**" suffix when IgnoreFinish = "Yes".
+        /// Col V formula: VLOOKUP(C, Table5[], 11) → subsill tier; SubsillFlag = tier > 0.
+        /// Col AV formula: VLOOKUP(PH code, 5.Edit_PH_IP, col D) → IP category 0-3.
         /// </summary>
         private void ApplySectionLookup(QuoteLine line)
         {
@@ -92,25 +136,50 @@ namespace QuotingTool.Forms
             if (!_extrusionMasterByCode.TryGetValue(line.ExtrusionCode, out var master))
                 return;
 
-            line.Description = master.Description;
+            // Build Description: prepend * for thermal-break sections (PDB/PLS), then base description,
+            // then append " **MILL FINISH**" when Ignore Finish is set to "Yes".
+            var tbType = master.ThermalBreakType ?? "No";
+            var descBase = master.Description ?? string.Empty;
+            var prefix = (tbType == "PLS" || tbType == "PDB") ? "*" : string.Empty;
+            var suffix = string.Equals(line.IgnoreFinish, "Yes", StringComparison.OrdinalIgnoreCase)
+                ? " **MILL FINISH**"
+                : string.Empty;
+            line.Description = prefix + descBase + suffix;
+
             if (string.IsNullOrWhiteSpace(line.Alloy))
                 line.Alloy = master.DefaultAlloy;
             if (string.IsNullOrWhiteSpace(line.Temper))
                 line.Temper = master.DefaultTemper;
+
+            // Col V: SubsillFlag = tier > 0 (auto-filled from Table5 col K; user can still override).
+            if (master.SubsillTier > 0)
+                line.SubsillFlag = true;
+
+            // Col AV: IP grade auto-computed from PH code via IPMasterData lookup.
+            // IpGrade is stored so the user can override it if needed.
+            if (!string.IsNullOrWhiteSpace(master.PhCode) &&
+                _ipMasterByCodes.TryGetValue(master.PhCode, out var ipCat))
+            {
+                line.IpGrade = ipCat;
+            }
         }
 
         /// <summary>
-        /// $ Each is calculated from Length: MassPerM (kg/m, from the Section master) ×
-        /// Length (m) × the project's metal sell price ($/kg from Edit Pricing).
+        /// $ Each is calculated from:
+        ///   MF Each (AH) = kg/m × Length × MetalSellPrice (standard path)
+        ///   IP Each (AI) = kg/m × Length × IP upcharge rate (based on IpGrade: 0=none,1=IP1,2=IP2,3=IP3)
+        ///   SF Sell Each (AS) = 0 (finishing area calculation – requires ApMm/PpMm; not yet fully translated)
+        ///   Slotting/Sundry ea (K) = user-entered SubsillSurcharge
         /// </summary>
         private void RecalculatePrice(QuoteLine line)
         {
             var millFinishEach = CalculateMillFinishEach(line);
+            var ipEach = CalculateIpEach(line);
             var slottingSundryEach = line.SubsillSurcharge;
 
             line.Price = FormulaCalculationService.CalculatePriceEach(
                 millFinishEach,
-                ipEach: 0m,
+                ipEach: ipEach,
                 sfSellEach: 0m,
                 slottingSundryEach: slottingSundryEach);
 
@@ -126,6 +195,27 @@ namespace QuotingTool.Forms
             if (!_extrusionMasterByCode.TryGetValue(line.ExtrusionCode, out var master)) return 0m;
             if (master.MassPerM <= 0 || line.LengthM <= 0 || _metalPricePerKg <= 0) return 0m;
             return master.MassPerM * line.LengthM * _metalPricePerKg;
+        }
+
+        /// <summary>
+        /// Col AI – IP Each = kg/m × Length (m) × IP upcharge rate ($/kg).
+        /// Rate lookup: 0 → $0, 1 → IP1UpchargePerKg, 2 → IP2UpchargePerKg, 3 → IP3PanoramicFixedKgRate.
+        /// </summary>
+        private decimal CalculateIpEach(QuoteLine line)
+        {
+            if (line.IpGrade <= 0) return 0m;
+            if (string.IsNullOrWhiteSpace(line.ExtrusionCode)) return 0m;
+            if (!_extrusionMasterByCode.TryGetValue(line.ExtrusionCode, out var master)) return 0m;
+            if (master.MassPerM <= 0 || line.LengthM <= 0) return 0m;
+
+            var kgEach = master.MassPerM * line.LengthM;
+            return line.IpGrade switch
+            {
+                1 => kgEach * _ip1RatePerKg,
+                2 => kgEach * _ip2RatePerKg,
+                3 => kgEach * _ip3RatePerKg,
+                _ => 0m
+            };
         }
 
         private void UpdatePrintAreaLabel()
@@ -159,6 +249,7 @@ namespace QuotingTool.Forms
                 SetColHeader("Temper", "Temper", 70, false);
                 SetColHeader("Quantity", "Qty", QtyColumnWidth, false);
                 SetColHeader("LengthM", "Length (m)", LengthColumnWidth, false);
+                SetColHeader("IpGrade", "IP", 50, false);
                 SetColHeader("Price", "$ Each", PriceColumnWidth, false);
                 SetColHeader("TotalPrice", "$ Total", TotalColumnWidth, false);
                 SetColHeader("SellPrice", "Sell Price", 90, true);
@@ -413,13 +504,20 @@ namespace QuotingTool.Forms
             if (_bindingGrid || e.RowIndex < 0 || _projectId <= 0) return;
             if (gridQuote.Rows[e.RowIndex].DataBoundItem is not QuoteLine line) return;
 
-            // Refresh metal price in case the Edit Pricing tab was saved since this tab loaded.
-            _metalPricePerKg = _db.GetEditPricing(_projectId)?.MetalPrice ?? _metalPricePerKg;
+            // Refresh metal price and IP rates in case the Edit Pricing tab was saved since this tab loaded.
+            var pricing = _db.GetEditPricing(_projectId);
+            _metalPricePerKg = pricing?.MetalPrice ?? _metalPricePerKg;
+            if (pricing != null)
+            {
+                _ip1RatePerKg = pricing.IP1UpchargePerKg > 0 ? pricing.IP1UpchargePerKg : _ip1RatePerKg;
+                _ip2RatePerKg = pricing.IP2UpchargePerKg > 0 ? pricing.IP2UpchargePerKg : _ip2RatePerKg;
+                _ip3RatePerKg = pricing.IP3PanoramicFixedKgRate > 0 ? pricing.IP3PanoramicFixedKgRate : _ip3RatePerKg;
+            }
 
             line.LineNumber = line.LineNumber <= 0 ? e.RowIndex + 1 : line.LineNumber;
 
-            // Always re-run the section lookup so Description/Alloy/Temper stay in sync
-            // regardless of which column was just edited (Section, Qty, Length, etc.).
+            // Always re-run the section lookup so Description/Alloy/Temper/IpGrade/SubsillFlag stay
+            // in sync regardless of which column was just edited (Section, Qty, Length, IgnoreFinish, etc.).
             ApplySectionLookup(line);
             RecalculatePrice(line);
 
@@ -429,6 +527,7 @@ namespace QuotingTool.Forms
             SetCellValue(row, "Description", line.Description);
             SetCellValue(row, "Alloy",        line.Alloy);
             SetCellValue(row, "Temper",       line.Temper);
+            SetCellValue(row, "IpGrade",      line.IpGrade);
             SetCellValue(row, "Price",        line.Price);
             SetCellValue(row, "TotalPrice",   line.TotalPrice);
             _bindingGrid = false;
