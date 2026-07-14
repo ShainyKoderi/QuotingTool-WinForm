@@ -15,197 +15,252 @@
 -- ---------------------------------------------------------------------------
 -- 1. ColourGroups  (Colour_Groups sheet)
 --    Columns (schema): Id, GroupName, ShortDesc, LongDesc, ColourCode
---    GroupName = colour group (e.g. "GROUP 1"), ShortDesc = short name,
---    LongDesc = display name, ColourCode = SAP code
--- ---------------------------------------------------------------------------
+--    GroupName = colour group (e.g. "GROUP 1"), ShortDesc = colour short name,
+--    LongDesc = full applicator description, ColourCode = SAP colour code.
+--    Values extracted directly from the "Colour_Groups" sheet of
+--    "Project Pricing_Quotation Tool_v1.xlsx" (COLOURS named range A4:D94
+--    plus the mirrored G:I column block).
+-- 165 colour rows extracted from Colour_Groups sheet
 INSERT INTO ColourGroups (GroupName, ShortDesc, LongDesc, ColourCode) VALUES
--- GROUP 1 (Standard Dulux / Interpon colours)
-('GROUP 1', 'Satin Black',           'Satin Black (Standard)',                'Z110'),
-('GROUP 1', 'Matt Black',            'Matt Black (Standard)',                 'Z112'),
-('GROUP 1', 'Satin White',           'Satin White (Standard)',                'Z120'),
-('GROUP 1', 'Matt White',            'Matt White (Standard)',                 'Z123'),
-('GROUP 1', 'Satin Dark Bronze',     'Satin Dark Bronze (Standard)',          'Z115'),
-('GROUP 1', 'Matt Dark Bronze',      'Matt Dark Bronze (Standard)',           'Z116'),
-('GROUP 1', 'Satin Medium Bronze',   'Satin Medium Bronze (Standard)',        'Z117'),
-('GROUP 1', 'Matt Medium Bronze',    'Matt Medium Bronze (Standard)',         'Z118'),
-('GROUP 1', 'Satin Paperbark',       'Satin Paperbark (Standard)',            'Z125'),
-('GROUP 1', 'Matt Paperbark',        'Matt Paperbark (Standard)',             'Z126'),
-('GROUP 1', 'Satin Primrose',        'Satin Primrose (Standard)',             'Z130'),
-('GROUP 1', 'Matt Primrose',         'Matt Primrose (Standard)',              'Z131'),
-('GROUP 1', 'Satin Surfmist',        'Satin Surfmist (Standard)',             'Z135'),
-('GROUP 1', 'Matt Surfmist',         'Matt Surfmist (Standard)',              'Z136'),
-('GROUP 1', 'Satin Shale Grey',      'Satin Shale Grey (Standard)',           'Z140'),
-('GROUP 1', 'Matt Shale Grey',       'Matt Shale Grey (Standard)',            'Z141'),
-('GROUP 1', 'Satin Dune',            'Satin Dune (Standard)',                 'Z145'),
-('GROUP 1', 'Matt Dune',             'Matt Dune (Standard)',                  'Z146'),
-('GROUP 1', 'Satin Ironstone',       'Satin Ironstone (Standard)',            'Z150'),
-('GROUP 1', 'Matt Ironstone',        'Matt Ironstone (Standard)',             'Z151'),
--- GROUP 2
-('GROUP 2', 'Satin Jasper',          'Satin Jasper (Group 2)',                'Z210'),
-('GROUP 2', 'Matt Jasper',           'Matt Jasper (Group 2)',                 'Z211'),
-('GROUP 2', 'Satin Terrain',         'Satin Terrain (Group 2)',               'Z220'),
-('GROUP 2', 'Matt Terrain',          'Matt Terrain (Group 2)',                'Z221'),
-('GROUP 2', 'Satin Woodland Grey',   'Satin Woodland Grey (Group 2)',         'Z225'),
-('GROUP 2', 'Matt Woodland Grey',    'Matt Woodland Grey (Group 2)',          'Z226'),
-('GROUP 2', 'Satin Pale Eucalypt',   'Satin Pale Eucalypt (Group 2)',         'Z230'),
-('GROUP 2', 'Matt Pale Eucalypt',    'Matt Pale Eucalypt (Group 2)',          'Z231'),
-('GROUP 2', 'Satin Windspray',       'Satin Windspray (Group 2)',             'Z235'),
-('GROUP 2', 'Matt Windspray',        'Matt Windspray (Group 2)',              'Z236'),
-('GROUP 2', 'Satin Mangrove',        'Satin Mangrove (Group 2)',              'Z240'),
-('GROUP 2', 'Matt Mangrove',         'Matt Mangrove (Group 2)',               'Z241'),
-('GROUP 2', 'Satin Monument',        'Satin Monument (Group 2)',              'Z245'),
-('GROUP 2', 'Matt Monument',         'Matt Monument (Group 2)',               'Z246'),
-('GROUP 2', 'Satin Basalt',          'Satin Basalt (Group 2)',                'Z250'),
-('GROUP 2', 'Matt Basalt',           'Matt Basalt (Group 2)',                 'Z251'),
--- GROUP 3
-('GROUP 3', 'Satin Gull Grey',       'Satin Gull Grey (Group 3)',             'Z310'),
-('GROUP 3', 'Matt Gull Grey',        'Matt Gull Grey (Group 3)',              'Z311'),
-('GROUP 3', 'Satin Deep Ocean',      'Satin Deep Ocean (Group 3)',            'Z320'),
-('GROUP 3', 'Matt Deep Ocean',       'Matt Deep Ocean (Group 3)',             'Z321'),
-('GROUP 3', 'Satin Headland',        'Satin Headland (Group 3)',              'Z325'),
-('GROUP 3', 'Matt Headland',         'Matt Headland (Group 3)',               'Z326'),
-('GROUP 3', 'Satin Evening Haze',    'Satin Evening Haze (Group 3)',          'Z330'),
-('GROUP 3', 'Matt Evening Haze',     'Matt Evening Haze (Group 3)',           'Z331'),
-('GROUP 3', 'Satin Cove',            'Satin Cove (Group 3)',                  'Z335'),
-('GROUP 3', 'Matt Cove',             'Matt Cove (Group 3)',                   'Z336'),
-('GROUP 3', 'Satin Rivergum',        'Satin Rivergum (Group 3)',              'Z340'),
-('GROUP 3', 'Matt Rivergum',         'Matt Rivergum (Group 3)',               'Z341'),
-('GROUP 3', 'Satin Wilderness',      'Satin Wilderness (Group 3)',            'Z345'),
-('GROUP 3', 'Matt Wilderness',       'Matt Wilderness (Group 3)',             'Z346'),
-('GROUP 3', 'Satin Cottage Green',   'Satin Cottage Green (Group 3)',         'Z350'),
-('GROUP 3', 'Matt Cottage Green',    'Matt Cottage Green (Group 3)',          'Z351'),
--- GROUP 4
-('GROUP 4', 'Satin Jasper Sp.',      'Satin Jasper Special (Group 4)',        'Z410'),
-('GROUP 4', 'Matt Jasper Sp.',       'Matt Jasper Special (Group 4)',         'Z411'),
-('GROUP 4', 'Satin Terrain Sp.',     'Satin Terrain Special (Group 4)',       'Z420'),
-('GROUP 4', 'Matt Terrain Sp.',      'Matt Terrain Special (Group 4)',        'Z421'),
-('GROUP 4', 'Satin Merino',          'Satin Merino (Group 4)',                'Z425'),
-('GROUP 4', 'Matt Merino',           'Matt Merino (Group 4)',                 'Z426'),
-('GROUP 4', 'Satin Sandbank',        'Satin Sandbank (Group 4)',              'Z430'),
-('GROUP 4', 'Matt Sandbank',         'Matt Sandbank (Group 4)',               'Z431'),
-('GROUP 4', 'Satin Wheat',           'Satin Wheat (Group 4)',                 'Z435'),
-('GROUP 4', 'Matt Wheat',            'Matt Wheat (Group 4)',                  'Z436'),
-('GROUP 4', 'Satin Wicker',          'Satin Wicker (Group 4)',                'Z440'),
-('GROUP 4', 'Matt Wicker',           'Matt Wicker (Group 4)',                 'Z441'),
--- GROUP 5
-('GROUP 5', 'Satin Met. Charcoal',   'Satin Metallic Charcoal (Group 5)',     'Z510'),
-('GROUP 5', 'Matt Met. Charcoal',    'Matt Metallic Charcoal (Group 5)',      'Z511'),
-('GROUP 5', 'Satin Met. Champagne',  'Satin Metallic Champagne (Group 5)',    'Z520'),
-('GROUP 5', 'Matt Met. Champagne',   'Matt Metallic Champagne (Group 5)',     'Z521'),
-('GROUP 5', 'Satin Met. Silver',     'Satin Metallic Silver (Group 5)',       'Z525'),
-('GROUP 5', 'Matt Met. Silver',      'Matt Metallic Silver (Group 5)',        'Z526'),
--- 20um Clear anodise  (ThresholdChoice → SAP code "3A")
-('20um Clear', '20um Clear',         '20 Micron Clear Anodise',               '3A'),
--- 25um Clear anodise  (ThresholdChoice → SAP code "4A")
-('25um Clear', '25um Clear',         '25 Micron Clear Anodise',               '4A'),
--- n/a (no finish / mill finish)
-('n/a',       'No Finish',           'No Finish / Mill Finish',               'NON'),
--- GROUP POA (price on application)
-('GROUP POA', 'Custom Colour',       'Custom Colour – Price On Application',  'GPOA'),
-('GROUP POA', 'Special POA',         'Special Colour – Price On Application', 'SPEC');
+('n/a', 'MILL FINISH', 'MILL FINISH', 'NON'),
+('GROUP 1', 'ANODIC DARK GREY MATT GL213A', 'INTERPON ANODIC DARK GREY MATT GL213A', 'GR'),
+('GROUP 1', 'PEARL WHITE GLOSS GA078A', 'INTERPON PEARL WHITE GLOSS GA078A', 'PW'),
+('GROUP 1', 'ANODIC NATURAL MATT GY235A', 'INTERPON ANODIC NATURAL MATT GY235A', 'AM'),
+('GROUP 1', 'BLACK SATIN GN150A', 'INTERPON BLACK SATIN GN150A', 'BS'),
+('GROUP 1', 'ANODIC SILVER GREY MATT GL237A', 'INTERPON ANODIC SILVER GREY MATT GL237A', 'SI'),
+('GROUP 1', 'EXCEL MONUMENT MATT GL229A', 'INTERPON EXCEL MONUMENT MATT GL229A', 'NN9'),
+('GROUP 1', 'APO GREY SATIN GL107A', 'INTERPON APO GREY SATIN GL107A', 'AG'),
+('GROUP 1', 'TEXTURA BLACK TEXTURE GN305A', 'INTERPON TEXTURA BLACK TEXTURE GN305A', 'EE6'),
+('GROUP 1', 'BLACK MATT LOW MAR GN279A', 'INTERPON BLACK MATT LOW MAR GN279A', 'WW3'),
+('GROUP 1', 'BLACK MATT LOW MAR GN279A', 'INTERPON BLACK MATT LOW MAR GN279A', 'WW3'),
+('GROUP 1', 'BLACK SATIN GN150A', 'INTERPON BLACK SATIN GN150A', 'BS'),
+('GROUP 1', 'EXCEL SURFMIST MATT GA236A', 'INTERPON EXCEL SURFMIST MATT GA236A', 'BO'),
+('GROUP 1', 'CUSTOM BLACK MATT GN248A', 'INTERPON CUSTOM BLACK MATT GN248A', 'CUB'),
+('GROUP 1', 'METALLIC LUSTRE MATT GW215A', 'INTERPON METALLIC LUSTRE MATT GW215A', 'ML'),
+('GROUP 1', 'DOESKIN SATIN GD188A', 'INTERPON DOESKIN SATIN GD188A', 'DS'),
+('GROUP 1', 'ANODIC NATURAL MATT GY235A', 'INTERPON ANODIC NATURAL MATT GY235A', 'AM'),
+('GROUP 1', 'EXCEL DUNE SATIN GP152A', 'INTERPON EXCEL DUNE SATIN GP152A', 'AA4'),
+('GROUP 1', 'VIVICA ULTRA SILVER GL GY070A', 'INTERPON VIVICA ULTRA SILVER GLOSS GY070A', 'US'),
+('GROUP 1', 'EXCEL JASPER SATIN GT114A', 'INTERPON EXCEL JASPER SATIN GT114A', 'CC4'),
+('GROUP 1', 'EXCEL WOODLAND GREY MT GL205A', 'INTERPON EXCEL WOODLAND GREY MATT GL205A', 'SG'),
+('GROUP 1', 'EXCEL MONUMENT MATT GL229A', 'INTERPON EXCEL MONUMENT MATT GL229A', 'NN9'),
+('GROUP 1', 'VIVICA SNOW DUST MATT GA228A', 'INTERPON VIVICA SNOW DUST MATT GA228A', 'WL'),
+('GROUP 1', 'EXCEL MONUMENT SATIN GP129A', 'INTERPON EXCEL MONUMENT SATIN GP129A', 'AB1'),
+('GROUP 1', 'VIVICA STORM FRONT MATT GL249A', 'INTERPON VIVICA STORM FRONT MATT GL249A', 'SM'),
+('GROUP 1', 'EXCEL PAPERBARK SATIN GU114A', 'INTERPON EXCEL PAPERBARK SATIN GU114A', 'BB3'),
+('GROUP 1', 'ANODIC DARK GREY MATT GL213A', 'INTERPON ANODIC DARK GREY MATT GL213A', 'GR'),
+('GROUP 1', 'EXCEL SURFMIST MATT GA236A', 'INTERPON EXCEL SURFMIST MATT GA236A', 'BO'),
+('GROUP 1', 'PRIMROSE GLOSS GD037A', 'INTERPON PRIMROSE GLOSS GD037A', 'PR'),
+('GROUP 1', 'EXCEL WOODLAND GREY MT GL205A', 'INTERPON EXCEL WOODLAND GREY MATT GL205A', 'SG'),
+('GROUP 1', 'ANODIC SILVER GREY MATT GL237A', 'INTERPON ANODIC SILVER GREY MATT GL237A', 'SI'),
+('GROUP 1', 'HAMERSLEY BROWN SATIN GM100A', 'INTERPON HAMERSLEY BROWN SATIN GM100A', 'HB'),
+('GROUP 1', 'CUSTOM BLACK MATT GN248A', 'INTERPON CUSTOM BLACK MATT GN248A', 'CUB'),
+('GROUP 1', 'MAGNOLIA GLOSS GD025A', 'INTERPON MAGNOLIA GLOSS GD025A', 'MA'),
+('GROUP 1', 'APO GREY SATIN GL107A', 'INTERPON APO GREY SATIN GL107A', 'AG'),
+('GROUP 1', 'METALLIC LUSTRE MATT GW215A', 'INTERPON METALLIC LUSTRE MATT GW215A', 'ML'),
+('GROUP 1', 'STONE BEIGE MATT GD247A', 'INTERPON STONE BEIGE MATT GD247A', 'SB'),
+('GROUP 1', 'NOTRE DAME GLOSS GL040A', 'INTERPON NOTRE DAME GLOSS GL040A', 'ND'),
+('GROUP 1', 'EXCEL JASPER SATIN GT114A', 'INTERPON EXCEL JASPER SATIN GT114A', 'CC4'),
+('GROUP 1', 'PEARL WHITE GLOSS GA078A', 'INTERPON PEARL WHITE GLOSS GA078A', 'PW'),
+('GROUP 1', 'NOTRE DAME GLOSS GL040A', 'INTERPON NOTRE DAME GLOSS GL040A', 'ND'),
+('GROUP 1', 'PRIMROSE GLOSS GD037A', 'INTERPON PRIMROSE GLOSS GD037A', 'PR'),
+('GROUP 1', 'EXCEL PAPERBARK SATIN GU114A', 'INTERPON EXCEL PAPERBARK SATIN GU114A', 'BB3'),
+('GROUP 1', 'STONE BEIGE MATT GD247A', 'INTERPON STONE BEIGE MATT GD247A', 'SB'),
+('GROUP 1', 'HAMERSLEY BROWN SATIN GM100A', 'INTERPON HAMERSLEY BROWN SATIN GM100A', 'HB'),
+('GROUP 1', 'TEXTURA BLACK TEXTURE GN305A', 'INTERPON TEXTURA BLACK TEXTURE GN305A', 'EE6'),
+('GROUP 1', 'WHITE BIRCH GLOSS GA057A', 'INTERPON WHITE BIRCH GLOSS GA057A', 'WB5'),
+('GROUP 1', 'VIVICA SNOW DUST MATT GA228A', 'INTERPON VIVICA SNOW DUST MATT GA228A', 'WL'),
+('GROUP 1', 'DOESKIN SATIN GD188A', 'INTERPON DOESKIN SATIN GD188A', 'DS'),
+('GROUP 1', 'VIVICA STORM FRONT MATT GL249A', 'INTERPON VIVICA STORM FRONT MATT GL249A', 'SM'),
+('GROUP 1', 'MAGNOLIA GLOSS GD025A', 'INTERPON MAGNOLIA GLOSS GD025A', 'MA'),
+('GROUP 1', 'VIVICA ULTRA SILVER GL GY070A', 'INTERPON VIVICA ULTRA SILVER GLOSS GY070A', 'US'),
+('GROUP 1', 'EXCEL DUNE SATIN GP152A', 'INTERPON EXCEL DUNE SATIN GP152A', 'AA4'),
+('GROUP 1', 'WHITE BIRCH GLOSS GA057A', 'INTERPON WHITE BIRCH GLOSS GA057A', 'WB5'),
+('GROUP 1', 'MONUMENT SATIN EXCEL GP129A', 'INTERPON EXCEL MONUMENT SATIN GP129A', 'AB1'),
+('GROUP 2', 'ANODIC BRONZE SATIN GY114A', 'INTERPON ANODIC BRONZE SATIN GY114A', 'AB'),
+('GROUP 2', 'EXCEL IRONSTONE MATT GL236A', 'INTERPON EXCEL IRONSTONE MATT GL236A', 'IR'),
+('GROUP 2', 'EXCEL BASALT MATT GP208A', 'INTERPON EXCEL BASALT MATT GP208A', 'AC3'),
+('GROUP 2', 'WHITE SATIN GA124A', 'INTERPON WHITE SATIN GA124A', 'WS'),
+('GROUP 2', 'EXCEL CHARCOAL SATIN GL180A', 'INTERPON EXCEL CHARCOAL SATIN GL180A', 'C9'),
+('GROUP 2', 'EXCEL SHALE GREY MATT GL284A', 'INTERPON EXCEL SHALE GREY MATT GL284A', 'GG'),
+('GROUP 2', 'EXCEL CLASSIC CREAM MT GD245A', 'INTERPON EXCEL CLASSIC CREAM MATT GD245A', 'SC'),
+('GROUP 2', 'EXCEL CHARCOAL SATIN GL180A', 'INTERPON EXCEL CHARCOAL SATIN GL180A', 'C9'),
+('GROUP 2', 'EXCEL DEEP OCEAN SATIN GQ103A', 'INTERPON EXCEL DEEP OCEAN SATIN GQ103A', 'DM'),
+('GROUP 2', 'EXCEL BASALT MATT GP208A', 'INTERPON EXCEL BASALT MATT GP208A', 'AC3'),
+('GROUP 2', 'EXCEL IRONSTONE MATT GL236A', 'INTERPON EXCEL IRONSTONE MATT GL236A', 'IR'),
+('GROUP 2', 'ANODIC BRONZE SATIN GY114A', 'INTERPON ANODIC BRONZE SATIN GY114A', 'AB'),
+('GROUP 2', 'EXCEL SHALE GREY MATT GL284A', 'INTERPON EXCEL SHALE GREY MATT GL284A', 'GG'),
+('GROUP 2', 'EXCEL DEEP OCEAN SATIN GQ103A', 'INTERPON EXCEL DEEP OCEAN SATIN GQ103A', 'DM'),
+('GROUP 2', 'EXCEL WALLABY MATT GL210A', 'INTERPON EXCEL WALLABY MATT GL210A', 'WT2'),
+('GROUP 2', 'EXCEL WALLABY MATT GL210A', 'INTERPON EXCEL WALLABY MATT GL210A', 'WT2'),
+('GROUP 2', 'EXCEL WINDSPRAY MATT GL266A', 'INTERPON EXCEL WINDSPRAY MATT GL266A', 'AR'),
+('GROUP 2', 'EXCEL CLASSIC CREAM MT GD245A', 'INTERPON EXCEL CLASSIC CREAM MATT GD245A', 'SC'),
+('GROUP 2', 'SHOJI WHITE SATIN GA160A', 'INTERPON SHOJI WHITE SATIN GA160A', 'SH'),
+('GROUP 2', 'EXCEL WINDSPRAY MATT GL266A', 'INTERPON EXCEL WINDSPRAY MATT GL266A', 'AR'),
+('GROUP 2', 'WHITE SATIN GA124A', 'INTERPON WHITE SATIN GA124A', 'WS'),
+('GROUP 2', 'SHOJI WHITE SATIN GA160A', 'INTERPON SHOJI WHITE SATIN GA160A', 'SH'),
+('GROUP 3', 'TEXTURA DEEP OCEAN GJ301A', 'INTERPON TEXTURA DEEP OCEAN TEXTURE GJ301A', 'TB1'),
+('GROUP 3', 'TEXTURA MONUMENT GL329A', 'INTERPON TEXTURA MONUMENT TEXTURE GL329A', 'TB5'),
+('GROUP 3', 'TEXTURA DUNE GL352A', 'INTERPON TEXTURA DUNE TEXTURE GL352A', 'TB2'),
+('GROUP 3', 'TEXTURA WHITE GA330A', 'INTERPON TEXTURA WHITE TEXTURE GA330A', 'TC2'),
+('GROUP 3', 'TEXTURA IRONSTONE GL336A', 'INTERPON TEXTURA IRONSTONE TEXTURE GL336A', 'TB3'),
+('GROUP 3', 'TEXTURA WOODLAND GREY GL333A', 'INTERPON TEXTURA WOODLAND GREY TEXTURE GL333A', 'TC1'),
+('GROUP 3', 'TEXTURA JASPER GM314A', 'INTERPON TEXTURA JASPER TEXTURE GM314A', 'TB4'),
+('GROUP 3', 'TEXTURA DEEP OCEAN GJ301A', 'INTERPON TEXTURA DEEP OCEAN TEXTURE GJ301A', 'TB1'),
+('GROUP 3', 'TEXTURA MONUMENT GL329A', 'INTERPON TEXTURA MONUMENT TEXTURE GL329A', 'TB5'),
+('GROUP 3', 'TEXTURA DUNE GL352A', 'INTERPON TEXTURA DUNE TEXTURE GL352A', 'TB2'),
+('GROUP 3', 'TEXTURA PAPERBARK GD314A', 'INTERPON TEXTURA PAPERBARK TEXTURE GD314A', 'TB6'),
+('GROUP 3', 'TEXTURA PRIMROSE GD331A', 'INTERPON TEXTURA PRIMROSE TEXTURE GD331A', 'TB7'),
+('GROUP 3', 'TEXTURA PRIMROSE GD331A', 'INTERPON TEXTURA PRIMROSE TEXTURE GD331A', 'TB7'),
+('GROUP 3', 'TEXTURA IRONSTONE GL336A', 'INTERPON TEXTURA IRONSTONE TEXTURE GL336A', 'TB3'),
+('GROUP 3', 'TEXTURA SILVER GY35LA', 'INTERPON TEXTURA SILVER TEXTURE GY35LA', 'TB8'),
+('GROUP 3', 'TEXTURA JASPER GM314A', 'INTERPON TEXTURA JASPER TEXTURE GM314A', 'TB4'),
+('GROUP 3', 'TEXTURA SURFMIST GA336A', 'INTERPON TEXTURA SURFMIST TEXTURE GA336A', 'TB9'),
+('GROUP 3', 'TEXTURA SILVER GY35LA', 'INTERPON TEXTURA SILVER TEXTURE GY35LA', 'TB8'),
+('GROUP 3', 'TEXTURA WHITE GA330A', 'INTERPON TEXTURA WHITE TEXTURE GA330A', 'TC2'),
+('GROUP 3', 'TEXTURA PAPERBARK GD314A', 'INTERPON TEXTURA PAPERBARK TEXTURE GD314A', 'TB6'),
+('GROUP 3', 'TEXTURA WOODLAND GREY GL333A', 'INTERPON TEXTURA WOODLAND GREY TEXTURE GL333A', 'TC1'),
+('GROUP 3', 'TEXTURA SURFMIST GA336A', 'INTERPON TEXTURA SURFMIST TEXTURE GA336A', 'TB9'),
+('GROUP 3', 'VIVICA PLDM SLVR PRL ST GY184C', 'INTERPON VIVICA PALLADIUM SILVER PEARL SATIN GY184C', 'W3'),
+('GROUP 3', 'VIVICA PLDM SLVR PRL ST GY184C', 'INTERPON VIVICA PALLADIUM SILVER PEARL SATIN GY184C', 'W3'),
+('GROUP 4', 'BERRY GREY SATIN 26088362', 'DULUX DURALLOY RAPIDCURE BERRY GREY SATIN 26088362', 'B1'),
+('GROUP 4', 'VVCA NOBEL SLVR PRL ST GY119A', 'INTERPON VIVICA NOBEL SILVER PEARL SATIN GY119A', 'A8'),
+('GROUP 4', 'PREC SLVR KIN PRL ST 9717043K', 'DULUX PRECIOUS SILVER KINETIC PEARL SATIN 9717043K', 'PS'),
+('GROUP 4', 'VIVICA CHRCL MTLLC GL GM019A', 'INTERPON VIVICA CHARCOAL METALLIC GLOSS GM019A', 'CM'),
+('GROUP 4', 'SABLE BLACK TEXTURE GN341A', 'INTERPON SABLE BLACK TEXTURE GN341A', 'SA8'),
+('GROUP 4', 'PREC SLVR KIN PRL ST 9717043K', 'DULUX PRECIOUS SILVER KINETIC PEARL SATIN 9717043K', 'PS'),
+('GROUP 4', 'VIVICA CHRCL MTLLC GL GM019A', 'INTERPON VIVICA CHARCOAL METALLIC GLOSS GM019A', 'CM'),
+('GROUP 4', 'SABLE BLACK TEXTURE GN341A', 'INTERPON SABLE BLACK TEXTURE GN341A', 'SA8'),
+('GROUP 4', 'VIVICA CHARCOAL PRL MT GY237A', 'INTERPON VIVICA CHARCOAL PEARL MATT GY237A', 'SS6'),
+('GROUP 4', 'VIVICA CHARCOAL PRL MT GY237A', 'INTERPON VIVICA CHARCOAL PEARL MATT GY237A', 'SS6'),
+('GROUP 4', 'VVCA NOBEL SLVR PRL ST GY119A', 'INTERPON VIVICA NOBEL SILVER PEARL SATIN GY119A', 'A8'),
+('GROUP 4', 'BERRY GREY SATIN 26088362', 'DULUX DURALLOY RAPIDCURE BERRY GREY SATIN 26088362', 'B1'),
+('GROUP 5', 'DTEC ETY CHRCL PRL ST 90T7762S', 'DULUX DURATEC ETERNITY CHARCOAL PEARL SATIN 90T7762S', 'D1'),
+('GROUP 5', 'D2525 MONUMENT MATT YL264A', 'INTERPON D2525 MONUMENT MATT YL264A', 'XX6'),
+('GROUP 5', 'DTEC ETY SLVR KIN PRL 91T7160S', 'DULUX DURATEC ETERNITY SILVER KINETIC PEARL SATIN 91T7160S', 'NN6'),
+('GROUP 5', 'D2525 BLACK INK FLMT YN21BA', 'INTERPON D2525 BLACK INK FLAT MATT YN21BA', 'PB1'),
+('GROUP 5', 'DTEC ETY TTNM PRL ST 91T7765S', 'DULUX DURATEC ETERNITY TITANIUM PEARL SATIN 91T7765S', 'PF'),
+('GROUP 5', 'D2525 TITANIUM PEARL MT YY263A', 'INTERPON D2525 TITANIUM PEARL MATT YY263A', 'UP'),
+('GROUP 5', 'DTEC ZEUS BLACK MATT 90Z9202M', 'DULUX DURATEC ZEUS BLACK MATT 90Z9202M', 'YD2'),
+('GROUP 5', 'D2525 CITI PEARL MATT YY245A', 'INTERPON D2525 CITI PEARL MATT YY245A', 'UU'),
+('GROUP 5', 'DTEC ZEUS CHARCOAL ST 90Z7766S', 'DULUX DURATEC ZEUS CHARCOAL SATIN 90Z7766S', 'MC'),
+('GROUP 5', 'D2525 SILVER PEARL MATT YY230A', 'INTERPON D2525 SILVER PEARL MATT YY230A', 'UT'),
+('GROUP 5', 'DTEC ZEUS DARK GY MT 90Z7767M', 'DULUX DURATEC ZEUS DARK GREY MATT 90Z7767M', 'ADD'),
+('GROUP 5', 'D2525 EBONY MATT YN201A', 'INTERPON D2525 EBONY MATT YN201A', 'EL'),
+('GROUP 5', 'DTEC ZS LNR ECLPS ST 90Z9203S', 'DULUX DURATEC ZEUS LUNAR ECLIPSE SATIN 90Z9203S', 'LE'),
+('GROUP 5', 'D2525 CHARCOAL PEARL MT YY237A', 'INTERPON D2525 CHARCOAL PEARL MATT YY237A', 'Z2'),
+('GROUP 5', 'DTEC ZEUS MONUMENT MT 90Z8189M', 'DULUX DURATEC ZEUS MONUMENT MATT 90Z8189M', 'WS5'),
+('GROUP 5', 'D2525 WHITE FLAT MATT YA25BA', 'INTERPON D2525 WHITE FLAT MATT YA25BA', 'W6'),
+('GROUP 5', 'DTEC ZEUS MONUMENT ST 90Z7307S', 'DULUX DURATEC ZEUS MONUMENT SATIN 90Z7307S', 'X9'),
+('GROUP 5', 'D2525 NAT SHIMMER FLMT YY25AA', 'INTERPON D2525 NATURAL SHIMMER FLAT MATT YY25AA', 'WB2'),
+('GROUP 5', 'ELECTRO BLK ACE FLAT 9069116F', 'DULUX ELECTRO BLACK ACE FLAT 9069116F', 'VS1'),
+('GROUP 5', 'D2525 CHAMP SHMMR FLMT YY24NA', 'INTERPON D2525 CHAMPAGNE SHIMMER FLAT MATT YY24NA', 'CS6'),
+('GROUP 5', 'ELECTRO DRK BRNZ FLAT 9068184F', 'DULUX ELECTRO DARK BRONZE FLAT 9068184F', 'VR3'),
+('GROUP 5', 'D2525 SUNSTNE BRNZ FLMT YY21BA', 'INTERPON D2525 SUNSTONE BRONZE FLAT MATT YY21BA', 'SZ'),
+('GROUP 5', 'D2525 BLACK INK FLMT YN21BA', 'INTERPON D2525 BLACK INK FLAT MATT YN21BA', 'PB1'),
+('GROUP 5', 'D2525 MONUMENT FLMT YP229A', 'INTERPON D2525 MONUMENT FLAT MATT YP229A', 'MS3'),
+('GROUP 5', 'D2525 CHAMP SHMMR FLMT YY24NA', 'INTERPON D2525 CHAMPAGNE SHIMMER FLAT MATT YY24NA', 'CS6'),
+('GROUP 5', 'D2525 GLDN TCH PRL FLMT YY25BA', 'INTERPON D2525 GOLDEN TOUCH PEARL FLAT MATT YY25BA', 'GT1'),
+('GROUP 5', 'D2525 CHARCOAL PEARL MT YY237A', 'INTERPON D2525 CHARCOAL PEARL MATT YY237A', 'Z2'),
+('GROUP 5', 'D2525 VINTAGE SLVR FLMT YY22NA', 'INTERPON D2525 VINTAGE SILVER FLAT MATT YY22NA', 'DB9'),
+('GROUP 5', 'D2525 CITI PEARL MATT YY245A', 'INTERPON D2525 CITI PEARL MATT YY245A', 'UU'),
+('GROUP 5', 'DTEC ZEUS DARK GY MT 90Z7767M', 'DULUX DURATEC ZEUS DARK GREY MATT 90Z7767M', 'ADD'),
+('GROUP 5', 'D2525 EBONY MATT YN201A', 'INTERPON D2525 EBONY MATT YN201A', 'EL'),
+('GROUP 5', 'DTEC ETY CHRCL PRL ST 90T7762S', 'DULUX DURATEC ETERNITY CHARCOAL PEARL SATIN 90T7762S', 'D1'),
+('GROUP 5', 'D2525 GLDN TCH PRL FLMT YY25BA', 'INTERPON D2525 GOLDEN TOUCH PEARL FLAT MATT YY25BA', 'GT1'),
+('GROUP 5', 'DTEC ZS LNR ECLPS ST 90Z9203S', 'DULUX DURATEC ZEUS LUNAR ECLIPSE SATIN 90Z9203S', 'LE'),
+('GROUP 5', 'D2525 MONUMENT FLMT YP229A', 'INTERPON D2525 MONUMENT FLAT MATT YP229A', 'MS3'),
+('GROUP 5', 'DTEC ZEUS CHARCOAL ST 90Z7766S', 'DULUX DURATEC ZEUS CHARCOAL SATIN 90Z7766S', 'MC'),
+('GROUP 5', 'D2525 MONUMENT MATT YL264A', 'INTERPON D2525 MONUMENT MATT YL264A', 'XX6'),
+('GROUP 5', 'DTEC ZEUS MONUMENT MT 90Z8189M', 'DULUX DURATEC ZEUS MONUMENT MATT 90Z8189M', 'WS5'),
+('GROUP 5', 'D2525 NAT SHIMMER FLMT YY25AA', 'INTERPON D2525 NATURAL SHIMMER FLAT MATT YY25AA', 'WB2'),
+('GROUP 5', 'DTEC ZEUS MONUMENT ST 90Z7307S', 'DULUX DURATEC ZEUS MONUMENT SATIN 90Z7307S', 'X9'),
+('GROUP 5', 'D2525 SILVER PEARL MATT YY230A', 'INTERPON D2525 SILVER PEARL MATT YY230A', 'UT'),
+('GROUP 5', 'DTEC ZEUS BLACK MATT 90Z9202M', 'DULUX DURATEC ZEUS BLACK MATT 90Z9202M', 'YD2'),
+('GROUP 5', 'D2525 SUNSTNE BRNZ FLMT YY21BA', 'INTERPON D2525 SUNSTONE BRONZE FLAT MATT YY21BA', 'SZ'),
+('GROUP 5', 'DTEC ETY TTNM PRL ST 91T7765S', 'DULUX DURATEC ETERNITY TITANIUM PEARL SATIN 91T7765S', 'PF'),
+('GROUP 5', 'D2525 TITANIUM PEARL MT YY263A', 'INTERPON D2525 TITANIUM PEARL MATT YY263A', 'UP'),
+('GROUP 5', 'ELECTRO DRK BRNZ FLAT 9068184F', 'DULUX ELECTRO DARK BRONZE FLAT 9068184F', 'VR3'),
+('GROUP 5', 'D2525 VINTAGE SLVR FLMT YY22NA', 'INTERPON D2525 VINTAGE SILVER FLAT MATT YY22NA', 'DB9'),
+('GROUP 5', 'ELECTRO BLK ACE FLAT 9069116F', 'DULUX ELECTRO BLACK ACE FLAT 9069116F', 'VS1'),
+('GROUP 5', 'D2525 WHITE FLAT MATT YA25BA', 'INTERPON D2525 WHITE FLAT MATT YA25BA', 'W6'),
+('GROUP 5', 'DTEC ETY SLVR KIN PRL 91T7160S', 'DULUX DURATEC ETERNITY SILVER KINETIC PEARL SATIN 91T7160S', 'NN6'),
+('20um Clear', '20um Clear Anodised', '20um Clear Anodised', '3A'),
+('25um Clear', '25um Clear Anodised', '25um Clear Anodised', '4A');
 
 
 -- ---------------------------------------------------------------------------
--- 2. MetalBreakpoints  (Pricing Matrix rows 7-13)
+-- 2. MetalBreakpoints  (Pricing Matrix rows 8-13, Table_Metal_BP)
 --    Schema: Id, BreakpointKg, Spread, TypicalPrice, MinPrice, MaxPrice,
 --            MinFactor, MaxFactor
---    Values are representative rates as of June 2026 (LME+billet = 5.61,
---    Internal Spread = 3.12, Total Cost = 8.73, Delivery = $97).
+--    Actual values extracted from "Pricing Matrix" of
+--    "Project Pricing_Quotation Tool_v1.xlsx" (June 2026 rates,
+--    Cost B5 = 8.73 $/kg). BreakpointKg is the minimum total project kg
+--    for that rate tier.
 -- ---------------------------------------------------------------------------
 INSERT INTO MetalBreakpoints (BreakpointKg, Spread, TypicalPrice, MinPrice, MaxPrice, MinFactor, MaxFactor) VALUES
-(0.100, 3.12, 11.85, 10.50, 13.50, 0.80, 1.20),
-(0.200, 3.12, 11.85, 10.50, 13.50, 0.85, 1.20),
-(0.300, 3.12, 11.85, 10.50, 13.50, 0.90, 1.20),
-(0.500, 3.12, 11.85, 10.50, 13.50, 0.95, 1.15),
-(0.750, 3.12, 11.85, 10.50, 13.50, 1.00, 1.15),
-(1.000, 3.12, 11.85, 10.50, 13.50, 1.05, 1.15),
-(2.000, 3.12, 11.85, 10.50, 13.50, 1.10, 1.20);
+(1,     3.50, 12.23, 11.88, 12.73, 0.35, 0.50),
+(2000,  1.42, 10.15, 9.80,  10.65, 0.35, 0.50),
+(3000,  1.37, 10.10, 9.75,  10.60, 0.35, 0.50),
+(5000,  1.32, 10.05, 9.70,  10.55, 0.35, 0.50),
+(7000,  1.12, 9.85,  9.70,  10.35, 0.15, 0.50),
+(10000, 1.02, 9.75,  9.60,  10.25, 0.15, 0.50);
 
 
 -- ---------------------------------------------------------------------------
--- 3. ThermalBreakBreakpoints  (Pricing Matrix rows 15-21)
+-- 3. ThermalBreakBreakpoints  (Pricing Matrix rows 16-21, Table_TB_BP)
 --    Schema: Id, BreakpointKg, MarginTyp, MarginMin, MarginMax,
 --            ListTyp, ListMin, ListMax
+--    Actual values extracted from "Pricing Matrix". MarginTyp/Min/Max are
+--    margin % (e.g. 0.40 = 40%) used when tb_calc_type="Margin"; ListTyp/
+--    Min/Max are list-price factors used when tb_calc_type="List less Discount".
 -- ---------------------------------------------------------------------------
 INSERT INTO ThermalBreakBreakpoints (BreakpointKg, MarginTyp, MarginMin, MarginMax, ListTyp, ListMin, ListMax) VALUES
-(0.100, 0.08, 0.05, 0.12, 1.08, 1.05, 1.12),
-(0.200, 0.08, 0.05, 0.12, 1.08, 1.05, 1.12),
-(0.300, 0.08, 0.05, 0.12, 1.08, 1.05, 1.12),
-(0.500, 0.10, 0.06, 0.14, 1.10, 1.06, 1.14),
-(0.750, 0.12, 0.08, 0.16, 1.12, 1.08, 1.16),
-(1.000, 0.15, 0.10, 0.20, 1.15, 1.10, 1.20),
-(1.500, 0.18, 0.12, 0.24, 1.18, 1.12, 1.24),
-(2.000, 0.20, 0.14, 0.26, 1.20, 1.14, 1.26);
+(1000,  0.40, 0.38, 0.43, 0.47, 0.44, 0.50),
+(2000,  0.35, 0.33, 0.38, 0.52, 0.48, 0.54),
+(3000,  0.32, 0.30, 0.35, 0.54, 0.50, 0.56),
+(5000,  0.29, 0.27, 0.32, 0.56, 0.52, 0.58),
+(7000,  0.27, 0.25, 0.30, 0.58, 0.53, 0.59),
+(10000, 0.25, 0.23, 0.28, 0.59, 0.54, 0.60);
 
 
 -- ---------------------------------------------------------------------------
--- 4. PowderCostTable  (Pricing Matrix rows 27-40)
+-- 4. PowderCostTable  (Pricing Matrix rows 28-40, POWDER COST TABLE)
 --    Schema: Id, FinishCategory, Vendor, ApPp, Group1Rate..Group5Rate,
 --            Anodised20umRate, Anodised25umRate, GroupPOARate, UpdatedAt
---    Rates are $/m² as extracted from the workbook.
+--    Rates are $/m² as extracted directly from the workbook
+--    (Project Pricing_Quotation Tool_v1.xlsx, updated 02.02.2026).
 --    GroupPOARate = 99 signals "Price On Application".
 -- ---------------------------------------------------------------------------
-
--- Default constant for POA rate (99 = "POA" sentinel)
--- (declared here as a comment for documentation; used in row values below)
-
 INSERT INTO PowderCostTable
     (FinishCategory, Vendor, ApPp,
      Group1Rate, Group2Rate, Group3Rate, Group4Rate, Group5Rate,
      Anodised20umRate, Anodised25umRate, GroupPOARate)
 VALUES
--- Capral AP (aluminium price basis)
-('Powder', 'Capral P&P - Bremer (AP)', 'AP',
-  28.50, 31.00, 33.50, 36.00, 40.00, 22.00, 25.00, 99.00),
--- Capral PP (production price basis)
-('Powder', 'Capral P&P - Bremer (PP)', 'PP',
-  54.15, 58.90, 63.65, 68.40, 76.00, 41.80, 47.50, 99.00),
--- AkzoNobel AP
-('Powder', 'AkzoNobel (AP)', 'AP',
-  28.50, 31.00, 33.50, 36.00, 40.00, 22.00, 25.00, 99.00),
--- AkzoNobel PP
-('Powder', 'AkzoNobel (PP)', 'PP',
-  54.15, 58.90, 63.65, 68.40, 76.00, 41.80, 47.50, 99.00),
--- Dulux AP
-('Powder', 'Dulux (AP)', 'AP',
-  27.00, 29.50, 32.00, 35.00, 39.00, 21.50, 24.50, 99.00),
--- Dulux PP
-('Powder', 'Dulux (PP)', 'PP',
-  51.30, 56.05, 60.80, 66.50, 74.10, 40.85, 46.55, 99.00),
--- Tiger AP
-('Powder', 'Tiger (AP)', 'AP',
-  29.00, 31.50, 34.00, 37.00, 41.50, 22.50, 25.50, 99.00),
--- Tiger PP
-('Powder', 'Tiger (PP)', 'PP',
-  55.10, 59.85, 64.60, 70.30, 78.85, 42.75, 48.45, 99.00),
--- Interpon AP
-('Powder', 'Interpon (AP)', 'AP',
-  28.00, 30.50, 33.00, 35.50, 40.50, 21.00, 24.00, 99.00),
--- Interpon PP
-('Powder', 'Interpon (PP)', 'PP',
-  53.20, 57.95, 62.70, 67.45, 76.95, 39.90, 45.60, 99.00),
--- Orica AP
-('Powder', 'Orica (AP)', 'AP',
-  27.50, 30.00, 32.50, 36.50, 40.00, 21.00, 24.00, 99.00),
--- Orica PP
-('Powder', 'Orica (PP)', 'PP',
-  52.25, 57.00, 61.75, 69.35, 76.00, 39.90, 45.60, 99.00),
--- Generic/Other AP
-('Powder', 'Other (AP)', 'AP',
-  30.00, 33.00, 36.00, 39.00, 43.00, 23.00, 26.00, 99.00),
--- Generic/Other PP
-('Powder', 'Other (PP)', 'PP',
-  57.00, 62.70, 68.40, 74.10, 81.70, 43.70, 49.40, 99.00);
+('Powder', 'Capral P&P - Bremer (AP)', 'AP', 6.22, 6.89, 7.44, 11.15, 12.64, NULL, NULL, 99),
+('Powder', 'Capral P&P - Campbellfield (AP)', 'AP', 6.45, 6.89, 9.42, 11.45, 12.64, NULL, NULL, 99),
+('Powder', 'Capral P&P - Canningvale (PP)', 'PP', 6.89, 9.45, 10.95, 16.43, 18.62, NULL, NULL, 99),
+('Powder', 'AAF powdercoat', 'AP', 5.06, 6.2, 7.27, NULL, NULL, NULL, NULL, 99),
+('Powder', 'Powderline WA', 'PP', 6.75, 10.15, 11.0, NULL, NULL, NULL, NULL, 99),
+('Powder/Anodised', 'Other - pls check pricing', 'AP', 99, 99, 99, 99, 99, 99, 99, 99),
+('Anodised', 'Capral/AAF QLD anodising', 'AP', NULL, NULL, NULL, NULL, NULL, 10.65, 13.02, 99),
+('Anodised', 'WA Anodisers', 'AP', NULL, NULL, NULL, NULL, NULL, 10.69, 12.98, 99),
+('Powder', 'Capral Mill - non-Bulk (AP)', 'AP', 6.22, 6.89, 7.44, 11.15, 12.64, NULL, NULL, 99),
+('Powder', 'Capral Mill (AP)', 'AP', 3.81, 4.47, 5.34, 6.02, 7.67, NULL, NULL, 99),
+('Powder', 'Capral P&P - HWood Non-Bulk (AP)', 'AP', 7.6, 9.36, 11.0, 17.63, 18.75, NULL, NULL, 99),
+('Powder', 'Capral P&P - HWood Bulk (AP)', 'AP', 5.44, 6.72, 7.91, 12.71, 13.83, NULL, NULL, 99);
 
 
 -- ---------------------------------------------------------------------------
--- 5. FinishBreakpoints  (Pricing Matrix rows 52-60)
+-- 5. FinishBreakpoints  (Pricing Matrix rows 54-60, FINISH BREAKPOINTS)
 --    Schema: Id, BreakpointAP, BreakpointPP,
 --            RangeA_Typical, RangeA_Min, RangeA_Max,
 --            RangeB_Typical, RangeB_Min, RangeB_Max,
 --            RangeC_Typical, RangeC_Min, RangeC_Max,
 --            RangeD_Typical, RangeD_Min, RangeD_Max
 --    Ranges a/b/c/d correspond to finish quantity tier categories (m²).
+--    Values are margin % (e.g. 0.40 = 40%) applied over base finish cost,
+--    extracted directly from the workbook.
 -- ---------------------------------------------------------------------------
 INSERT INTO FinishBreakpoints
     (BreakpointAP, BreakpointPP,
@@ -214,82 +269,86 @@ INSERT INTO FinishBreakpoints
      RangeC_Typical, RangeC_Min, RangeC_Max,
      RangeD_Typical, RangeD_Min, RangeD_Max)
 VALUES
-(  10,   19, 1.00, 0.90, 1.10, 1.00, 0.90, 1.10, 1.00, 0.90, 1.10, 1.00, 0.90, 1.10),
-(  20,   38, 0.97, 0.87, 1.07, 0.97, 0.87, 1.07, 0.97, 0.87, 1.07, 0.97, 0.87, 1.07),
-(  30,   57, 0.95, 0.85, 1.05, 0.95, 0.85, 1.05, 0.95, 0.85, 1.05, 0.95, 0.85, 1.05),
-(  50,   95, 0.93, 0.83, 1.03, 0.93, 0.83, 1.03, 0.93, 0.83, 1.03, 0.93, 0.83, 1.03),
-(  75,  143, 0.91, 0.81, 1.01, 0.91, 0.81, 1.01, 0.91, 0.81, 1.01, 0.91, 0.81, 1.01),
-( 100,  190, 0.90, 0.80, 1.00, 0.90, 0.80, 1.00, 0.90, 0.80, 1.00, 0.90, 0.80, 1.00),
-( 150,  285, 0.88, 0.78, 0.98, 0.88, 0.78, 0.98, 0.88, 0.78, 0.98, 0.88, 0.78, 0.98),
-( 200,  380, 0.86, 0.76, 0.96, 0.86, 0.76, 0.96, 0.86, 0.76, 0.96, 0.86, 0.76, 0.96),
-( 300,  570, 0.84, 0.74, 0.94, 0.84, 0.74, 0.94, 0.84, 0.74, 0.94, 0.84, 0.74, 0.94),
-( 500,  950, 0.82, 0.72, 0.92, 0.82, 0.72, 0.92, 0.82, 0.72, 0.92, 0.82, 0.72, 0.92);
+(   0,    0, 0.40, 0.35, 0.45, 0.50, 0.45, 0.55, 0.40, 0.35, 0.45, 0.50, 0.45, 0.55),
+( 100,   60, 0.25, 0.23, 0.30, 0.27, 0.25, 0.32, 0.25, 0.23, 0.30, 0.30, 0.28, 0.35),
+( 500,  270, 0.22, 0.20, 0.27, 0.24, 0.22, 0.29, 0.22, 0.20, 0.27, 0.25, 0.23, 0.30),
+( 700,  370, 0.20, 0.17, 0.25, 0.22, 0.19, 0.27, 0.20, 0.17, 0.25, 0.22, 0.20, 0.27),
+(1000,  530, 0.17, 0.15, 0.20, 0.20, 0.17, 0.23, 0.17, 0.15, 0.20, 0.20, 0.18, 0.25),
+(2000, 1060, 0.15, 0.135, 0.18, 0.18, 0.155, 0.20, 0.15, 0.135, 0.18, 0.17, 0.15, 0.22),
+(4000, 2110, 0.13, 0.12, 0.15, 0.16, 0.14, 0.18, 0.13, 0.12, 0.15, 0.15, 0.13, 0.18);
 
 
 -- ---------------------------------------------------------------------------
--- 6. SubsillTierPrices  (Pricing Matrix rows 63-68)
+-- 6. SubsillTierPrices  (Pricing Matrix rows 65-68, SUBSILL TIER PRICES)
 --    Schema: Id, Tier, SellPricePerMetre, CostPerMetre, Notes
 --    Named range: SubSill_Tier_Price (A64:C68)
---    Tier 4 note: Panoramic door — receives 150% market factor on sell price.
+--    Tier 4 note: Panoramic door — fixed rates, receives 150% market factor
+--    on sell price (price + price*1.5).
+--    Actual values extracted from the workbook (only 4 tiers exist).
 -- ---------------------------------------------------------------------------
 INSERT INTO SubsillTierPrices (Tier, SellPricePerMetre, CostPerMetre, Notes) VALUES
-(1, 22.50, 18.50, 'Standard Aluminium Subsill'),
-(2, 29.00, 24.00, 'Thermal Break Subsill'),
-(3, 34.00, 28.00, 'Heavy Duty Subsill'),
-(4, 87.50, 35.00, 'Panoramic Door Subsill – 150% market factor applied to sell price'),
-(5, 18.50, 15.00, 'Mill Finish Subsill'),
-(6,  0.00,  0.00, 'Special Subsill – Price On Application');
+(1, 2.00,  1.25, 'Standard subsill'),
+(2, 3.00,  2.25, 'Standard subsill'),
+(3, 5.00,  4.50, 'Standard subsill'),
+(4, 16.15, 4.52, 'Panoramic door for fixed rates. Receives a 150% Market Factor (price + price *1.5)');
 
 
 -- ---------------------------------------------------------------------------
 -- 7. ValidationData  (Validation sheet – all dropdown lists)
 --    Schema: Id, Category, Value, SortOrder
+--    Values extracted directly from the "Validation" sheet of
+--    "Project Pricing_Quotation Tool_v1.xlsx" (columns A-C, E, G, J, R).
 -- ---------------------------------------------------------------------------
 INSERT INTO ValidationData (Category, Value, SortOrder) VALUES
--- Market Segment
-('MarketSegment', 'Residential',             1),
-('MarketSegment', 'Commercial',              2),
-('MarketSegment', 'Industrial',              3),
-('MarketSegment', 'Retail',                  4),
-('MarketSegment', 'Hospitality',             5),
-('MarketSegment', 'Education',               6),
-('MarketSegment', 'Healthcare',              7),
-('MarketSegment', 'Government',              8),
-('MarketSegment', 'Mixed Use',               9),
-('MarketSegment', 'Heritage',               10),
-('MarketSegment', 'Other',                  11),
--- Region
-('Region', 'ACT',    1),
-('Region', 'NSW',    2),
-('Region', 'NT',     3),
-('Region', 'QLD',    4),
-('Region', 'SA',     5),
-('Region', 'TAS',    6),
-('Region', 'VIC',    7),
-('Region', 'WA',     8),
--- Product Segment
-('ProductSegment', 'Windows',        1),
-('ProductSegment', 'Doors',          2),
-('ProductSegment', 'Facades',        3),
-('ProductSegment', 'Balustrades',    4),
-('ProductSegment', 'Other',          5),
--- Finish Type
-('FinishType', 'Powder Coat',        1),
-('FinishType', 'Anodise',            2),
-('FinishType', 'Mill Finish',        3),
--- PC Applicator / Powder Coat vendor
-('PCApplicator', 'Capral P&P - Bremer',  1),
-('PCApplicator', 'AkzoNobel',            2),
-('PCApplicator', 'Dulux',                3),
-('PCApplicator', 'Tiger',                4),
-('PCApplicator', 'Interpon',             5),
-('PCApplicator', 'Orica',               6),
-('PCApplicator', 'Other',               7),
-('PCApplicator', 'AkzoNobel – POA',     8),
-('PCApplicator', 'Dulux – POA',         9),
-('PCApplicator', 'Tiger – POA',        10),
-('PCApplicator', 'Interpon – POA',     11),
-('PCApplicator', 'Orica – POA',        12),
+-- Market Segment (Validation col A)
+('MarketSegment', 'Private Residential - Detached', 1),
+('MarketSegment', 'Private Residential - Other',     2),
+('MarketSegment', 'Public Dwelling',                 3),
+('MarketSegment', 'Office',                          4),
+('MarketSegment', 'Retail',                          5),
+('MarketSegment', 'Hotel',                           6),
+('MarketSegment', 'Factory',                         7),
+('MarketSegment', 'Warehouse',                       8),
+('MarketSegment', 'Education',                       9),
+('MarketSegment', 'Health',                         10),
+('MarketSegment', 'Entertainment/Recreation',       11),
+('MarketSegment', 'Other',                          12),
+-- Product Segment (Validation col B)
+('ProductSegment', 'Commercial',      1),
+('ProductSegment', 'Residential',     2),
+('ProductSegment', 'Security',        3),
+('ProductSegment', 'Industrial',      4),
+('ProductSegment', 'Shower & Robe',   5),
+-- Region (Validation col C)
+('Region', 'NQ',  1),
+('Region', 'NSW', 2),
+('Region', 'NT',  3),
+('Region', 'SA',  4),
+('Region', 'SEQ', 5),
+('Region', 'TAS', 6),
+('Region', 'VIC', 7),
+('Region', 'WA',  8),
+-- LocAl Logo Options (Validation col E, rows 2-4)
+('LocAlLogoOptions', 'None',             1),
+('LocAlLogoOptions', 'LocAl Green',      2),
+('LocAlLogoOptions', 'LocAl SuperGreen', 3),
+-- Sundry Type (Validation col G)
+('SundryType', 'Each length',    1),
+('SundryType', 'Section total',  2),
+-- TB Pricing calc type (Validation col J / 3.Edit Pricing B36)
+('TBPricing', 'List less Discount', 1),
+('TBPricing', 'Margin',              2),
+-- PC Applicator / Powder Coat vendor (Validation col R)
+('PCApplicator', 'n/a',                               1),
+('PCApplicator', 'Capral P&P - Bremer (AP)',           2),
+('PCApplicator', 'Capral P&P - Campbellfield (AP)',    3),
+('PCApplicator', 'Capral P&P - Canningvale (PP)',      4),
+('PCApplicator', 'Capral P&P - HWood Non-Bulk (AP)',   5),
+('PCApplicator', 'Capral P&P - HWood Bulk (AP)',       6),
+('PCApplicator', 'Capral Mill (AP)',                   7),
+('PCApplicator', 'AAF powdercoat',                     8),
+('PCApplicator', 'Powderline WA',                      9),
+('PCApplicator', 'Other - pls check pricing',         10),
 -- Threshold Choice (anodise threshold options; see Validation!E10:F11)
 -- Format "ChoiceLabel|SAPCode" used by FormulaCalculationService.ThresholdCodeLookup
 ('ThresholdChoice', 'No',            1),
@@ -299,10 +358,9 @@ INSERT INTO ValidationData (Category, Value, SortOrder) VALUES
 -- Stored as "DisplayValue|SAPCode" pairs in ThresholdCode category
 ('ThresholdCode', '20um Clear|3A',   1),
 ('ThresholdCode', '25um Clear|4A',   2),
--- Thermal Break Calc Type (3.Edit Pricing B36)
-('TBCalcType', 'Margin',             1),
-('TBCalcType', 'Fixed',              2),
-('TBCalcType', 'None',               3),
+-- Thermal Break Calc Type (3.Edit Pricing B36 / Validation col J)
+('TBCalcType', 'List less Discount', 1),
+('TBCalcType', 'Margin',             2),
 -- Yes / No generic
 ('YesNo', 'Yes',  1),
 ('YesNo', 'No',   2);
@@ -610,3 +668,21 @@ INSERT INTO IPMasterData (PhCode, IpCategory) VALUES
 ('100012130131301006', 0),
 ('100012130031300020', 0),
 ('100012121531215001', 3);
+
+-- ---------------------------------------------------------------------------
+-- 10. PricingConstants (Pricing Matrix rows 1-6 – global metal/delivery
+--     constants feeding the MetalPricePerKg / $ Each calculation chain).
+--     Values extracted directly from "Pricing Matrix" of
+--     "Project Pricing_Quotation Tool_v1.xlsx" (June 2026 rates).
+--     B3=LmeBilletPremium, B4=InternalSpread, B5=MetalCostPerKg (B3+B4)
+--     F3=ExtraSpread, F4=PdbMetalCostBase (B5+F3), F5=AlfCostPerMetre
+--     H3=StandardDeliveryCharge, K5=ApToPpFactor
+-- ---------------------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM PricingConstants)
+INSERT INTO PricingConstants
+    (EffectiveDate, LmeBilletPremium, InternalSpread, MetalCostPerKg,
+     ExtraSpread, PdbMetalCostBase, AlfCostPerMetre,
+     StandardDeliveryCharge, ApToPpFactor, Notes)
+VALUES
+    ('2026-06-01', 5.61, 3.12, 8.73, 0.35, 9.08, 6.46, 97.00, 1.90,
+     'Pricing Matrix B3:B5, F3:F5, H3, K5 – June 2026 rates');

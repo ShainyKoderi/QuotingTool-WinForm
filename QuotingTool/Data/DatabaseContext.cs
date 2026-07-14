@@ -151,6 +151,28 @@ namespace QuotingTool.Data
                     conn.Execute(updateSeedSql, commandTimeout: 300);
                 }
             }
+
+            // Run the DATA_EDGE material cross-reference seed, guarded on its own table so it
+            // also seeds for existing databases that already have ColourGroups/ExtrusionMaster populated.
+            var dataEdgeHasRows = conn.ExecuteScalar<int?>(
+                "SELECT TOP 1 1 FROM DataEdgeMaterials") != null;
+            if (!dataEdgeHasRows)
+            {
+                var dataEdgeSeedPath = Path.Combine(AppContext.BaseDirectory, "Data", "DataEdgeMaterialsSeed.sql");
+                if (!File.Exists(dataEdgeSeedPath))
+                    dataEdgeSeedPath = Path.Combine(AppContext.BaseDirectory, "DataEdgeMaterialsSeed.sql");
+
+                if (File.Exists(dataEdgeSeedPath))
+                {
+                    var dataEdgeSeedSql = File.ReadAllText(dataEdgeSeedPath);
+                    foreach (var batch in dataEdgeSeedSql.Split(new[] { "\nGO\n", "\nGO\r\n" }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        var trimmed = batch.Trim();
+                        if (!string.IsNullOrWhiteSpace(trimmed))
+                            conn.Execute(trimmed, commandTimeout: 120);
+                    }
+                }
+            }
         }
 
         // ── Projects ─────────────────────────────────────────────────────────
@@ -754,6 +776,44 @@ namespace QuotingTool.Data
             using var conn = GetConnection();
             return conn.QueryFirstOrDefault<SubsillTierPrice>(
                 "SELECT TOP 1 * FROM SubsillTierPrices WHERE Tier=@tier", new { tier });
+        }
+
+        // ── PricingConstants ─────────────────────────────────────────────────
+
+        public PricingConstants? GetLatestPricingConstants()
+        {
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<PricingConstants>(
+                "SELECT TOP 1 * FROM PricingConstants ORDER BY EffectiveDate DESC, Id DESC");
+        }
+
+        public void InsertPricingConstants(PricingConstants pc)
+        {
+            using var conn = GetConnection();
+            conn.Execute(
+                @"INSERT INTO PricingConstants
+                    (EffectiveDate, LmeBilletPremium, InternalSpread, MetalCostPerKg,
+                     ExtraSpread, PdbMetalCostBase, AlfCostPerMetre,
+                     StandardDeliveryCharge, ApToPpFactor, Notes)
+                  VALUES
+                    (@EffectiveDate, @LmeBilletPremium, @InternalSpread, @MetalCostPerKg,
+                     @ExtraSpread, @PdbMetalCostBase, @AlfCostPerMetre,
+                     @StandardDeliveryCharge, @ApToPpFactor, @Notes)", pc);
+        }
+
+        // ── DataEdgeMaterials ────────────────────────────────────────────────
+
+        public IEnumerable<DataEdgeMaterial> GetDataEdgeMaterials()
+        {
+            using var conn = GetConnection();
+            return conn.Query<DataEdgeMaterial>("SELECT * FROM DataEdgeMaterials ORDER BY MatRefNo");
+        }
+
+        public DataEdgeMaterial? GetDataEdgeMaterial(string matRefNo)
+        {
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<DataEdgeMaterial>(
+                "SELECT TOP 1 * FROM DataEdgeMaterials WHERE MatRefNo=@matRefNo", new { matRefNo });
         }
     }
 }

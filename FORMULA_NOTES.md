@@ -630,7 +630,7 @@ If precise DATA-sheet values are needed:
 
 ## 6. Seeded Reference Data vs Actual Workbook Values
 
-> **Important**: The values in `SeedData.sql` were estimated during initial development. The actual values extracted from `Sample.xlsm` (June 2026 rates) differ from the seeded data. The tables below show the actual workbook values.
+> **Resolved**: `SeedData.sql` was originally seeded with estimated placeholder values during initial development. It has since been updated so that `MetalBreakpoints`, `ThermalBreakBreakpoints`, `PowderCostTable`, `FinishBreakpoints`, `SubsillTierPrices`, `ColourGroups`, and `ValidationData` all contain the actual values extracted from `Project Pricing_Quotation Tool_v1.xlsx` (June 2026 rates) shown in the tables below. The global constants (`Pricing Matrix` rows 1-6) are now additionally persisted in a new `PricingConstants` table rather than existing only as documentation.
 
 ### MetalBreakpoints (Pricing Matrix rows 8–13)
 
@@ -645,7 +645,7 @@ Actual workbook values (as of June 2026, `B5` cost = **8.73 $/kg**):
 | 7,000 | 1.12 | 9.85 | 9.70 | 10.35 | 0.15 | 0.50 |
 | 10,000 | 1.02 | 9.75 | 9.60 | 10.25 | 0.15 | 0.50 |
 
-> Note: BreakpointKg is the **minimum total project kg** for that rate. Workbook uses only 6 tiers (not 7). The `SeedData.sql` values are placeholder estimates and should be replaced.
+> Note: BreakpointKg is the **minimum total project kg** for that rate. Workbook uses only 6 tiers (not 7). `SeedData.sql` now seeds exactly these values.
 
 ---
 
@@ -662,7 +662,7 @@ Actual workbook values:
 | 7,000 | 0.27 | 0.25 | 0.30 | 0.58 | 0.53 | 0.59 |
 | 10,000 | 0.25 | 0.23 | 0.28 | 0.59 | 0.54 | 0.60 |
 
-> Note: These are **margin %** values (e.g. 0.40 = 40%) used in the `IFS(tb_calc_type="Margin", ...)` path. The `SeedData.sql` values (0.08–0.20 range) are incorrect estimates.
+> Note: These are **margin %** values (e.g. 0.40 = 40%) used in the `IFS(tb_calc_type="Margin", ...)` path. `SeedData.sql` now seeds exactly these values.
 
 ---
 
@@ -680,7 +680,7 @@ Actual workbook values (`BreakpointAP` in m²):
 | 2,000 | 1,060 | 0.15 | 0.135 | 0.18 | 0.18 | 0.155 | 0.20 | 0.15 | 0.135 | 0.18 | 0.17 | 0.15 | 0.22 |
 | 4,000 | 2,110 | 0.13 | 0.12 | 0.15 | 0.16 | 0.14 | 0.18 | 0.13 | 0.12 | 0.15 | 0.15 | 0.13 | 0.18 |
 
-> Note: These are **margin %** values applied on top of the base finish cost. The `SeedData.sql` values near 1.0 are incorrect (those were price multiplier estimates, not margin %).
+> Note: These are **margin %** values applied on top of the base finish cost. `SeedData.sql` now seeds exactly these values.
 
 ---
 
@@ -695,7 +695,7 @@ Actual workbook values:
 | 3 | 5.00 | 4.50 | — |
 | 4 | 16.15 | 4.52 | Panoramic door – 150% market factor applied to sell price |
 
-> Note: The `SeedData.sql` tier prices (e.g. $22.50/m sell) are incorrect placeholder values that should be replaced with the above actual values.
+> Note: `SeedData.sql` now seeds exactly these 4 tiers (the workbook only defines tiers 1-4).
 
 ---
 
@@ -718,7 +718,7 @@ Actual workbook values:
 | Capral P&P – HWood Non-Bulk | AP | 7.60 | 9.36 | 11.00 | 17.63 | 18.75 | — | — | 10.50 |
 | Capral P&P – HWood Bulk | AP | 5.44 | 6.72 | 7.91 | 12.71 | 13.83 | — | — | 10.50 |
 
-> Note: The `SeedData.sql` powder cost values (e.g. Group 1 AP = 28.50 $/m²) are order-of-magnitude incorrect. The workbook values are ~5–13 $/m² for internal cost. The sell prices are different and computed via the finishing margin breakpoints.
+> Note: `SeedData.sql` now seeds exactly these vendor/group rates. The sell prices are computed separately via the finishing margin breakpoints.
 
 ---
 
@@ -729,32 +729,34 @@ The following workbook sheets are marked `xlSheetVeryHidden` in VBA:
 | Sheet | Purpose |
 |---|---|
 | `Colour_Groups` | Colour code → group → SAP code lookup |
-| `DATA_EDGE` | EDGE product pricing reference data |
+| `DATA_EDGE` | EDGE product material reference → SAP material number lookup |
 
-Both remain relevant to workbook logic.
+Both remain relevant to workbook logic and are now fully represented in the database:
 
-- `Colour_Groups` is seeded to the app and supports SAP colour code behaviour.
-- `DATA_EDGE` remains only partially represented.
+- `Colour_Groups` is fully seeded into `ColourGroups` (165 rows) and supports SAP colour code behaviour.
+- `DATA_EDGE` is fully seeded into the new `DataEdgeMaterials` table (1,190 rows) via `DataEdgeMaterialsSeed.sql`.
 
 ---
 
 ## 8. Missing Tables / Fields Required for Full Calculation Fidelity
 
-The following data items are required for the `2.Quote` calculations but are not yet in the database:
+The following data items were required for the `2.Quote` calculations. All but the SF Sell Each per-line calculation have now been added:
 
-| Item | Required For | Suggested Table / Column |
-|---|---|---|
-| `THRESHOLDS` named range (list of threshold section codes) | Column BF formula | New `ThresholdSections` table |
-| PH code per section (DATA col H) | Column AU formula | `ExtrusionMaster.PhCode` |
-| IP category per PH code (`5.Edit_PH_IP` col D) | Column AV formula | New `IPMasterData` table |
-| AP per metre per section (DATA col E, mm units) | Columns AB–AD, AO, AR, AS | `ExtrusionMaster.ApMm` |
-| PP per metre per section (DATA col F, mm units) | Columns AE–AG, AO, AR, AS | `ExtrusionMaster.PpMm` |
-| Subsill tier per section (DATA col K) | Column V auto-fill | `ExtrusionMaster.SubsillTier` |
-| Thermal-break type per section (DATA col M: No/PLS/PDB) | Column P formula | `ExtrusionMaster.ThermalBreakType` |
-| IpGrade per quote line | Column AI formula | `QuoteLines.IpGrade` |
-| Correct breakpoint seed values (all lookup tables) | All VLOOKUP-based pricing | Replace placeholder data in `SeedData.sql` with actual workbook values documented in Section 6 |
-| PDB metal cost base (`Pricing Matrix F4`) | Column AH PDB path | New `PricingConstants` table or `EditPricing` field |
-| ALF cost per metre (`Pricing Matrix F5`) | Column AH PDB path | Same as above |
+| Item | Required For | Table / Column | Status |
+|---|---|---|---|
+| `THRESHOLDS` named range (list of threshold section codes) | Column BF formula | `ThresholdSections` table | ✅ Added |
+| PH code per section (DATA col H) | Column AU formula | `ExtrusionMaster.PhCode` | ✅ Added |
+| IP category per PH code (`5.Edit_PH_IP` col D) | Column AV formula | `IPMasterData` table | ✅ Added |
+| AP per metre per section (DATA col E, mm units) | Columns AB–AD, AO, AR, AS | `ExtrusionMaster.ApMm` | ✅ Added |
+| PP per metre per section (DATA col F, mm units) | Columns AE–AG, AO, AR, AS | `ExtrusionMaster.PpMm` | ✅ Added |
+| Subsill tier per section (DATA col K) | Column V auto-fill | `ExtrusionMaster.SubsillTier` | ✅ Added |
+| Thermal-break type per section (DATA col M: No/PLS/PDB) | Column P formula | `ExtrusionMaster.ThermalBreakType` | ✅ Added |
+| IpGrade per quote line | Column AI formula | `QuoteLines.IpGrade` | ✅ Added |
+| Correct breakpoint seed values (all lookup tables) | All VLOOKUP-based pricing | `SeedData.sql` | ✅ Replaced with actual workbook values (Section 6) |
+| PDB metal cost base (`Pricing Matrix F4`) | Column AH PDB path | `PricingConstants.PdbMetalCostBase` | ✅ Added |
+| ALF cost per metre (`Pricing Matrix F5`) | Column AH PDB path | `PricingConstants.AlfCostPerMetre` | ✅ Added |
+| EDGE material → SAP material number cross-reference (DATA_EDGE) | BOM/SAP export mapping | `DataEdgeMaterials` table | ✅ Added |
+| SF Sell Each (AS) per line | Column I ($ Each) | Requires `ApMm`/`PpMm` + finishing rate logic | ⚠️ Still outstanding |
 
 ---
 
