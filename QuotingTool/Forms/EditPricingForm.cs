@@ -32,7 +32,7 @@ namespace QuotingTool.Forms
         private readonly QuoteSummaryService _quoteSummaryService;
         private readonly PivotRefreshService _pivotRefresh;
         private readonly FormulaCalculationService _formulaSvc;
-        private Dictionary<string, ExtrusionMaster> _extrusionByCode = new(StringComparer.OrdinalIgnoreCase);
+        private Dictionary<string, ExtrusionMaster> _extrusionByCode = [];
         private int _projectId;
 
         private static readonly string[] CostTypeOptions =
@@ -305,12 +305,14 @@ namespace QuotingTool.Forms
             // (Y12 * H12 formula equivalent).  This avoids the circular dependency
             // where TotalKg = TotalPrice / MetalPrice is 0 whenever prices haven't
             // been persisted yet (e.g. first load after a BOM import).
-            decimal totalKg = lines.Sum(l =>
+            decimal totalKg = 0m;
+            foreach (var l in lines)
             {
-                if (string.IsNullOrWhiteSpace(l.ExtrusionCode)) return 0m;
-                if (!_extrusionByCode.TryGetValue(l.ExtrusionCode, out var master) || master.MassPerM <= 0) return 0m;
-                return l.Quantity * l.LengthM * master.MassPerM;
-            });
+                if (!string.IsNullOrWhiteSpace(l.ExtrusionCode) &&
+                    _extrusionByCode.TryGetValue(l.ExtrusionCode, out var master) &&
+                    master.MassPerM > 0)
+                    totalKg += l.Quantity * l.LengthM * master.MassPerM;
+            }
 
             var totalLineValue = lines.Sum(l => l.TotalPrice);
             // Use kg/m-based total as primary; fall back to price-derived or metre-based
