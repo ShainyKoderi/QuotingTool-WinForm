@@ -377,3 +377,38 @@ CREATE TABLE IPMasterData (
     PhCode NVARCHAR(50) NOT NULL PRIMARY KEY,
     IpCategory INT NOT NULL DEFAULT 0
 );
+
+-- PricingConstants table: single-row-per-effective-date table of the global
+-- $/kg and $/m constants from "Pricing Matrix" rows 1-6 that feed the
+-- MetalPricePerKg / $ Each calculation chain but were previously only
+-- documented (README/FORMULA_NOTES) and never persisted in the database.
+-- Source cells (Pricing Matrix):
+--   B3=LmeBilletPremium, B4=InternalSpread, B5=MetalCostPerKg (B3+B4)
+--   F3=ExtraSpread, F4=PdbMetalCostBase (B5+F3), F5=AlfCostPerMetre
+--   H3=StandardDeliveryCharge, K5=ApToPpFactor
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='PricingConstants')
+CREATE TABLE PricingConstants (
+    Id INT IDENTITY PRIMARY KEY,
+    EffectiveDate DATE NOT NULL DEFAULT GETDATE(),
+    LmeBilletPremium DECIMAL(18,4) NOT NULL DEFAULT 0,   -- Pricing Matrix B3 ($/kg)
+    InternalSpread DECIMAL(18,4) NOT NULL DEFAULT 0,     -- Pricing Matrix B4 ($/kg)
+    MetalCostPerKg DECIMAL(18,4) NOT NULL DEFAULT 0,     -- Pricing Matrix B5 = B3+B4 ($/kg)
+    ExtraSpread DECIMAL(18,4) NOT NULL DEFAULT 0,        -- Pricing Matrix F3 ($/kg)
+    PdbMetalCostBase DECIMAL(18,4) NOT NULL DEFAULT 0,   -- Pricing Matrix F4 = B5+F3 ($/kg)
+    AlfCostPerMetre DECIMAL(18,4) NOT NULL DEFAULT 0,    -- Pricing Matrix F5 ($/m)
+    StandardDeliveryCharge DECIMAL(18,4) NOT NULL DEFAULT 97, -- Pricing Matrix H3 ($)
+    ApToPpFactor DECIMAL(18,4) NOT NULL DEFAULT 1.9,     -- Pricing Matrix K5
+    Notes NVARCHAR(500),
+    UpdatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- DataEdgeMaterials table (maps to "DATA_EDGE" sheet – VeryHidden in VBA)
+-- Cross-reference of internal EDGE material reference codes to SAP material
+-- numbers, used for BOM/SAP export mapping of EDGE-system products.
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='DataEdgeMaterials')
+CREATE TABLE DataEdgeMaterials (
+    Id INT IDENTITY PRIMARY KEY,
+    MatRefNo NVARCHAR(50) NOT NULL,      -- col A: Mat.Ref.No
+    MatRefDescription NVARCHAR(300),     -- col B: Mat.Ref.Description
+    SapMatNo NVARCHAR(50)                -- col C: SAP.Mat.No
+);

@@ -355,4 +355,30 @@ namespace QuotingTool.Data
         public decimal CostPerMetre { get; set; }
         public string Notes { get; set; } = string.Empty;
     }
+
+    // Maps to "Pricing Matrix" rows 1-6 – global metal/delivery constants that feed
+    // the MetalPricePerKg / $ Each calculation chain (B3-B5, F3-F5, H3, K5)
+    public class PricingConstants
+    {
+        public int Id { get; set; }
+        public DateTime EffectiveDate { get; set; }
+        public decimal LmeBilletPremium { get; set; }      // B3
+        public decimal InternalSpread { get; set; }        // B4
+        public decimal MetalCostPerKg { get; set; }         // B5 = B3+B4
+        public decimal ExtraSpread { get; set; }           // F3
+        public decimal PdbMetalCostBase { get; set; }        // F4 = B5+F3
+        public decimal AlfCostPerMetre { get; set; }         // F5
+        public decimal StandardDeliveryCharge { get; set; } = 97m; // H3
+        public decimal ApToPpFactor { get; set; } = 1.9m;    // K5
+        public string? Notes { get; set; }
+    }
+
+    // Maps to "DATA_EDGE" sheet – EDGE material reference to SAP material number cross-reference
+    public class DataEdgeMaterial
+    {
+        public int Id { get; set; }
+        public string MatRefNo { get; set; } = string.Empty;
+        public string MatRefDescription { get; set; } = string.Empty;
+        public string SapMatNo { get; set; } = string.Empty;
+    }
 }

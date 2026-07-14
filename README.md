@@ -53,6 +53,8 @@ QuotingTool/
     SqlSchema.sql           ← SQL Server schema + additive migration guards
     SeedData.sql            ← Reference/lookup data seeded on first launch
     ExtrusionMasterSeed.sql ← Extrusion section master data from DATA sheet Table5
+    ExtrusionMasterUpdateSeed.sql ← ApMm/PpMm/PhCode/SubsillTier/ThermalBreakType column update seed
+    DataEdgeMaterialsSeed.sql ← EDGE material → SAP material number cross-reference from DATA_EDGE sheet
   Services/
     FormulaCalculationService.cs ← Core workbook formula translations
     PageSetupService.cs     ← Script 01: Page layout & print area
@@ -265,7 +267,7 @@ Includes additional workbook-derived and app-derived fields such as:
 | `ExtrusionMaster` | DATA – Table5 | Section code lookup with kg/m |
 | `EditPricing` | 3.Edit Pricing | Pricing configuration per project |
 | `BomLines` | BOM_Import | Imported BOM CSV rows |
-| `RevisionControl` | Revision Control | Monthly LME/billet rate history |
+| `RevisionControl` | Revision Control* | Monthly LME/billet rate history |
 | `SundryItems` | Manual entry | Sundry charges per project |
 | `QuoteSummary` | Quote_Data / 3.Edit Pricing | Calculated margin summary per project |
 | `MetalBreakpoints` | Pricing Matrix rows 8–13 | Metal sell price tier lookup |
@@ -273,12 +275,16 @@ Includes additional workbook-derived and app-derived fields such as:
 | `PowderCostTable` | Pricing Matrix rows 28–40 | Finishing cost $/m² by vendor and group |
 | `FinishBreakpoints` | Pricing Matrix rows 54–60 | Finishing margin tier lookup |
 | `SubsillTierPrices` | Pricing Matrix rows 65–68 | Subsill cost and sell $/m |
+| `PricingConstants` | Pricing Matrix rows 1–6 | Global metal/delivery constants (LME+billet, spreads, PDB/ALF cost, delivery, AP↔PP factor) feeding MetalPricePerKg / $ Each |
 | `ColourGroups` | Colour_Groups (VeryHidden) | SAP colour code master |
 | `ValidationData` | Validation | Dropdown list data |
+| `DataEdgeMaterials` | DATA_EDGE (VeryHidden) | EDGE material reference → SAP material number cross-reference |
 | `QuoteFooters` | Named ranges pg1_foot…pg6_foot | Per-page footer colour |
 | `PrintSettings` | — | Page count / print area per project |
 | `MasterFormulas` | col BA backup | Formula expression backup |
 | `SheetLocks` | — | Sheet lock state |
+
+\* The workbook's `Revision Control` sheet is a plain version changelog (Date / Change Description / Implemented by / New Version Number) with no rate data, so it is not itself a calculation input. The `RevisionControl` table instead persists the monthly LME/billet rate history needed by `MonthlyUpdateService`, mirroring the same real-world workflow the sheet's changelog entries describe.
 
 ### Missing tables / fields required for full calculation fidelity
 
@@ -302,11 +308,17 @@ The following items are still outstanding:
 
 | Required item | Used by formula | Suggested location |
 |---|---|---|
-| PDB metal cost base (Pricing Matrix F4) | Col AH PDB path | New `PricingConstants` or `EditPricing` field |
-| ALF cost per metre (Pricing Matrix F5) | Col AH PDB path | Same as above |
 | SF Sell Each (AS) per line | Col I ($ Each) | Requires `ApMm`/`PpMm` + finishing rate logic |
 
 `SqlSchema.sql` includes additive `IF COL_LENGTH(...) IS NULL` and `IF NOT EXISTS` guards so schema upgrades can run safely on existing databases. The new `ExtrusionMasterUpdateSeed.sql` file is executed automatically on first launch when `ApMm IS NULL`, updating both new and existing installations.
+
+### PDB metal cost base / ALF cost per metre / DATA_EDGE (resolved)
+
+`PricingConstants` and `DataEdgeMaterials` tables were added to fully cover the reference sheets in `Project Pricing_Quotation Tool_v1.xlsx`:
+
+- **`PricingConstants`** – global metal/delivery constants from `Pricing Matrix` rows 1-6 (`LmeBilletPremium`, `InternalSpread`, `MetalCostPerKg`, `ExtraSpread`, `PdbMetalCostBase`, `AlfCostPerMetre`, `StandardDeliveryCharge`, `ApToPpFactor`). These values previously existed only as documentation constants below and are now persisted in the database and read via `FormulaCalculationService.GetPricingConstants()`.
+- **`DataEdgeMaterials`** – full 1,190-row EDGE material reference → SAP material number cross-reference from the `DATA_EDGE` sheet, seeded via `DataEdgeMaterialsSeed.sql`.
+- The placeholder/estimated seed values previously in `SeedData.sql` for `MetalBreakpoints`, `ThermalBreakBreakpoints`, `PowderCostTable`, `FinishBreakpoints`, `SubsillTierPrices`, `ColourGroups`, and `ValidationData` have all been replaced with the actual values extracted directly from `Project Pricing_Quotation Tool_v1.xlsx`.
 
 ---
 
@@ -383,10 +395,10 @@ Compared to the original Excel workbook:
 2. **Some DATA-sheet formulas remain unresolved** — especially values requiring Excel evaluation of XLOOKUP/LAMBDA/dynamic arrays
 3. **Threshold cost and finishing logic are approximate or partially stubbed** — the per-line AO/AP/AS calculations are not yet computed; finishing is project-level only
 4. **IP grade not persisted per line** — `QuoteLines.IpGrade` column does not yet exist; IP upcharge (`$ Each` AI component) is currently passed as `0m`
-5. **Seed data in `SeedData.sql` uses placeholder/estimated values** for `MetalBreakpoints`, `ThermalBreakBreakpoints`, `FinishBreakpoints`, `SubsillTierPrices`, and `PowderCostTable`; the actual workbook values (as of June 2026) are documented in `FORMULA_NOTES.md` Section 6
-6. **`ExtrusionMaster` is missing columns** needed for full per-line calculation: `ApMm`, `PpMm`, `SubsillTier`, `ThermalBreakType`, `PhCode`
+5. ~~Seed data in `SeedData.sql` uses placeholder/estimated values~~ — **resolved**: `MetalBreakpoints`, `ThermalBreakBreakpoints`, `FinishBreakpoints`, `SubsillTierPrices`, `PowderCostTable`, `ColourGroups`, and `ValidationData` are now seeded with the actual values extracted from `Project Pricing_Quotation Tool_v1.xlsx`; global `Pricing Matrix` constants (LME/billet, spreads, PDB/ALF cost, delivery, AP↔PP factor) are seeded into the new `PricingConstants` table
+6. ~~`ExtrusionMaster` missing columns for full per-line calculation~~ — **resolved**: `ApMm`, `PpMm`, `SubsillTier`, `ThermalBreakType`, `PhCode` are all seeded via `ExtrusionMasterUpdateSeed.sql`
 7. **CRE8 import uses an inferred/best-effort column mapping** until a real CRE8 sample/export specification is available
-8. **VBA macro code, pivot cache data, embedded workbook assets, and some hidden-sheet structures are still not directly extractable**
+8. **VBA macro code, pivot cache data, embedded workbook assets, and some hidden-sheet structures are still not directly extractable** — `Colour_Groups` and `DATA_EDGE` (both VeryHidden) are now fully seeded into `ColourGroups` and `DataEdgeMaterials`
 
 ---
 

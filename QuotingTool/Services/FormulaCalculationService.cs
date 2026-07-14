@@ -214,6 +214,32 @@ namespace QuotingTool.Services
             => lmeRate + billetPremium + internalSpread;
 
         /// <summary>
+        /// PDB metal cost base = Metal Cost (B5) + Extra Spread (F3).
+        /// Original Excel: Pricing Matrix!$F$4
+        /// Used by the PDB path of the MF Each (col AH) calculation.
+        /// </summary>
+        public static decimal CalculatePdbMetalCostBase(decimal metalCostPerKg, decimal extraSpread)
+            => metalCostPerKg + extraSpread;
+
+        /// <summary>
+        /// Looks up the current global Pricing Matrix constants (B3-B5, F3-F5, H3, K5)
+        /// from the <see cref="PricingConstants"/> table, falling back to the workbook's
+        /// June 2026 rates if no row has been seeded yet.
+        /// </summary>
+        public PricingConstants GetPricingConstants()
+            => _db.GetLatestPricingConstants() ?? new PricingConstants
+            {
+                LmeBilletPremium = 5.61m,
+                InternalSpread = 3.12m,
+                MetalCostPerKg = 8.73m,
+                ExtraSpread = 0.35m,
+                PdbMetalCostBase = 9.08m,
+                AlfCostPerMetre = 6.46m,
+                StandardDeliveryCharge = 97m,
+                ApToPpFactor = 1.9m
+            };
+
+        /// <summary>
         /// Metal sell price lookup by total kg via Table_Metal_BP (Pricing Matrix rows 7-13).
         /// Returns the typical sell price for the given breakpoint.
         /// Original Excel in 3.Edit Pricing: =IFERROR(VLOOKUP(B27, Table_Metal_BP[], 3), "")
