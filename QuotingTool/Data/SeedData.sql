@@ -18,8 +18,14 @@
 --    GroupName = colour group (e.g. "GROUP 1"), ShortDesc = colour short name,
 --    LongDesc = full applicator description, ColourCode = SAP colour code.
 --    Values extracted directly from the "Colour_Groups" sheet of
---    "Project Pricing_Quotation Tool_v1.xlsx" (COLOURS named range A4:D94
---    plus the mirrored G:I column block).
+--    "Project Pricing_Quotation Tool_v1.xlsx". The sheet lays out the same
+--    COLOURS list twice, side by side: columns A-D (named range A4:D94,
+--    ordered GROUP/SHORT_DESC/LONG DESC/CODE) and the mirrored columns
+--    F-I (ordered GROUP/CODE/SHORT_DESC/LONG DESC). Both blocks are
+--    combined below into one flat list; a small number of colours (e.g.
+--    "BLACK MATT LOW MAR GN279A" / code WW3) appear in both blocks with
+--    identical values, which reproduces a genuine duplicate entry present
+--    in the source workbook rather than an extraction error.
 -- 165 colour rows extracted from Colour_Groups sheet
 INSERT INTO ColourGroups (GroupName, ShortDesc, LongDesc, ColourCode) VALUES
 ('n/a', 'MILL FINISH', 'MILL FINISH', 'NON'),
