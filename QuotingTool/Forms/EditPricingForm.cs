@@ -294,9 +294,24 @@ namespace QuotingTool.Forms
             project.CustomerSapDiscount = ParseDecimal(txtCustomerSapDiscount.Text);
 
             // ── Computed totals (Quantities section) ──────────────────────────
+            // Compute total kg accurately using the kg/m value from ExtrusionMaster
+            // (Y12 * H12 formula equivalent).  This avoids the circular dependency
+            // where TotalKg = TotalPrice / MetalPrice is 0 whenever prices haven't
+            // been persisted yet (e.g. first load after a BOM import).
+            var extrusionByCode = _db.GetExtrusionMasterList()
+                .ToDictionary(m => m.Section, m => m, StringComparer.OrdinalIgnoreCase);
+            decimal totalKg = lines.Sum(l =>
+            {
+                if (string.IsNullOrWhiteSpace(l.ExtrusionCode)) return 0m;
+                if (!extrusionByCode.TryGetValue(l.ExtrusionCode, out var master) || master.MassPerM <= 0) return 0m;
+                return l.Quantity * l.LengthM * master.MassPerM;
+            });
+
             var totalLineValue = lines.Sum(l => l.TotalPrice);
-            ep.TotalKg = ep.MetalPrice > 0m
-                ? totalLineValue / ep.MetalPrice
+            // Use kg/m-based total as primary; fall back to price-derived or metre-based
+            // estimates only when no section master data is available.
+            ep.TotalKg = totalKg > 0m ? totalKg
+                : ep.MetalPrice > 0m ? totalLineValue / ep.MetalPrice
                 : lines.Sum(l => l.Quantity * l.LengthM);
             ep.TotalFinishingM2 = lines.Sum(l => l.Quantity * l.LengthM);
             ep.TotalPieces = (int)Math.Round(lines.Sum(l => l.Quantity), MidpointRounding.AwayFromZero);
@@ -316,6 +331,16 @@ namespace QuotingTool.Forms
             lblIP2MarginValue.Text = $"{ep.IP2MarginPct:N2}%";
             lblIP3MarginValue.Text = $"{ep.IP3MarginPct:N2}%";
             lblThresholdMarginValue.Text = $"{ep.ThermalBreakMarginPct:N2}%";
+
+            // ── Metal price guidance (from Pricing Matrix breakpoint table) ───
+            // Populate the min/max guidance labels next to the MetalPrice input so
+            // the user can see the expected price range for the project's total kg.
+            // Mirrors the Excel Pricing Matrix Table_Metal_BP reference.
+            var formulaSvc = new FormulaCalculationService(_db);
+            decimal suggestedMin = formulaSvc.LookupMetalMinPrice(ep.TotalKg);
+            decimal suggestedMax = formulaSvc.LookupMetalMaxPrice(ep.TotalKg);
+            lblMetalPriceMin.Text = suggestedMin > 0m ? $"Min: ${suggestedMin:F2}" : "—";
+            lblMetalPriceMax.Text = suggestedMax > 0m ? $"Max: ${suggestedMax:F2}" : "—";
 
             if (saveChanges)
             {
