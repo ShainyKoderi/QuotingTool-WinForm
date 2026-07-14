@@ -282,22 +282,31 @@ Includes additional workbook-derived and app-derived fields such as:
 
 ### Missing tables / fields required for full calculation fidelity
 
-The following are identified as needed for complete `2.Quote` formula translation but are not yet in the database:
+The following items have been **implemented** in this update:
+
+| Item | Status |
+|---|---|
+| `ThresholdSections` table (col BF threshold flag) | ✅ Added; seeded from Validation!$N:$N |
+| `ExtrusionMaster.PhCode` (DATA col H) | ✅ Added; seeded via `ExtrusionMasterUpdateSeed.sql` |
+| `IPMasterData` table (PH → IP category) | ✅ Added; seeded from `5.Edit_PH_IP` |
+| `ExtrusionMaster.SubsillTier` (DATA col K) | ✅ Added; seeded; auto-fills `SubsillFlag` on Quote tab |
+| `ExtrusionMaster.ThermalBreakType` (DATA col M) | ✅ Added; seeded; drives `*` prefix in Description |
+| `QuoteLines.IpGrade` | ✅ Added; auto-computed from PhCode → IPMasterData |
+| `ExtrusionMaster.ApMm` (DATA col E) | ✅ Added; seeded (used by future SF Sell Each calculation) |
+| `ExtrusionMaster.PpMm` (DATA col F) | ✅ Added; seeded (used by future SF Sell Each calculation) |
+| Description `*` prefix for PDB/PLS sections | ✅ Implemented in `ApplySectionLookup()` |
+| Description ` **MILL FINISH**` suffix | ✅ Implemented in `ApplySectionLookup()` |
+| IP Each per quote line (col AI) | ✅ Implemented in `CalculateIpEach()` |
+
+The following items are still outstanding:
 
 | Required item | Used by formula | Suggested location |
 |---|---|---|
-| `THRESHOLDS` named range (list of threshold section codes) | Col BF threshold flag | New `ThresholdSections` table |
-| PH product hierarchy code per section (DATA col H) | Col AU PH lookup | `ExtrusionMaster.PhCode` |
-| IP category per PH code (`5.Edit_PH_IP` col D) | Col AV IP grade | New `IPMasterData` table |
-| AP per metre per section (DATA col E, mm units) | Cols AB–AD, AO, AR, AS | `ExtrusionMaster.ApMm` |
-| PP per metre per section (DATA col F, mm units) | Cols AE–AG, AO, AR, AS | `ExtrusionMaster.PpMm` |
-| Subsill tier per section (DATA col K) | Col V auto-fill | `ExtrusionMaster.SubsillTier` |
-| Thermal-break type per section (DATA col M) | Col P formula | `ExtrusionMaster.ThermalBreakType` |
-| IP grade per quote line | Col AI IP each | `QuoteLines.IpGrade` |
 | PDB metal cost base (Pricing Matrix F4) | Col AH PDB path | New `PricingConstants` or `EditPricing` field |
 | ALF cost per metre (Pricing Matrix F5) | Col AH PDB path | Same as above |
+| SF Sell Each (AS) per line | Col I ($ Each) | Requires `ApMm`/`PpMm` + finishing rate logic |
 
-`SqlSchema.sql` now includes additive `IF COL_LENGTH(...) IS NULL` and `IF NOT EXISTS` guards so schema upgrades can run safely on existing databases.
+`SqlSchema.sql` includes additive `IF COL_LENGTH(...) IS NULL` and `IF NOT EXISTS` guards so schema upgrades can run safely on existing databases. The new `ExtrusionMasterUpdateSeed.sql` file is executed automatically on first launch when `ApMm IS NULL`, updating both new and existing installations.
 
 ---
 

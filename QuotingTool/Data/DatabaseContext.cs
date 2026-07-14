@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Dapper;
 using Microsoft.Data.SqlClient;
@@ -130,6 +131,26 @@ namespace QuotingTool.Data
                     }
                 }
             }
+
+            // Run the ExtrusionMaster column-update seed when the new columns (ApMm, PpMm, PhCode,
+            // SubsillTier, ThermalBreakType) are not yet populated. This covers both fresh installs
+            // (rows just inserted above with NULL values) and existing installs that had the old schema.
+            var needsColumnSeed = conn.ExecuteScalar<int>(
+                "SELECT COUNT(1) FROM ExtrusionMaster WHERE ApMm IS NULL") > 0;
+            if (needsColumnSeed)
+            {
+                var updateSeedPath = Path.Combine(AppContext.BaseDirectory, "Data", "ExtrusionMasterUpdateSeed.sql");
+                if (!File.Exists(updateSeedPath))
+                    updateSeedPath = Path.Combine(AppContext.BaseDirectory, "ExtrusionMasterUpdateSeed.sql");
+
+                if (File.Exists(updateSeedPath))
+                {
+                    var updateSeedSql = File.ReadAllText(updateSeedPath);
+                    // Execute as a single batch – the file uses a #temp table pattern that must
+                    // run in one connection/batch, not split by GO.
+                    conn.Execute(updateSeedSql, commandTimeout: 300);
+                }
+            }
         }
 
         // ── Projects ─────────────────────────────────────────────────────────
@@ -227,16 +248,17 @@ namespace QuotingTool.Data
                       Quantity=@Quantity, LengthM=@LengthM, Price=@Price, SellPrice=@SellPrice,
                       SubsillFlag=@SubsillFlag, SubsillSurcharge=@SubsillSurcharge,
                       SapColourCode=@SapColourCode, IgnoreFinish=@IgnoreFinish,
-                      Alloy=@Alloy, Temper=@Temper, TotalPrice=@TotalPrice, LineNumber=@LineNumber
+                      Alloy=@Alloy, Temper=@Temper, TotalPrice=@TotalPrice, LineNumber=@LineNumber,
+                      IpGrade=@IpGrade
                       WHERE ProjectId=@ProjectId AND PageBlock=@PageBlock AND RowInBlock=@RowInBlock", line);
             else
                 conn.Execute(
                     @"INSERT INTO QuoteLines (ProjectId,PageBlock,RowInBlock,ExtrusionCode,Description,
                       Quantity,LengthM,Price,SellPrice,SubsillFlag,SubsillSurcharge,
-                      SapColourCode,IgnoreFinish,Alloy,Temper,TotalPrice,LineNumber)
+                      SapColourCode,IgnoreFinish,Alloy,Temper,TotalPrice,LineNumber,IpGrade)
                       VALUES (@ProjectId,@PageBlock,@RowInBlock,@ExtrusionCode,@Description,
                       @Quantity,@LengthM,@Price,@SellPrice,@SubsillFlag,@SubsillSurcharge,
-                      @SapColourCode,@IgnoreFinish,@Alloy,@Temper,@TotalPrice,@LineNumber)", line);
+                      @SapColourCode,@IgnoreFinish,@Alloy,@Temper,@TotalPrice,@LineNumber,@IpGrade)", line);
         }
 
         public void DeleteQuoteLines(int projectId)
@@ -265,6 +287,29 @@ namespace QuotingTool.Data
             using var conn = GetConnection();
             return conn.QueryFirstOrDefault<ExtrusionMaster>(
                 "SELECT * FROM ExtrusionMaster WHERE Section=@section", new { section });
+        }
+
+        /// <summary>
+        /// Returns all IP master data as a dictionary keyed by PH code (case-sensitive),
+        /// for use by the Quote form to auto-populate the IP grade per quote line.
+        /// </summary>
+        public Dictionary<string, int> GetIPMasterByCodes()
+        {
+            using var conn = GetConnection();
+            return conn.Query<IPMasterData>("SELECT PhCode, IpCategory FROM IPMasterData")
+                .ToDictionary(r => r.PhCode, r => r.IpCategory, StringComparer.Ordinal);
+        }
+
+        /// <summary>
+        /// Returns the set of section codes that appear in the THRESHOLDS named range,
+        /// for use in the BF column threshold-flag calculation.
+        /// </summary>
+        public HashSet<string> GetThresholdSections()
+        {
+            using var conn = GetConnection();
+            return new HashSet<string>(
+                conn.Query<string>("SELECT Section FROM ThresholdSections"),
+                StringComparer.OrdinalIgnoreCase);
         }
 
         public void UpdateQuoteLinePrice(int projectId, int pageBlock, int rowInBlock, decimal price)

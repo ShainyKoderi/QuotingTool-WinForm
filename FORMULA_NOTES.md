@@ -34,8 +34,8 @@ All formulas below were extracted from `Sample.xlsm` using openpyxl. Row 12 of `
 ```
 - Prepends `*` when the section is a thermal-break section (PDB/PLS).
 - Appends ` **MILL FINISH**` when `IgnoreFinish = "Yes"`.
-- **C# equivalent**: `ApplySectionLookup()` in `QuoteForm.cs` fills `Description` from `ExtrusionMaster.Description`. The `*` prefix and ` **MILL FINISH**` suffix are not yet applied in the grid display.
-- **Status**: ⚠️ Partially translated.
+- **C# equivalent**: `ApplySectionLookup()` in `QuoteForm.cs` reads `ExtrusionMaster.ThermalBreakType` (from DATA col M, now stored via `ExtrusionMasterUpdateSeed.sql`) to prepend `*` for PDB/PLS sections and appends ` **MILL FINISH**` when `IgnoreFinish = "Yes"`.
+- **Status**: ✅ Translated.
 
 ---
 
@@ -59,8 +59,8 @@ Where N12 and O12 come from the DATA sheet via Table5 VLOOKUP (auto-populated wh
 =IFERROR(AH12 + AI12 + AS12 + K12, "")
 ```
 Components: **MF Each** (AH) + **IP Each** (AI) + **SF Sell Each** (AS) + **Slotting/Sundry Charge ea** (K)
-- **C# equivalent**: `FormulaCalculationService.CalculatePriceEach()`. Currently `ipEach` and `sfSellEach` are passed as `0m` (not fully computed per line).
-- **Status**: ⚠️ Structure translated; IP and finishing per-line components are approximated.
+- **C# equivalent**: `FormulaCalculationService.CalculatePriceEach()`. `ipEach` is now computed per line using `IpGrade` (auto-populated from `ExtrusionMaster.PhCode` via `IPMasterData`) and the project IP upcharge rates from `EditPricing`. `sfSellEach` remains `0m` (finishing area calculation requires `ApMm`/`PpMm` — not yet fully translated).
+- **Status**: ⚠️ Structure translated; IP Each now computed. SF Sell Each (finishing) approximated as 0.
 
 ---
 
@@ -116,7 +116,8 @@ Where `BF12` = 1 when the section is in the `THRESHOLDS` named range (see Column
 ```
 - Returns `"PDB"` (pour-debridged), `"PLS"` (polyamide strip), or `"No"`.
 - AX12 is the Capral code (from DATA col 8 via AU12), converted via the DATA_EDGE lookup.
-- **Status**: ⚠️ Not translated per line. `ExtrusionMaster` does not yet store the thermal-break type (Table5 col 13).
+- **C# equivalent**: `ExtrusionMaster.ThermalBreakType` now stores the thermal-break type from DATA col M (seeded via `ExtrusionMasterUpdateSeed.sql`). Used in `ApplySectionLookup()` to apply the `*` prefix to Description.
+- **Status**: ✅ ThermalBreakType seeded in ExtrusionMaster and used for Description prefix.
 
 ---
 
@@ -127,8 +128,8 @@ Where `BF12` = 1 when the section is in the `THRESHOLDS` named range (see Column
 =IFERROR(VLOOKUP(C12, Table5[], 11, FALSE), "")
 ```
 - Looks up subsill tier from `Table5` column 11 (DATA sheet column K = `subsill`).
-- **C# equivalent**: `QuoteLine.SubsillFlag` / `SubsillSurcharge`. Tier lookup uses `SubsillTierPrices`.
-- **Status**: ⚠️ `ExtrusionMaster` does not yet store the subsill tier; the value is user-entered in the app.
+- **C# equivalent**: `QuoteLine.SubsillFlag` / `SubsillSurcharge`. `SubsillFlag` is now auto-set to `true` when `ExtrusionMaster.SubsillTier > 0` (from DATA col K, stored via `ExtrusionMasterUpdateSeed.sql`). `SubsillSurcharge` (col K total) remains user-entered.
+- **Status**: ✅ SubsillFlag auto-populated. Tier lookup seeded.
 
 ---
 
@@ -221,8 +222,8 @@ Named ranges / cell references:
 - `G33` = IP1 upcharge (user-entered; default **1.00 $/kg**).
 - `H33` = IP2 upcharge (user-entered; default **2.00 $/kg**).
 - `I33` = IP3 rate derived via `=VLOOKUP("U3",Table_Costs[#All],2,FALSE)` from DATA sheet (workbook-evaluated value: **≈25.85 $/kg**).
-- **Related app update**: `EditPricing` stores `IP1UpchargePerKg`, `IP2UpchargePerKg`, `IP3PanoramicFixedKgRate`.
-- **Status**: ⚠️ Rates are stored and displayed, but `IpGrade` is not persisted per quote line. `AV12` is looked up from `5.Edit_PH_IP` via the PH code (AU12) and is not yet stored per line. **Action required**: add `IpGrade INT` column to `QuoteLines`.
+- **Related app update**: `EditPricing` stores `IP1UpchargePerKg`, `IP2UpchargePerKg`, `IP3PanoramicFixedKgRate`. `ExtrusionMaster` now stores `PhCode` (DATA col H). `IPMasterData` table seeded from `5.Edit_PH_IP` maps PhCode → IpCategory. `QuoteLine.IpGrade` is auto-computed in `ApplySectionLookup()` and used in `CalculateIpEach()` within `QuoteForm.cs`.
+- **Status**: ✅ Translated. IpGrade auto-populated per line; IP Each included in $ Each.
 
 ---
 
@@ -390,7 +391,8 @@ AT12: =IFERROR(AS12 * G12, "")
 =IFERROR(VLOOKUP(C12, DATA!$A:$K, 8, FALSE), "")
 ```
 - DATA col 8 = PH code (18-digit SAP product hierarchy string).
-- **Status**: ⚠️ Not stored in `ExtrusionMaster`. Needed to look up IP category (AV).
+- **C# equivalent**: `ExtrusionMaster.PhCode` now stores the PH code from DATA col H (seeded via `ExtrusionMasterUpdateSeed.sql`). Used in `ApplySectionLookup()` to look up `IpGrade` from the `IPMasterData` table.
+- **Status**: ✅ PhCode stored in ExtrusionMaster; IPMasterData table seeded from 5.Edit_PH_IP.
 
 ---
 

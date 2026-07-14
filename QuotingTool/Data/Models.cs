@@ -67,6 +67,9 @@ namespace QuotingTool.Data
         public string Temper { get; set; } = string.Empty;          // col F (auto)
         public decimal TotalPrice { get; set; }
         public int LineNumber { get; set; }
+        // Col AV: IP (Ingress Protection) grade for this line (0 = none, 1-3 = IP1/IP2/IP3 panoramic).
+        // Auto-computed from the section's PH code via IPMasterData; can be overridden by the user.
+        public int IpGrade { get; set; }
     }
 
     // Maps to named ranges pg1_foot .. pg6_foot
@@ -214,6 +217,27 @@ namespace QuotingTool.Data
         public decimal MassPerM { get; set; }                     // col D (Mass / M, kg/m)
         public string DefaultAlloy { get; set; } = "6060";
         public string DefaultTemper { get; set; } = "T5";
+        public decimal ApMm { get; set; }                         // col E (AP per metre, mm units)
+        public decimal PpMm { get; set; }                         // col F (PP per metre, mm units)
+        public int SubsillTier { get; set; }                      // col K (0 = none, 1-4 = subsill tier)
+        public string ThermalBreakType { get; set; } = "No";      // col M ("No", "PLS", or "PDB")
+        public string? PhCode { get; set; }                       // col H (18-digit SAP PH code)
+    }
+
+    // Maps the SAP PH (Product Hierarchy) code to its Ingress Protection (IP) category.
+    // Source: 5.Edit_PH_IP sheet cols B (PH) and D (IP Category: 0=none,1=IP1,2=IP2,3=IP3).
+    // Used on the Quote tab to auto-determine the IP upcharge grade per section.
+    public class IPMasterData
+    {
+        public string PhCode { get; set; } = string.Empty;   // 18-digit SAP PH code
+        public int IpCategory { get; set; }                  // 0 = none, 1 = IP1, 2 = IP2, 3 = IP3
+    }
+
+    // Section codes that appear in the THRESHOLDS named range (Validation!$N:$N).
+    // A section in this list triggers the anodised-threshold SAP colour code logic (col BF = 1).
+    public class ThresholdSection
+    {
+        public string Section { get; set; } = string.Empty;
     }
 
     // Master formula backup (col BA in original Excel)
