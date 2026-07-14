@@ -110,7 +110,14 @@ namespace QuotingTool.Forms
                 if (line.LineNumber <= 0)
                     line.LineNumber = line.RowInBlock;
                 ApplySectionLookup(line);
+                var storedPrice = line.Price;
                 RecalculatePrice(line);
+                // Persist the recalculated price back to the database whenever the
+                // metal price is valid and the price has actually changed.  This keeps
+                // the Edit Pricing summary and any other DB consumers in sync without
+                // requiring the user to manually click "Save" on the Quote tab first.
+                if (_metalPricePerKg > 0 && line.Price != storedPrice)
+                    _db.UpsertQuoteLine(line);
             }
             gridQuote.DataSource = _lines;
             _bindingGrid = false;

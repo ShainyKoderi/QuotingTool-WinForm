@@ -31,6 +31,8 @@ namespace QuotingTool.Forms
         private readonly EditPricingRowVisibilityService _rowVis;
         private readonly QuoteSummaryService _quoteSummaryService;
         private readonly PivotRefreshService _pivotRefresh;
+        private readonly FormulaCalculationService _formulaSvc;
+        private Dictionary<string, ExtrusionMaster> _extrusionByCode = [];
         private int _projectId;
 
         private static readonly string[] CostTypeOptions =
@@ -81,6 +83,7 @@ namespace QuotingTool.Forms
             _rowVis = new EditPricingRowVisibilityService(db);
             _quoteSummaryService = new QuoteSummaryService(db);
             _pivotRefresh = new PivotRefreshService(db);
+            _formulaSvc = new FormulaCalculationService(db);
             InitializeComponent();
             BuildLayout();
 
@@ -119,6 +122,10 @@ namespace QuotingTool.Forms
         public void LoadProject(int projectId)
         {
             _projectId = projectId;
+            // Refresh the extrusion master cache so TotalKg and guidance labels
+            // always reflect the latest section data in the database.
+            _extrusionByCode = _db.GetExtrusionMasterList()
+                .ToDictionary(m => m.Section, m => m, StringComparer.OrdinalIgnoreCase);
             var ep = _db.GetEditPricing(projectId) ?? new EditPricing { ProjectId = projectId };
             var project = _db.GetProject(projectId) ?? new Project();
 
@@ -294,9 +301,24 @@ namespace QuotingTool.Forms
             project.CustomerSapDiscount = ParseDecimal(txtCustomerSapDiscount.Text);
 
             // ── Computed totals (Quantities section) ──────────────────────────
+            // Compute total kg accurately using the kg/m value from ExtrusionMaster
+            // (Y12 * H12 formula equivalent).  This avoids the circular dependency
+            // where TotalKg = TotalPrice / MetalPrice is 0 whenever prices haven't
+            // been persisted yet (e.g. first load after a BOM import).
+            decimal totalKg = 0m;
+            foreach (var l in lines)
+            {
+                if (!string.IsNullOrWhiteSpace(l.ExtrusionCode) &&
+                    _extrusionByCode.TryGetValue(l.ExtrusionCode, out var master) &&
+                    master.MassPerM > 0)
+                    totalKg += l.Quantity * l.LengthM * master.MassPerM;
+            }
+
             var totalLineValue = lines.Sum(l => l.TotalPrice);
-            ep.TotalKg = ep.MetalPrice > 0m
-                ? totalLineValue / ep.MetalPrice
+            // Use kg/m-based total as primary; fall back to price-derived or metre-based
+            // estimates only when no section master data is available.
+            ep.TotalKg = totalKg > 0m ? totalKg
+                : ep.MetalPrice > 0m ? totalLineValue / ep.MetalPrice
                 : lines.Sum(l => l.Quantity * l.LengthM);
             ep.TotalFinishingM2 = lines.Sum(l => l.Quantity * l.LengthM);
             ep.TotalPieces = (int)Math.Round(lines.Sum(l => l.Quantity), MidpointRounding.AwayFromZero);
@@ -316,6 +338,15 @@ namespace QuotingTool.Forms
             lblIP2MarginValue.Text = $"{ep.IP2MarginPct:N2}%";
             lblIP3MarginValue.Text = $"{ep.IP3MarginPct:N2}%";
             lblThresholdMarginValue.Text = $"{ep.ThermalBreakMarginPct:N2}%";
+
+            // ── Metal price guidance (from Pricing Matrix breakpoint table) ───
+            // Populate the min/max guidance labels next to the MetalPrice input so
+            // the user can see the expected price range for the project's total kg.
+            // Mirrors the Excel Pricing Matrix Table_Metal_BP reference.
+            decimal suggestedMin = _formulaSvc.LookupMetalMinPrice(ep.TotalKg);
+            decimal suggestedMax = _formulaSvc.LookupMetalMaxPrice(ep.TotalKg);
+            lblMetalPriceMin.Text = suggestedMin > 0m ? $"Min: ${suggestedMin:F2}" : "—";
+            lblMetalPriceMax.Text = suggestedMax > 0m ? $"Max: ${suggestedMax:F2}" : "—";
 
             if (saveChanges)
             {
