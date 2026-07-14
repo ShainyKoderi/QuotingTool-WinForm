@@ -32,7 +32,7 @@ namespace QuotingTool.Services
         /// Original Excel: =IFERROR(I12*G12,"")
         /// </summary>
         public static decimal CalculateSellTotal(decimal priceEach, decimal quantity)
-            => quantity > 0 ? priceEach * quantity : 0m;
+            => priceEach * quantity;
 
         /// <summary>
         /// Col I: $ Each = MF_Each + IP_Each + SF_Sell_Each + SlottingSundry_Each

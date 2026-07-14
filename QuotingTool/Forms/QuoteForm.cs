@@ -62,6 +62,8 @@ namespace QuotingTool.Forms
         private void RefreshGrid()
         {
             if (_projectId <= 0) return;
+            // Always reload metal price so changes saved on the Edit Pricing tab are reflected here.
+            _metalPricePerKg = _db.GetEditPricing(_projectId)?.MetalPrice ?? 0m;
             _bindingGrid = true;
             _lines = new BindingList<QuoteLine>(_db.GetQuoteLines(_projectId).ToList());
             foreach (var line in _lines)
@@ -414,20 +416,26 @@ namespace QuotingTool.Forms
             // Refresh metal price in case the Edit Pricing tab was saved since this tab loaded.
             _metalPricePerKg = _db.GetEditPricing(_projectId)?.MetalPrice ?? _metalPricePerKg;
 
-            var columnName = gridQuote.Columns[e.ColumnIndex].Name;
             line.LineNumber = line.LineNumber <= 0 ? e.RowIndex + 1 : line.LineNumber;
 
-            if (columnName == "ExtrusionCode")
-                ApplySectionLookup(line);
-
+            // Always re-run the section lookup so Description/Alloy/Temper stay in sync
+            // regardless of which column was just edited (Section, Qty, Length, etc.).
+            ApplySectionLookup(line);
             RecalculatePrice(line);
 
+            // Push computed values back into the grid cells, suppressing re-entrant events.
+            _bindingGrid = true;
             var row = gridQuote.Rows[e.RowIndex];
             SetCellValue(row, "Description", line.Description);
-            SetCellValue(row, "Alloy", line.Alloy);
-            SetCellValue(row, "Temper", line.Temper);
-            SetCellValue(row, "Price", line.Price);
-            SetCellValue(row, "TotalPrice", line.TotalPrice);
+            SetCellValue(row, "Alloy",        line.Alloy);
+            SetCellValue(row, "Temper",       line.Temper);
+            SetCellValue(row, "Price",        line.Price);
+            SetCellValue(row, "TotalPrice",   line.TotalPrice);
+            _bindingGrid = false;
+
+            // Repaint so read-only cells (Alloy, Temper, $ Each, $ Total) show the
+            // new values immediately without waiting for the next paint cycle.
+            gridQuote.InvalidateRow(e.RowIndex);
 
             _db.UpsertQuoteLine(line);
         }

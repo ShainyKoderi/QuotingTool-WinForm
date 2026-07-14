@@ -82,6 +82,7 @@ namespace QuotingTool.Forms
             _quoteSummaryService = new QuoteSummaryService(db);
             _pivotRefresh = new PivotRefreshService(db);
             InitializeComponent();
+            BuildLayout();
 
             // Finish Type combo: shown in grpFinishSection
             cmbFinType.Items.AddRange(FinishTypeOptions);
@@ -390,6 +391,101 @@ namespace QuotingTool.Forms
 
         private static decimal CalculateMarginPct(decimal sell, decimal cost)
             => sell > 0m ? (sell - cost) / sell * 100m : 0m;
+
+        /// <summary>
+        /// Applies runtime font, colour and BackColor styling.
+        /// All control layout and parenting is already done in InitializeComponent().
+        /// </summary>
+        private void BuildLayout()
+        {
+            var oliveFont  = BoldFont(10F);
+            var labelFont  = RegFont(9F);
+            var headerFont = BoldFont(9F);
+            var colHdrFont = BoldFont(8.5F);
+
+            // ── Groups ────────────────────────────────────────────────────────
+            foreach (var grp in new[] { grpHeader, grpFinishSection, grpQuantitiesSection,
+                                        grpMillFinishPricing, grpThermalBreakPricing,
+                                        grpFinishingPricing, grpAnodisedThresholds, grpSummary })
+            {
+                grp.Font      = oliveFont;
+                grp.ForeColor = ClrOlive;
+            }
+            grpRowVisibility.Font      = RegFont(9F);
+            grpRowVisibility.ForeColor = System.Drawing.Color.Gray;
+
+            // ── Title ─────────────────────────────────────────────────────────
+            lblTitle.Font      = BoldFont(13F);
+            lblTitle.ForeColor = ClrOlive;
+
+            // ── Input BackColors ──────────────────────────────────────────────
+            foreach (var tb in new[] { txtQuotedBy, txtProjectName, txtCustomerName, txtPricingNotes,
+                                       txtCustomerSapDiscount, txtMetalPrice,
+                                       txtIP1Upcharge, txtIP2Upcharge, txtIP3Rate,
+                                       txtTBMargin,
+                                       txtFinishingCostPricePerM2, txtB42, txtFinishingPrice, txtB44,
+                                       txtB48, txtB50, txtB52, txtB54,
+                                       txtAnodisedThresholdCost, txtB57, txtB58 })
+                tb.BackColor = ClrInputBg;
+
+            foreach (var cmb in new[] { cmbFinType, cmbFinishGroup, cmbFinishName,
+                                        cmbApplicatorGroup, cmbFinishApplicator,
+                                        cmbTBCalcType, cmbPowderPricedAs, cmbCostType })
+                cmb.BackColor = ClrInputBg;
+
+            // ── Read-only label BackColors ────────────────────────────────────
+            foreach (var lbl in new[] { lblTotalKgValue, lblTotalFinishingM2Value, lblTotalPiecesValue,
+                                        lblMetalPriceMin, lblMetalPriceMax,
+                                        lblMillFinishMarginValue,
+                                        lblIP1MarginValue, lblIP2MarginValue, lblIP3MarginValue,
+                                        lblFinishingMarginValue, lblThresholdMarginValue })
+                lbl.BackColor = ClrReadOnly;
+
+            // ── ForeColors ────────────────────────────────────────────────────
+            lblMillFinishMarginValue.ForeColor  = System.Drawing.Color.DarkGreen;
+            lblFinishingMarginValue.ForeColor   = System.Drawing.Color.DarkGreen;
+            lblThresholdMarginValue.ForeColor   = System.Drawing.Color.DarkGreen;
+
+            foreach (var lbl in new[] { lblMFColHdr, lblMFTypHdr, lblMFMinHdr, lblMFMaxHdr,
+                                        lblIPColHdr, lblIPTypHdr, lblIpHdr,
+                                        lblTBTypHdr, lblFCColHdr, lblFCTypHdr, lblFCMinHdr, lblFCMaxHdr,
+                                        lblStdFinishRatesHdr, lblBulkHdr })
+                lbl.ForeColor = ClrOlive;
+
+            lblApNote.ForeColor   = System.Drawing.Color.Gray;
+            lblSummaryNote1.ForeColor = System.Drawing.Color.Gray;
+            lblSummaryNote2.ForeColor = System.Drawing.Color.Gray;
+
+            // ── Fonts ─────────────────────────────────────────────────────────
+            lblMillFinishMarginValue.Font  = headerFont;
+            lblFinishingMarginValue.Font   = headerFont;
+            lblThresholdMarginValue.Font   = headerFont;
+            lblTotalKgValue.Font           = headerFont;
+            lblTotalFinishingM2Value.Font  = headerFont;
+            lblTotalPiecesValue.Font       = headerFont;
+            lblIpHdr.Font                  = BoldFont(9F);
+            lblStdFinishRatesHdr.Font      = BoldFont(8.5F);
+            lblBulkHdr.Font                = BoldFont(8.5F);
+            lblApNote.Font                 = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Italic);
+            lblSummaryNote1.Font           = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Italic);
+            lblSummaryNote2.Font           = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Italic);
+            lblVisibleRows.Font            = RegFont(8F);
+            lblHiddenRows.Font             = RegFont(8F);
+
+            // ── Button colours ────────────────────────────────────────────────
+            btnSave.BackColor          = System.Drawing.Color.FromArgb(0, 120, 215);
+            btnSave.ForeColor          = System.Drawing.Color.White;
+            btnSave.Font               = BoldFont();
+            btnRefreshSummary.BackColor = System.Drawing.Color.FromArgb(0, 128, 64);
+            btnRefreshSummary.ForeColor = System.Drawing.Color.White;
+            btnRefreshSummary.Font      = BoldFont();
+
+            // ── DataGridView header styling ───────────────────────────────────
+            gridSummary.ColumnHeadersDefaultCellStyle.BackColor = ClrOliveRow;
+            gridSummary.ColumnHeadersDefaultCellStyle.Font      = colHdrFont;
+            gridSummary.ColumnHeadersDefaultCellStyle.ForeColor = ClrOlive;
+            colCategory.DefaultCellStyle.Font = headerFont;
+        }
 
         /// <summary>
         /// Sets a ComboBox selected item by matching the given value string.
