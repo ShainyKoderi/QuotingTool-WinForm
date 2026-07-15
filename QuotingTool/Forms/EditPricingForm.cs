@@ -379,6 +379,9 @@ namespace QuotingTool.Forms
                 totalRow.DefaultCellStyle.Font = FontBold9;
             }
 
+            // Apply bold font to the (now auto-generated) Category column.
+            StyleCategoryColumn();
+
             UpdateRowVisibility();
         }
 
@@ -427,8 +430,22 @@ namespace QuotingTool.Forms
             lblSummaryNote2.Font           = FontItalic75;
 
             // ── DataGridView header font ──────────────────────────────────────
+            // Note: gridSummary is data-bound (columns are auto-generated from the
+            // SummaryRow type when DataSource is set), so the "Category" column does
+            // not exist yet here. Its font is applied after binding in
+            // UpdateDerivedFields via StyleCategoryColumn().
             gridSummary.ColumnHeadersDefaultCellStyle.Font = BoldFont(8.5F);
-            colCategory.DefaultCellStyle.Font              = BoldFont();
+        }
+
+        /// <summary>
+        /// Applies the bold font to the auto-generated "Category" column.
+        /// Safe to call after the grid's DataSource has been set.
+        /// </summary>
+        private void StyleCategoryColumn()
+        {
+            var categoryColumn = gridSummary.Columns[nameof(SummaryRow.Category)];
+            if (categoryColumn != null)
+                categoryColumn.DefaultCellStyle.Font = BoldFont();
         }
 
         /// <summary>
