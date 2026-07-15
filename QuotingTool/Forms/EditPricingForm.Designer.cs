@@ -363,13 +363,7 @@ namespace QuotingTool.Forms
             btnEditSundryItems.Location  = new System.Drawing.Point(18,  1474); btnEditSundryItems.Size  = new System.Drawing.Size(130, 30); btnEditSundryItems.Text  = "Edit Sundry Items";
             btnRecalculateAll.Location   = new System.Drawing.Point(158, 1474); btnRecalculateAll.Size   = new System.Drawing.Size(120, 30); btnRecalculateAll.Text   = "Recalculate All";
             btnSave.Location             = new System.Drawing.Point(288, 1472); btnSave.Size             = new System.Drawing.Size(110, 34); btnSave.Text             = "Save";
-            btnSave.BackColor            = System.Drawing.Color.FromArgb(0, 120, 215);
-            btnSave.ForeColor            = System.Drawing.Color.White;
-            btnSave.UseVisualStyleBackColor = false;
             btnRefreshSummary.Location   = new System.Drawing.Point(408, 1472); btnRefreshSummary.Size   = new System.Drawing.Size(150, 34); btnRefreshSummary.Text   = "Refresh Summary";
-            btnRefreshSummary.BackColor  = System.Drawing.Color.FromArgb(0, 128, 64);
-            btnRefreshSummary.ForeColor  = System.Drawing.Color.White;
-            btnRefreshSummary.UseVisualStyleBackColor = false;
             btnUpdateVisibility.Location = new System.Drawing.Point(568, 1474); btnUpdateVisibility.Size = new System.Drawing.Size(145, 30); btnUpdateVisibility.Text = "Update Row Visibility";
 
             // ── grpRowVisibility (y=1516, h=80) ─────────────────────────────

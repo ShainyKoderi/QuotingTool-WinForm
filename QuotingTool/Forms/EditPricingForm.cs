@@ -14,17 +14,9 @@ namespace QuotingTool.Forms
         private const decimal DefaultIP3Rate = 25.85m;
         private const decimal DefaultAnodisedThresholdCost = 10.65m;
         private static readonly System.Drawing.Font FontBold13 = new("Segoe UI", 13F, System.Drawing.FontStyle.Bold);
-        private static readonly System.Drawing.Font FontBold10 = new("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
         private static readonly System.Drawing.Font FontBold9 = new("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
         private static readonly System.Drawing.Font FontBold85 = new("Segoe UI", 8.5F, System.Drawing.FontStyle.Bold);
-        private static readonly System.Drawing.Font FontReg9 = new("Segoe UI", 9F);
-        private static readonly System.Drawing.Font FontReg8 = new("Segoe UI", 8F);
-        private static readonly System.Drawing.Color ClrOlive = System.Drawing.Color.FromArgb(107, 127, 41);
-        private static readonly System.Drawing.Color ClrOliveRow = System.Drawing.Color.FromArgb(226, 239, 218);
-        private static readonly System.Drawing.Color ClrInputBg = System.Drawing.Color.LightYellow;
-        private static readonly System.Drawing.Color ClrReadOnly = System.Drawing.Color.FromArgb(242, 242, 242);
-        private static readonly System.Drawing.Color ClrTotals = System.Drawing.Color.FromArgb(255, 199, 206);
-        private static readonly System.Drawing.Color ClrHdr = System.Drawing.Color.FromArgb(198, 224, 180);
+        private static readonly System.Drawing.Font FontItalic75 = new("Segoe UI", 7.5F, System.Drawing.FontStyle.Italic);
 
         private readonly DatabaseContext _db;
         private readonly ShowHideBulkService _showHide;
@@ -380,12 +372,11 @@ namespace QuotingTool.Forms
                 new() { Category = "Total",               TotalCost = summary.GrandTotal - summary.GrandMarginDollar, TotalSellValue = summary.GrandTotal, MarginDollar = summary.GrandMarginDollar, MarginPct = summary.GrandMarginPct }
             };
 
-            // Highlight the Total row
+            // Bold the Total row font (no colour — keeps the plain form style)
             if (gridSummary.Rows.Count > 0)
             {
                 var totalRow = gridSummary.Rows[gridSummary.Rows.Count - 1];
-                totalRow.DefaultCellStyle.BackColor = System.Drawing.Color.FromArgb(255, 199, 206);
-                totalRow.DefaultCellStyle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+                totalRow.DefaultCellStyle.Font = FontBold9;
             }
 
             UpdateRowVisibility();
@@ -408,114 +399,36 @@ namespace QuotingTool.Forms
             => size switch
             {
                 13F => FontBold13,
-                10F => FontBold10,
                 8.5F => FontBold85,
                 _ => FontBold9
-            };
-
-        private static System.Drawing.Font RegFont(float size = 9F)
-            => size switch
-            {
-                8F => FontReg8,
-                _ => FontReg9
             };
 
         private static decimal CalculateMarginPct(decimal sell, decimal cost)
             => sell > 0m ? (sell - cost) / sell * 100m : 0m;
 
         /// <summary>
-        /// Applies runtime font, colour and BackColor styling.
+        /// Applies runtime font styling.
         /// All control layout and parenting is already done in InitializeComponent().
         /// </summary>
         private void BuildLayout()
         {
-            var oliveFont  = BoldFont(10F);
-            var labelFont  = RegFont(9F);
-            var headerFont = BoldFont(9F);
-            var colHdrFont = BoldFont(8.5F);
-
-            // ── Groups ────────────────────────────────────────────────────────
-            foreach (var grp in new[] { grpHeader, grpFinishSection, grpQuantitiesSection,
-                                        grpMillFinishPricing, grpThermalBreakPricing,
-                                        grpFinishingPricing, grpAnodisedThresholds, grpSummary })
-            {
-                grp.Font      = oliveFont;
-                grp.ForeColor = ClrOlive;
-            }
-            grpRowVisibility.Font      = RegFont(9F);
-            grpRowVisibility.ForeColor = System.Drawing.Color.Gray;
-
             // ── Title ─────────────────────────────────────────────────────────
-            lblTitle.Font      = BoldFont(13F);
-            lblTitle.ForeColor = ClrOlive;
-
-            // ── Input BackColors ──────────────────────────────────────────────
-            foreach (var tb in new[] { txtQuotedBy, txtProjectName, txtCustomerName, txtPricingNotes,
-                                       txtCustomerSapDiscount, txtMetalPrice,
-                                       txtIP1Upcharge, txtIP2Upcharge, txtIP3Rate,
-                                       txtTBMargin,
-                                       txtFinishingCostPricePerM2, txtB42, txtFinishingPrice, txtB44,
-                                       txtB48, txtB50, txtB52, txtB54,
-                                       txtAnodisedThresholdCost, txtB57, txtB58 })
-                tb.BackColor = ClrInputBg;
-
-            foreach (var cmb in new[] { cmbFinType, cmbFinishGroup, cmbFinishName,
-                                        cmbApplicatorGroup, cmbFinishApplicator,
-                                        cmbTBCalcType, cmbPowderPricedAs, cmbCostType })
-                cmb.BackColor = ClrInputBg;
-
-            // ── Read-only label BackColors ────────────────────────────────────
-            foreach (var lbl in new[] { lblTotalKgValue, lblTotalFinishingM2Value, lblTotalPiecesValue,
-                                        lblMetalPriceMin, lblMetalPriceMax,
-                                        lblMillFinishMarginValue,
-                                        lblIP1MarginValue, lblIP2MarginValue, lblIP3MarginValue,
-                                        lblFinishingMarginValue, lblThresholdMarginValue })
-                lbl.BackColor = ClrReadOnly;
-
-            // ── ForeColors ────────────────────────────────────────────────────
-            lblMillFinishMarginValue.ForeColor  = System.Drawing.Color.DarkGreen;
-            lblFinishingMarginValue.ForeColor   = System.Drawing.Color.DarkGreen;
-            lblThresholdMarginValue.ForeColor   = System.Drawing.Color.DarkGreen;
-
-            foreach (var lbl in new[] { lblMFColHdr, lblMFTypHdr, lblMFMinHdr, lblMFMaxHdr,
-                                        lblIPColHdr, lblIPTypHdr, lblIpHdr,
-                                        lblTBTypHdr, lblFCColHdr, lblFCTypHdr, lblFCMinHdr, lblFCMaxHdr,
-                                        lblStdFinishRatesHdr, lblBulkHdr })
-                lbl.ForeColor = ClrOlive;
-
-            lblApNote.ForeColor   = System.Drawing.Color.Gray;
-            lblSummaryNote1.ForeColor = System.Drawing.Color.Gray;
-            lblSummaryNote2.ForeColor = System.Drawing.Color.Gray;
+            lblTitle.Font = BoldFont(13F);
 
             // ── Fonts ─────────────────────────────────────────────────────────
-            lblMillFinishMarginValue.Font  = headerFont;
-            lblFinishingMarginValue.Font   = headerFont;
-            lblThresholdMarginValue.Font   = headerFont;
-            lblTotalKgValue.Font           = headerFont;
-            lblTotalFinishingM2Value.Font  = headerFont;
-            lblTotalPiecesValue.Font       = headerFont;
-            lblIpHdr.Font                  = BoldFont(9F);
-            lblStdFinishRatesHdr.Font      = BoldFont(8.5F);
-            lblBulkHdr.Font                = BoldFont(8.5F);
-            lblApNote.Font                 = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Italic);
-            lblSummaryNote1.Font           = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Italic);
-            lblSummaryNote2.Font           = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Italic);
-            lblVisibleRows.Font            = RegFont(8F);
-            lblHiddenRows.Font             = RegFont(8F);
+            lblMillFinishMarginValue.Font  = BoldFont();
+            lblFinishingMarginValue.Font   = BoldFont();
+            lblThresholdMarginValue.Font   = BoldFont();
+            lblTotalKgValue.Font           = BoldFont();
+            lblTotalFinishingM2Value.Font  = BoldFont();
+            lblTotalPiecesValue.Font       = BoldFont();
+            lblApNote.Font                 = FontItalic75;
+            lblSummaryNote1.Font           = FontItalic75;
+            lblSummaryNote2.Font           = FontItalic75;
 
-            // ── Button colours ────────────────────────────────────────────────
-            btnSave.BackColor          = System.Drawing.Color.FromArgb(0, 120, 215);
-            btnSave.ForeColor          = System.Drawing.Color.White;
-            btnSave.Font               = BoldFont();
-            btnRefreshSummary.BackColor = System.Drawing.Color.FromArgb(0, 128, 64);
-            btnRefreshSummary.ForeColor = System.Drawing.Color.White;
-            btnRefreshSummary.Font      = BoldFont();
-
-            // ── DataGridView header styling ───────────────────────────────────
-            gridSummary.ColumnHeadersDefaultCellStyle.BackColor = ClrOliveRow;
-            gridSummary.ColumnHeadersDefaultCellStyle.Font      = colHdrFont;
-            gridSummary.ColumnHeadersDefaultCellStyle.ForeColor = ClrOlive;
-            colCategory.DefaultCellStyle.Font = headerFont;
+            // ── DataGridView header font ──────────────────────────────────────
+            gridSummary.ColumnHeadersDefaultCellStyle.Font = BoldFont(8.5F);
+            colCategory.DefaultCellStyle.Font              = BoldFont();
         }
 
         /// <summary>
