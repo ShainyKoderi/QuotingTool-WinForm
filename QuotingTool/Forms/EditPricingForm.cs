@@ -16,6 +16,7 @@ namespace QuotingTool.Forms
         private static readonly System.Drawing.Font FontBold13 = new("Segoe UI", 13F, System.Drawing.FontStyle.Bold);
         private static readonly System.Drawing.Font FontBold9 = new("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
         private static readonly System.Drawing.Font FontBold85 = new("Segoe UI", 8.5F, System.Drawing.FontStyle.Bold);
+        private static readonly System.Drawing.Font FontItalic75 = new("Segoe UI", 7.5F, System.Drawing.FontStyle.Italic);
 
         private readonly DatabaseContext _db;
         private readonly ShowHideBulkService _showHide;
@@ -371,7 +372,7 @@ namespace QuotingTool.Forms
                 new() { Category = "Total",               TotalCost = summary.GrandTotal - summary.GrandMarginDollar, TotalSellValue = summary.GrandTotal, MarginDollar = summary.GrandMarginDollar, MarginPct = summary.GrandMarginPct }
             };
 
-            // Bold the Total row
+            // Bold the Total row font (no colour — keeps the plain form style)
             if (gridSummary.Rows.Count > 0)
             {
                 var totalRow = gridSummary.Rows[gridSummary.Rows.Count - 1];
@@ -421,9 +422,9 @@ namespace QuotingTool.Forms
             lblTotalKgValue.Font           = BoldFont();
             lblTotalFinishingM2Value.Font  = BoldFont();
             lblTotalPiecesValue.Font       = BoldFont();
-            lblApNote.Font                 = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Italic);
-            lblSummaryNote1.Font           = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Italic);
-            lblSummaryNote2.Font           = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Italic);
+            lblApNote.Font                 = FontItalic75;
+            lblSummaryNote1.Font           = FontItalic75;
+            lblSummaryNote2.Font           = FontItalic75;
 
             // ── DataGridView header font ──────────────────────────────────────
             gridSummary.ColumnHeadersDefaultCellStyle.Font = BoldFont(8.5F);
