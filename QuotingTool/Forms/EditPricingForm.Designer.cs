@@ -44,8 +44,6 @@ namespace QuotingTool.Forms
             lblApNote = new Label();
             lblTotalPieces = new Label();
             lblTotalPiecesValue = new Label();
-            btnEditIpCategories = new Button();
-            btnResetIpCharges = new Button();
             grpMillFinishPricing = new GroupBox();
             lblSapDiscountHeader = new Label();
             txtCustomerSapDiscount = new TextBox();
@@ -54,6 +52,8 @@ namespace QuotingTool.Forms
             lblMFMinHdr = new Label();
             lblMFMaxHdr = new Label();
             lblMetalPrice = new Label();
+            btnResetIpCharges = new Button();
+            btnEditIpCategories = new Button();
             txtMetalPrice = new TextBox();
             lblMetalPriceMin = new Label();
             lblMetalPriceMax = new Label();
@@ -166,17 +166,15 @@ namespace QuotingTool.Forms
             pnlScroll.Controls.Add(grpRowVisibility);
             pnlScroll.Dock = DockStyle.Fill;
             pnlScroll.Location = new Point(0, 0);
-            pnlScroll.Margin = new Padding(4, 5, 4, 5);
             pnlScroll.Name = "pnlScroll";
-            pnlScroll.Size = new Size(1500, 1170);
+            pnlScroll.Size = new Size(1050, 637);
             pnlScroll.TabIndex = 0;
             // 
             // lblTitle
             // 
-            lblTitle.Location = new Point(11, 13);
-            lblTitle.Margin = new Padding(4, 0, 4, 0);
+            lblTitle.Location = new Point(8, 8);
             lblTitle.Name = "lblTitle";
-            lblTitle.Size = new Size(571, 25);
+            lblTitle.Size = new Size(400, 28);
             lblTitle.TabIndex = 0;
             lblTitle.Text = "3. Edit Pricing";
             // 
@@ -192,11 +190,9 @@ namespace QuotingTool.Forms
             grpHeader.Controls.Add(txtCustomerName);
             grpHeader.Controls.Add(lblPricingNotes);
             grpHeader.Controls.Add(txtPricingNotes);
-            grpHeader.Location = new Point(11, 47);
-            grpHeader.Margin = new Padding(4, 5, 4, 5);
+            grpHeader.Location = new Point(8, 32);
             grpHeader.Name = "grpHeader";
-            grpHeader.Padding = new Padding(4, 5, 4, 5);
-            grpHeader.Size = new Size(707, 231);
+            grpHeader.Size = new Size(495, 139);
             grpHeader.TabIndex = 1;
             grpHeader.TabStop = false;
             grpHeader.Text = "Project Information";
@@ -204,93 +200,83 @@ namespace QuotingTool.Forms
             // lblQuotedBy
             // 
             lblQuotedBy.AutoSize = true;
-            lblQuotedBy.Location = new Point(17, 37);
-            lblQuotedBy.Margin = new Padding(4, 0, 4, 0);
+            lblQuotedBy.Location = new Point(12, 22);
             lblQuotedBy.Name = "lblQuotedBy";
-            lblQuotedBy.Size = new Size(101, 25);
+            lblQuotedBy.Size = new Size(66, 15);
             lblQuotedBy.TabIndex = 0;
             lblQuotedBy.Text = "Quoted By:";
             // 
             // txtQuotedBy
             // 
-            txtQuotedBy.Location = new Point(135, 28);
-            txtQuotedBy.Margin = new Padding(4, 5, 4, 5);
+            txtQuotedBy.Location = new Point(94, 17);
             txtQuotedBy.Name = "txtQuotedBy";
-            txtQuotedBy.Size = new Size(255, 31);
+            txtQuotedBy.Size = new Size(180, 23);
             txtQuotedBy.TabIndex = 1;
             // 
             // lblQuoteDate
             // 
             lblQuoteDate.AutoSize = true;
-            lblQuoteDate.Location = new Point(405, 31);
-            lblQuoteDate.Margin = new Padding(4, 0, 4, 0);
+            lblQuoteDate.Location = new Point(284, 19);
             lblQuoteDate.Name = "lblQuoteDate";
-            lblQuoteDate.Size = new Size(108, 25);
+            lblQuoteDate.Size = new Size(70, 15);
             lblQuoteDate.TabIndex = 2;
             lblQuoteDate.Text = "Quote Date:";
             // 
             // dtpQuoteDate
             // 
             dtpQuoteDate.Format = DateTimePickerFormat.Short;
-            dtpQuoteDate.Location = new Point(514, 26);
-            dtpQuoteDate.Margin = new Padding(4, 5, 4, 5);
+            dtpQuoteDate.Location = new Point(360, 16);
             dtpQuoteDate.Name = "dtpQuoteDate";
-            dtpQuoteDate.Size = new Size(184, 31);
+            dtpQuoteDate.Size = new Size(130, 23);
             dtpQuoteDate.TabIndex = 3;
             // 
             // lblProjectName
             // 
             lblProjectName.AutoSize = true;
-            lblProjectName.Location = new Point(17, 72);
-            lblProjectName.Margin = new Padding(4, 0, 4, 0);
+            lblProjectName.Location = new Point(12, 43);
             lblProjectName.Name = "lblProjectName";
-            lblProjectName.Size = new Size(70, 25);
+            lblProjectName.Size = new Size(47, 15);
             lblProjectName.TabIndex = 4;
             lblProjectName.Text = "Project:";
             // 
             // txtProjectName
             // 
-            txtProjectName.Location = new Point(135, 63);
-            txtProjectName.Margin = new Padding(4, 5, 4, 5);
+            txtProjectName.Location = new Point(94, 38);
             txtProjectName.Name = "txtProjectName";
-            txtProjectName.Size = new Size(255, 31);
+            txtProjectName.Size = new Size(180, 23);
             txtProjectName.TabIndex = 5;
             // 
             // lblCustomerName
             // 
             lblCustomerName.AutoSize = true;
-            lblCustomerName.Location = new Point(17, 109);
-            lblCustomerName.Margin = new Padding(4, 0, 4, 0);
+            lblCustomerName.Location = new Point(12, 65);
             lblCustomerName.Name = "lblCustomerName";
-            lblCustomerName.Size = new Size(93, 25);
+            lblCustomerName.Size = new Size(62, 15);
             lblCustomerName.TabIndex = 6;
             lblCustomerName.Text = "Customer:";
             // 
             // txtCustomerName
             // 
-            txtCustomerName.Location = new Point(135, 99);
-            txtCustomerName.Margin = new Padding(4, 5, 4, 5);
+            txtCustomerName.Location = new Point(94, 59);
             txtCustomerName.Name = "txtCustomerName";
-            txtCustomerName.Size = new Size(255, 31);
+            txtCustomerName.Size = new Size(180, 23);
             txtCustomerName.TabIndex = 7;
             // 
             // lblPricingNotes
             // 
             lblPricingNotes.AutoSize = true;
-            lblPricingNotes.Location = new Point(17, 144);
-            lblPricingNotes.Margin = new Padding(4, 0, 4, 0);
+            lblPricingNotes.Location = new Point(12, 86);
             lblPricingNotes.Name = "lblPricingNotes";
-            lblPricingNotes.Size = new Size(121, 25);
+            lblPricingNotes.Size = new Size(81, 15);
             lblPricingNotes.TabIndex = 8;
             lblPricingNotes.Text = "Pricing Notes:";
             // 
             // txtPricingNotes
             // 
-            txtPricingNotes.Location = new Point(135, 135);
-            txtPricingNotes.Margin = new Padding(4, 5, 4, 5);
+            txtPricingNotes.Location = new Point(94, 81);
             txtPricingNotes.Multiline = true;
             txtPricingNotes.Name = "txtPricingNotes";
-            txtPricingNotes.Size = new Size(563, 87);
+            txtPricingNotes.Size = new Size(395, 54);
             txtPricingNotes.TabIndex = 9;
             // 
             // grpFinishSection
@@ -305,11 +291,9 @@ namespace QuotingTool.Forms
             grpFinishSection.Controls.Add(cmbApplicatorGroup);
             grpFinishSection.Controls.Add(lblFinishApplicator);
             grpFinishSection.Controls.Add(cmbFinishApplicator);
-            grpFinishSection.Location = new Point(740, 47);
-            grpFinishSection.Margin = new Padding(4, 5, 4, 5);
+            grpFinishSection.Location = new Point(518, 32);
             grpFinishSection.Name = "grpFinishSection";
-            grpFinishSection.Padding = new Padding(4, 5, 4, 5);
-            grpFinishSection.Size = new Size(574, 231);
+            grpFinishSection.Size = new Size(433, 139);
             grpFinishSection.TabIndex = 2;
             grpFinishSection.TabStop = false;
             grpFinishSection.Text = "Finish Selection";
@@ -317,95 +301,85 @@ namespace QuotingTool.Forms
             // lblFinType
             // 
             lblFinType.AutoSize = true;
-            lblFinType.Location = new Point(17, 31);
-            lblFinType.Margin = new Padding(4, 0, 4, 0);
+            lblFinType.Location = new Point(12, 19);
             lblFinType.Name = "lblFinType";
-            lblFinType.Size = new Size(103, 25);
+            lblFinType.Size = new Size(69, 15);
             lblFinType.TabIndex = 0;
             lblFinType.Text = "Finish Type:";
             // 
             // cmbFinType
             // 
             cmbFinType.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbFinType.Location = new Point(221, 26);
-            cmbFinType.Margin = new Padding(4, 5, 4, 5);
+            cmbFinType.Location = new Point(155, 16);
             cmbFinType.Name = "cmbFinType";
-            cmbFinType.Size = new Size(341, 33);
+            cmbFinType.Size = new Size(240, 23);
             cmbFinType.TabIndex = 1;
             // 
             // lblFinishGroup
             // 
             lblFinishGroup.AutoSize = true;
-            lblFinishGroup.Location = new Point(17, 67);
-            lblFinishGroup.Margin = new Padding(4, 0, 4, 0);
+            lblFinishGroup.Location = new Point(12, 40);
             lblFinishGroup.Name = "lblFinishGroup";
-            lblFinishGroup.Size = new Size(116, 25);
+            lblFinishGroup.Size = new Size(77, 15);
             lblFinishGroup.TabIndex = 2;
             lblFinishGroup.Text = "Finish Group:";
             // 
             // cmbFinishGroup
             // 
             cmbFinishGroup.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbFinishGroup.Location = new Point(221, 64);
-            cmbFinishGroup.Margin = new Padding(4, 5, 4, 5);
+            cmbFinishGroup.Location = new Point(155, 38);
             cmbFinishGroup.Name = "cmbFinishGroup";
-            cmbFinishGroup.Size = new Size(341, 33);
+            cmbFinishGroup.Size = new Size(240, 23);
             cmbFinishGroup.TabIndex = 3;
             // 
             // lblFinishName
             // 
             lblFinishName.AutoSize = true;
-            lblFinishName.Location = new Point(17, 105);
-            lblFinishName.Margin = new Padding(4, 0, 4, 0);
+            lblFinishName.Location = new Point(12, 63);
             lblFinishName.Name = "lblFinishName";
-            lblFinishName.Size = new Size(113, 25);
+            lblFinishName.Size = new Size(76, 15);
             lblFinishName.TabIndex = 4;
             lblFinishName.Text = "Finish Name:";
             // 
             // cmbFinishName
             // 
-            cmbFinishName.Location = new Point(221, 101);
-            cmbFinishName.Margin = new Padding(4, 5, 4, 5);
+            cmbFinishName.Location = new Point(155, 61);
             cmbFinishName.Name = "cmbFinishName";
-            cmbFinishName.Size = new Size(341, 33);
+            cmbFinishName.Size = new Size(240, 23);
             cmbFinishName.TabIndex = 5;
             // 
             // lblApplicatorGroup
             // 
             lblApplicatorGroup.AutoSize = true;
-            lblApplicatorGroup.Location = new Point(17, 141);
-            lblApplicatorGroup.Margin = new Padding(4, 0, 4, 0);
+            lblApplicatorGroup.Location = new Point(12, 85);
             lblApplicatorGroup.Name = "lblApplicatorGroup";
-            lblApplicatorGroup.Size = new Size(203, 25);
+            lblApplicatorGroup.Size = new Size(135, 15);
             lblApplicatorGroup.TabIndex = 6;
             lblApplicatorGroup.Text = "Applicator Finish Group:";
             // 
             // cmbApplicatorGroup
             // 
             cmbApplicatorGroup.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbApplicatorGroup.Location = new Point(221, 138);
-            cmbApplicatorGroup.Margin = new Padding(4, 5, 4, 5);
+            cmbApplicatorGroup.Location = new Point(155, 83);
             cmbApplicatorGroup.Name = "cmbApplicatorGroup";
-            cmbApplicatorGroup.Size = new Size(341, 33);
+            cmbApplicatorGroup.Size = new Size(240, 23);
             cmbApplicatorGroup.TabIndex = 7;
             // 
             // lblFinishApplicator
             // 
             lblFinishApplicator.AutoSize = true;
-            lblFinishApplicator.Location = new Point(17, 180);
-            lblFinishApplicator.Margin = new Padding(4, 0, 4, 0);
+            lblFinishApplicator.Location = new Point(12, 108);
             lblFinishApplicator.Name = "lblFinishApplicator";
-            lblFinishApplicator.Size = new Size(148, 25);
+            lblFinishApplicator.Size = new Size(99, 15);
             lblFinishApplicator.TabIndex = 8;
             lblFinishApplicator.Text = "Finish Applicator:";
             // 
             // cmbFinishApplicator
             // 
             cmbFinishApplicator.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbFinishApplicator.Location = new Point(221, 177);
-            cmbFinishApplicator.Margin = new Padding(4, 5, 4, 5);
+            cmbFinishApplicator.Location = new Point(155, 106);
             cmbFinishApplicator.Name = "cmbFinishApplicator";
-            cmbFinishApplicator.Size = new Size(341, 33);
+            cmbFinishApplicator.Size = new Size(240, 23);
             cmbFinishApplicator.TabIndex = 9;
             // 
             // grpQuantitiesSection
@@ -417,13 +391,9 @@ namespace QuotingTool.Forms
             grpQuantitiesSection.Controls.Add(lblApNote);
             grpQuantitiesSection.Controls.Add(lblTotalPieces);
             grpQuantitiesSection.Controls.Add(lblTotalPiecesValue);
-            grpQuantitiesSection.Controls.Add(btnEditIpCategories);
-            grpQuantitiesSection.Controls.Add(btnResetIpCharges);
-            grpQuantitiesSection.Location = new Point(11, 288);
-            grpQuantitiesSection.Margin = new Padding(4, 5, 4, 5);
+            grpQuantitiesSection.Location = new Point(8, 173);
             grpQuantitiesSection.Name = "grpQuantitiesSection";
-            grpQuantitiesSection.Padding = new Padding(4, 5, 4, 5);
-            grpQuantitiesSection.Size = new Size(1303, 79);
+            grpQuantitiesSection.Size = new Size(944, 47);
             grpQuantitiesSection.TabIndex = 3;
             grpQuantitiesSection.TabStop = false;
             grpQuantitiesSection.Text = "Quantities";
@@ -431,89 +401,62 @@ namespace QuotingTool.Forms
             // lblTotalKg
             // 
             lblTotalKg.AutoSize = true;
-            lblTotalKg.Location = new Point(15, 27);
-            lblTotalKg.Margin = new Padding(4, 0, 4, 0);
+            lblTotalKg.Location = new Point(10, 16);
             lblTotalKg.Name = "lblTotalKg";
-            lblTotalKg.Size = new Size(78, 25);
+            lblTotalKg.Size = new Size(52, 15);
             lblTotalKg.TabIndex = 0;
             lblTotalKg.Text = "Total kg:";
             // 
             // lblTotalKgValue
             // 
-            lblTotalKgValue.Location = new Point(129, 27);
-            lblTotalKgValue.Margin = new Padding(4, 0, 4, 0);
+            lblTotalKgValue.Location = new Point(90, 16);
             lblTotalKgValue.Name = "lblTotalKgValue";
-            lblTotalKgValue.Size = new Size(114, 33);
+            lblTotalKgValue.Size = new Size(80, 20);
             lblTotalKgValue.TabIndex = 1;
             lblTotalKgValue.Text = "0.00";
             // 
             // lblTotalFinishingM2
             // 
             lblTotalFinishingM2.AutoSize = true;
-            lblTotalFinishingM2.Location = new Point(272, 27);
-            lblTotalFinishingM2.Margin = new Padding(4, 0, 4, 0);
+            lblTotalFinishingM2.Location = new Point(190, 16);
             lblTotalFinishingM2.Name = "lblTotalFinishingM2";
-            lblTotalFinishingM2.Size = new Size(156, 25);
+            lblTotalFinishingM2.Size = new Size(105, 15);
             lblTotalFinishingM2.TabIndex = 2;
             lblTotalFinishingM2.Text = "Total Finishing m²:";
             // 
             // lblTotalFinishingM2Value
             // 
-            lblTotalFinishingM2Value.Location = new Point(458, 27);
-            lblTotalFinishingM2Value.Margin = new Padding(4, 0, 4, 0);
+            lblTotalFinishingM2Value.Location = new Point(321, 16);
             lblTotalFinishingM2Value.Name = "lblTotalFinishingM2Value";
-            lblTotalFinishingM2Value.Size = new Size(114, 33);
+            lblTotalFinishingM2Value.Size = new Size(69, 20);
             lblTotalFinishingM2Value.TabIndex = 3;
             lblTotalFinishingM2Value.Text = "0.00";
             // 
             // lblApNote
             // 
             lblApNote.AutoSize = true;
-            lblApNote.Location = new Point(587, 32);
-            lblApNote.Margin = new Padding(4, 0, 4, 0);
+            lblApNote.Location = new Point(387, 20);
             lblApNote.Name = "lblApNote";
-            lblApNote.Size = new Size(44, 25);
+            lblApNote.Size = new Size(30, 15);
             lblApNote.TabIndex = 4;
             lblApNote.Text = "(AP)";
             // 
             // lblTotalPieces
             // 
             lblTotalPieces.AutoSize = true;
-            lblTotalPieces.Location = new Point(644, 27);
-            lblTotalPieces.Margin = new Padding(4, 0, 4, 0);
+            lblTotalPieces.Location = new Point(451, 16);
             lblTotalPieces.Name = "lblTotalPieces";
-            lblTotalPieces.Size = new Size(106, 25);
+            lblTotalPieces.Size = new Size(72, 15);
             lblTotalPieces.TabIndex = 5;
             lblTotalPieces.Text = "Total Pieces:";
             // 
             // lblTotalPiecesValue
             // 
-            lblTotalPiecesValue.Location = new Point(787, 27);
-            lblTotalPiecesValue.Margin = new Padding(4, 0, 4, 0);
+            lblTotalPiecesValue.Location = new Point(551, 16);
             lblTotalPiecesValue.Name = "lblTotalPiecesValue";
-            lblTotalPiecesValue.Size = new Size(86, 33);
+            lblTotalPiecesValue.Size = new Size(60, 20);
             lblTotalPiecesValue.TabIndex = 6;
             lblTotalPiecesValue.Text = "0";
-            // 
-            // btnEditIpCategories
-            // 
-            btnEditIpCategories.Location = new Point(867, 23);
-            btnEditIpCategories.Margin = new Padding(4, 5, 4, 5);
-            btnEditIpCategories.Name = "btnEditIpCategories";
-            btnEditIpCategories.Size = new Size(207, 43);
-            btnEditIpCategories.TabIndex = 7;
-            btnEditIpCategories.Text = "Edit IP Categories";
-            btnEditIpCategories.Click += btnEditIpCategories_Click;
-            // 
-            // btnResetIpCharges
-            // 
-            btnResetIpCharges.Location = new Point(1088, 23);
-            btnResetIpCharges.Margin = new Padding(4, 5, 4, 5);
-            btnResetIpCharges.Name = "btnResetIpCharges";
-            btnResetIpCharges.Size = new Size(200, 43);
-            btnResetIpCharges.TabIndex = 8;
-            btnResetIpCharges.Text = "Reset IP Charges";
-            btnResetIpCharges.Click += btnResetIpCharges_Click;
             // 
             // grpMillFinishPricing
             // 
@@ -524,6 +467,8 @@ namespace QuotingTool.Forms
             grpMillFinishPricing.Controls.Add(lblMFMinHdr);
             grpMillFinishPricing.Controls.Add(lblMFMaxHdr);
             grpMillFinishPricing.Controls.Add(lblMetalPrice);
+            grpMillFinishPricing.Controls.Add(btnResetIpCharges);
+            grpMillFinishPricing.Controls.Add(btnEditIpCategories);
             grpMillFinishPricing.Controls.Add(txtMetalPrice);
             grpMillFinishPricing.Controls.Add(lblMetalPriceMin);
             grpMillFinishPricing.Controls.Add(lblMetalPriceMax);
@@ -544,11 +489,9 @@ namespace QuotingTool.Forms
             grpMillFinishPricing.Controls.Add(txtIP3Rate);
             grpMillFinishPricing.Controls.Add(lblIP3Margin);
             grpMillFinishPricing.Controls.Add(lblIP3MarginValue);
-            grpMillFinishPricing.Location = new Point(11, 364);
-            grpMillFinishPricing.Margin = new Padding(4, 5, 4, 5);
+            grpMillFinishPricing.Location = new Point(8, 222);
             grpMillFinishPricing.Name = "grpMillFinishPricing";
-            grpMillFinishPricing.Padding = new Padding(4, 5, 4, 5);
-            grpMillFinishPricing.Size = new Size(1443, 199);
+            grpMillFinishPricing.Size = new Size(944, 116);
             grpMillFinishPricing.TabIndex = 4;
             grpMillFinishPricing.TabStop = false;
             grpMillFinishPricing.Text = "Mill Finish Pricing";
@@ -556,238 +499,229 @@ namespace QuotingTool.Forms
             // lblSapDiscountHeader
             // 
             lblSapDiscountHeader.AutoSize = true;
-            lblSapDiscountHeader.Location = new Point(17, 29);
-            lblSapDiscountHeader.Margin = new Padding(4, 0, 4, 0);
+            lblSapDiscountHeader.Location = new Point(12, 17);
             lblSapDiscountHeader.Name = "lblSapDiscountHeader";
-            lblSapDiscountHeader.Size = new Size(225, 25);
+            lblSapDiscountHeader.Size = new Size(149, 15);
             lblSapDiscountHeader.TabIndex = 0;
             lblSapDiscountHeader.Text = "Customer SAP Discount %:";
             // 
             // txtCustomerSapDiscount
             // 
-            txtCustomerSapDiscount.Location = new Point(257, 26);
-            txtCustomerSapDiscount.Margin = new Padding(4, 5, 4, 5);
+            txtCustomerSapDiscount.Location = new Point(180, 15);
             txtCustomerSapDiscount.Name = "txtCustomerSapDiscount";
-            txtCustomerSapDiscount.Size = new Size(113, 31);
+            txtCustomerSapDiscount.Size = new Size(80, 23);
             txtCustomerSapDiscount.TabIndex = 1;
             // 
             // lblMFColHdr
             // 
-            lblMFColHdr.Location = new Point(17, 60);
-            lblMFColHdr.Margin = new Padding(4, 0, 4, 0);
+            lblMFColHdr.Location = new Point(12, 35);
             lblMFColHdr.Name = "lblMFColHdr";
-            lblMFColHdr.Size = new Size(343, 30);
+            lblMFColHdr.Size = new Size(240, 18);
             lblMFColHdr.TabIndex = 2;
             // 
             // lblMFTypHdr
             // 
-            lblMFTypHdr.Location = new Point(529, 60);
-            lblMFTypHdr.Margin = new Padding(4, 0, 4, 0);
+            lblMFTypHdr.Location = new Point(281, 35);
             lblMFTypHdr.Name = "lblMFTypHdr";
-            lblMFTypHdr.Size = new Size(100, 30);
+            lblMFTypHdr.Size = new Size(70, 18);
             lblMFTypHdr.TabIndex = 3;
             lblMFTypHdr.Text = "Typical";
             // 
             // lblMFMinHdr
             // 
-            lblMFMinHdr.Location = new Point(643, 60);
-            lblMFMinHdr.Margin = new Padding(4, 0, 4, 0);
+            lblMFMinHdr.Location = new Point(360, 35);
             lblMFMinHdr.Name = "lblMFMinHdr";
-            lblMFMinHdr.Size = new Size(79, 30);
+            lblMFMinHdr.Size = new Size(55, 18);
             lblMFMinHdr.TabIndex = 4;
             lblMFMinHdr.Text = "Min";
             // 
             // lblMFMaxHdr
             // 
-            lblMFMaxHdr.Location = new Point(757, 60);
-            lblMFMaxHdr.Margin = new Padding(4, 0, 4, 0);
+            lblMFMaxHdr.Location = new Point(440, 35);
             lblMFMaxHdr.Name = "lblMFMaxHdr";
-            lblMFMaxHdr.Size = new Size(79, 30);
+            lblMFMaxHdr.Size = new Size(55, 18);
             lblMFMaxHdr.TabIndex = 5;
             lblMFMaxHdr.Text = "Max";
             // 
             // lblMetalPrice
             // 
-            lblMetalPrice.Location = new Point(17, 90);
-            lblMetalPrice.Margin = new Padding(4, 0, 4, 0);
+            lblMetalPrice.Location = new Point(12, 53);
             lblMetalPrice.Name = "lblMetalPrice";
-            lblMetalPrice.Size = new Size(286, 30);
+            lblMetalPrice.Size = new Size(200, 18);
             lblMetalPrice.TabIndex = 6;
             lblMetalPrice.Text = "Mill Finish Sell Price $/kg";
             // 
+            // btnResetIpCharges
+            // 
+            btnResetIpCharges.Location = new Point(816, 8);
+            btnResetIpCharges.Name = "btnResetIpCharges";
+            btnResetIpCharges.Size = new Size(120, 26);
+            btnResetIpCharges.TabIndex = 8;
+            btnResetIpCharges.Text = "Reset IP Charges";
+            btnResetIpCharges.Click += btnResetIpCharges_Click;
+            // 
+            // btnEditIpCategories
+            // 
+            btnEditIpCategories.Location = new Point(679, 8);
+            btnEditIpCategories.Name = "btnEditIpCategories";
+            btnEditIpCategories.Size = new Size(131, 26);
+            btnEditIpCategories.TabIndex = 7;
+            btnEditIpCategories.Text = "Edit IP Categories";
+            btnEditIpCategories.Click += btnEditIpCategories_Click;
+            // 
             // txtMetalPrice
             // 
-            txtMetalPrice.Location = new Point(529, 87);
-            txtMetalPrice.Margin = new Padding(4, 5, 4, 5);
+            txtMetalPrice.Location = new Point(281, 52);
             txtMetalPrice.Name = "txtMetalPrice";
-            txtMetalPrice.Size = new Size(98, 31);
+            txtMetalPrice.Size = new Size(70, 23);
             txtMetalPrice.TabIndex = 7;
             // 
             // lblMetalPriceMin
             // 
-            lblMetalPriceMin.Location = new Point(643, 90);
-            lblMetalPriceMin.Margin = new Padding(4, 0, 4, 0);
+            lblMetalPriceMin.Location = new Point(360, 53);
             lblMetalPriceMin.Name = "lblMetalPriceMin";
-            lblMetalPriceMin.Size = new Size(79, 30);
+            lblMetalPriceMin.Size = new Size(55, 18);
             lblMetalPriceMin.TabIndex = 8;
             lblMetalPriceMin.Text = "—";
             // 
             // lblMetalPriceMax
             // 
-            lblMetalPriceMax.Location = new Point(757, 90);
-            lblMetalPriceMax.Margin = new Padding(4, 0, 4, 0);
+            lblMetalPriceMax.Location = new Point(440, 53);
             lblMetalPriceMax.Name = "lblMetalPriceMax";
-            lblMetalPriceMax.Size = new Size(79, 30);
+            lblMetalPriceMax.Size = new Size(55, 18);
             lblMetalPriceMax.TabIndex = 9;
             lblMetalPriceMax.Text = "—";
             // 
             // lblMillFinishMargin
             // 
-            lblMillFinishMargin.Location = new Point(17, 127);
-            lblMillFinishMargin.Margin = new Padding(4, 0, 4, 0);
+            lblMillFinishMargin.Location = new Point(12, 74);
             lblMillFinishMargin.Name = "lblMillFinishMargin";
-            lblMillFinishMargin.Size = new Size(286, 30);
+            lblMillFinishMargin.Size = new Size(200, 18);
             lblMillFinishMargin.TabIndex = 10;
             lblMillFinishMargin.Text = "Margin %";
             // 
             // lblMillFinishMarginValue
             // 
-            lblMillFinishMarginValue.Location = new Point(529, 127);
-            lblMillFinishMarginValue.Margin = new Padding(4, 0, 4, 0);
+            lblMillFinishMarginValue.Location = new Point(281, 74);
             lblMillFinishMarginValue.Name = "lblMillFinishMarginValue";
-            lblMillFinishMarginValue.Size = new Size(100, 30);
+            lblMillFinishMarginValue.Size = new Size(70, 18);
             lblMillFinishMarginValue.TabIndex = 11;
             lblMillFinishMarginValue.Text = "0.00%";
             // 
             // lblIpHdr
             // 
             lblIpHdr.AutoSize = true;
-            lblIpHdr.Location = new Point(886, 29);
-            lblIpHdr.Margin = new Padding(4, 0, 4, 0);
+            lblIpHdr.Location = new Point(570, 17);
             lblIpHdr.Name = "lblIpHdr";
-            lblIpHdr.Size = new Size(116, 25);
+            lblIpHdr.Size = new Size(76, 15);
             lblIpHdr.TabIndex = 12;
             lblIpHdr.Text = "IP Upcharges";
             // 
             // lblIPColHdr
             // 
-            lblIPColHdr.Location = new Point(886, 52);
-            lblIPColHdr.Margin = new Padding(4, 0, 4, 0);
+            lblIPColHdr.Location = new Point(570, 31);
             lblIPColHdr.Name = "lblIPColHdr";
-            lblIPColHdr.Size = new Size(236, 30);
+            lblIPColHdr.Size = new Size(165, 18);
             lblIPColHdr.TabIndex = 13;
             // 
             // lblIPTypHdr
             // 
-            lblIPTypHdr.Location = new Point(1143, 52);
-            lblIPTypHdr.Margin = new Padding(4, 0, 4, 0);
+            lblIPTypHdr.Location = new Point(750, 31);
             lblIPTypHdr.Name = "lblIPTypHdr";
-            lblIPTypHdr.Size = new Size(93, 30);
+            lblIPTypHdr.Size = new Size(65, 18);
             lblIPTypHdr.TabIndex = 14;
             lblIPTypHdr.Text = "$/kg";
             // 
             // lblIP1Upcharge
             // 
-            lblIP1Upcharge.Location = new Point(886, 82);
-            lblIP1Upcharge.Margin = new Padding(4, 0, 4, 0);
+            lblIP1Upcharge.Location = new Point(570, 49);
             lblIP1Upcharge.Name = "lblIP1Upcharge";
-            lblIP1Upcharge.Size = new Size(236, 30);
+            lblIP1Upcharge.Size = new Size(165, 18);
             lblIP1Upcharge.TabIndex = 15;
             lblIP1Upcharge.Text = "IP1 Upcharge $/kg:";
             // 
             // txtIP1Upcharge
             // 
-            txtIP1Upcharge.Location = new Point(1143, 78);
-            txtIP1Upcharge.Margin = new Padding(4, 5, 4, 5);
+            txtIP1Upcharge.Location = new Point(750, 46);
             txtIP1Upcharge.Name = "txtIP1Upcharge";
-            txtIP1Upcharge.Size = new Size(84, 31);
+            txtIP1Upcharge.Size = new Size(60, 23);
             txtIP1Upcharge.TabIndex = 16;
             // 
             // lblIP1Margin
             // 
-            lblIP1Margin.Location = new Point(1236, 82);
-            lblIP1Margin.Margin = new Padding(4, 0, 4, 0);
+            lblIP1Margin.Location = new Point(816, 49);
             lblIP1Margin.Name = "lblIP1Margin";
-            lblIP1Margin.Size = new Size(86, 30);
+            lblIP1Margin.Size = new Size(60, 18);
             lblIP1Margin.TabIndex = 17;
             lblIP1Margin.Text = "Margin:";
             // 
             // lblIP1MarginValue
             // 
-            lblIP1MarginValue.Location = new Point(1321, 82);
-            lblIP1MarginValue.Margin = new Padding(4, 0, 4, 0);
+            lblIP1MarginValue.Location = new Point(875, 49);
             lblIP1MarginValue.Name = "lblIP1MarginValue";
-            lblIP1MarginValue.Size = new Size(86, 30);
+            lblIP1MarginValue.Size = new Size(60, 18);
             lblIP1MarginValue.TabIndex = 18;
             lblIP1MarginValue.Text = "0.00%";
             // 
             // lblIP2Upcharge
             // 
-            lblIP2Upcharge.Location = new Point(886, 119);
-            lblIP2Upcharge.Margin = new Padding(4, 0, 4, 0);
+            lblIP2Upcharge.Location = new Point(570, 70);
             lblIP2Upcharge.Name = "lblIP2Upcharge";
-            lblIP2Upcharge.Size = new Size(236, 30);
+            lblIP2Upcharge.Size = new Size(165, 18);
             lblIP2Upcharge.TabIndex = 19;
             lblIP2Upcharge.Text = "IP2 Upcharge $/kg:";
             // 
             // txtIP2Upcharge
             // 
-            txtIP2Upcharge.Location = new Point(1143, 115);
-            txtIP2Upcharge.Margin = new Padding(4, 5, 4, 5);
+            txtIP2Upcharge.Location = new Point(750, 67);
             txtIP2Upcharge.Name = "txtIP2Upcharge";
-            txtIP2Upcharge.Size = new Size(84, 31);
+            txtIP2Upcharge.Size = new Size(60, 23);
             txtIP2Upcharge.TabIndex = 20;
             // 
             // lblIP2Margin
             // 
-            lblIP2Margin.Location = new Point(1236, 119);
-            lblIP2Margin.Margin = new Padding(4, 0, 4, 0);
+            lblIP2Margin.Location = new Point(816, 70);
             lblIP2Margin.Name = "lblIP2Margin";
-            lblIP2Margin.Size = new Size(86, 30);
+            lblIP2Margin.Size = new Size(60, 18);
             lblIP2Margin.TabIndex = 21;
             lblIP2Margin.Text = "Margin:";
             // 
             // lblIP2MarginValue
             // 
-            lblIP2MarginValue.Location = new Point(1321, 119);
-            lblIP2MarginValue.Margin = new Padding(4, 0, 4, 0);
+            lblIP2MarginValue.Location = new Point(875, 70);
             lblIP2MarginValue.Name = "lblIP2MarginValue";
-            lblIP2MarginValue.Size = new Size(86, 30);
+            lblIP2MarginValue.Size = new Size(60, 18);
             lblIP2MarginValue.TabIndex = 22;
             lblIP2MarginValue.Text = "0.00%";
             // 
             // lblIP3Rate
             // 
-            lblIP3Rate.Location = new Point(886, 164);
-            lblIP3Rate.Margin = new Padding(4, 0, 4, 0);
+            lblIP3Rate.Location = new Point(570, 91);
             lblIP3Rate.Name = "lblIP3Rate";
-            lblIP3Rate.Size = new Size(236, 30);
+            lblIP3Rate.Size = new Size(165, 18);
             lblIP3Rate.TabIndex = 23;
             lblIP3Rate.Text = "IP3 – Panoramic Fixed $/kg:";
             // 
             // txtIP3Rate
             // 
-            txtIP3Rate.Location = new Point(1143, 160);
-            txtIP3Rate.Margin = new Padding(4, 5, 4, 5);
+            txtIP3Rate.Location = new Point(750, 88);
             txtIP3Rate.Name = "txtIP3Rate";
-            txtIP3Rate.Size = new Size(84, 31);
+            txtIP3Rate.Size = new Size(60, 23);
             txtIP3Rate.TabIndex = 24;
             // 
             // lblIP3Margin
             // 
-            lblIP3Margin.Location = new Point(1236, 164);
-            lblIP3Margin.Margin = new Padding(4, 0, 4, 0);
+            lblIP3Margin.Location = new Point(816, 91);
             lblIP3Margin.Name = "lblIP3Margin";
-            lblIP3Margin.Size = new Size(86, 30);
+            lblIP3Margin.Size = new Size(60, 18);
             lblIP3Margin.TabIndex = 25;
             lblIP3Margin.Text = "Margin:";
             // 
             // lblIP3MarginValue
             // 
-            lblIP3MarginValue.Location = new Point(1321, 164);
-            lblIP3MarginValue.Margin = new Padding(4, 0, 4, 0);
+            lblIP3MarginValue.Location = new Point(875, 91);
             lblIP3MarginValue.Name = "lblIP3MarginValue";
-            lblIP3MarginValue.Size = new Size(86, 30);
+            lblIP3MarginValue.Size = new Size(60, 18);
             lblIP3MarginValue.TabIndex = 26;
             lblIP3MarginValue.Text = "0.00%";
             // 
@@ -798,57 +732,50 @@ namespace QuotingTool.Forms
             grpThermalBreakPricing.Controls.Add(lblTBTypHdr);
             grpThermalBreakPricing.Controls.Add(lblTBMargin);
             grpThermalBreakPricing.Controls.Add(txtTBMargin);
-            grpThermalBreakPricing.Location = new Point(13, 565);
-            grpThermalBreakPricing.Margin = new Padding(4, 5, 4, 5);
+            grpThermalBreakPricing.Location = new Point(9, 337);
             grpThermalBreakPricing.Name = "grpThermalBreakPricing";
-            grpThermalBreakPricing.Padding = new Padding(4, 5, 4, 5);
-            grpThermalBreakPricing.Size = new Size(1443, 94);
+            grpThermalBreakPricing.Size = new Size(942, 56);
             grpThermalBreakPricing.TabIndex = 5;
             grpThermalBreakPricing.TabStop = false;
             grpThermalBreakPricing.Text = "Thermal Break Pricing";
             // 
             // lblTBCalcType
             // 
-            lblTBCalcType.Location = new Point(17, 30);
-            lblTBCalcType.Margin = new Padding(4, 0, 4, 0);
+            lblTBCalcType.Location = new Point(12, 18);
             lblTBCalcType.Name = "lblTBCalcType";
-            lblTBCalcType.Size = new Size(204, 30);
+            lblTBCalcType.Size = new Size(143, 18);
             lblTBCalcType.TabIndex = 0;
             lblTBCalcType.Text = "Thermal Break Method:";
             // 
             // cmbTBCalcType
             // 
             cmbTBCalcType.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbTBCalcType.Location = new Point(229, 26);
-            cmbTBCalcType.Margin = new Padding(4, 5, 4, 5);
+            cmbTBCalcType.Location = new Point(160, 16);
             cmbTBCalcType.Name = "cmbTBCalcType";
-            cmbTBCalcType.Size = new Size(284, 33);
+            cmbTBCalcType.Size = new Size(200, 23);
             cmbTBCalcType.TabIndex = 1;
             // 
             // lblTBTypHdr
             // 
-            lblTBTypHdr.Location = new Point(816, 19);
-            lblTBTypHdr.Margin = new Padding(4, 0, 4, 0);
+            lblTBTypHdr.Location = new Point(571, 11);
             lblTBTypHdr.Name = "lblTBTypHdr";
-            lblTBTypHdr.Size = new Size(100, 30);
+            lblTBTypHdr.Size = new Size(70, 18);
             lblTBTypHdr.TabIndex = 2;
             lblTBTypHdr.Text = "Typical";
             // 
             // lblTBMargin
             // 
-            lblTBMargin.Location = new Point(536, 30);
-            lblTBMargin.Margin = new Padding(4, 0, 4, 0);
+            lblTBMargin.Location = new Point(375, 18);
             lblTBMargin.Name = "lblTBMargin";
-            lblTBMargin.Size = new Size(314, 30);
+            lblTBMargin.Size = new Size(190, 18);
             lblTBMargin.TabIndex = 3;
             lblTBMargin.Text = "Enter Margin %:";
             // 
             // txtTBMargin
             // 
-            txtTBMargin.Location = new Point(816, 50);
-            txtTBMargin.Margin = new Padding(4, 5, 4, 5);
+            txtTBMargin.Location = new Point(571, 30);
             txtTBMargin.Name = "txtTBMargin";
-            txtTBMargin.Size = new Size(98, 31);
+            txtTBMargin.Size = new Size(70, 23);
             txtTBMargin.TabIndex = 4;
             // 
             // grpFinishingPricing
@@ -883,11 +810,9 @@ namespace QuotingTool.Forms
             grpFinishingPricing.Controls.Add(txtB52);
             grpFinishingPricing.Controls.Add(lblB54);
             grpFinishingPricing.Controls.Add(txtB54);
-            grpFinishingPricing.Location = new Point(11, 663);
-            grpFinishingPricing.Margin = new Padding(4, 5, 4, 5);
+            grpFinishingPricing.Location = new Point(8, 395);
             grpFinishingPricing.Name = "grpFinishingPricing";
-            grpFinishingPricing.Padding = new Padding(4, 5, 4, 5);
-            grpFinishingPricing.Size = new Size(1443, 389);
+            grpFinishingPricing.Size = new Size(950, 248);
             grpFinishingPricing.TabIndex = 6;
             grpFinishingPricing.TabStop = false;
             grpFinishingPricing.Text = "Powder / Finishing Pricing";
@@ -895,57 +820,51 @@ namespace QuotingTool.Forms
             // lblPowderPricedAs
             // 
             lblPowderPricedAs.AutoSize = true;
-            lblPowderPricedAs.Location = new Point(17, 27);
-            lblPowderPricedAs.Margin = new Padding(4, 0, 4, 0);
+            lblPowderPricedAs.Location = new Point(12, 16);
             lblPowderPricedAs.Name = "lblPowderPricedAs";
-            lblPowderPricedAs.Size = new Size(150, 25);
+            lblPowderPricedAs.Size = new Size(100, 15);
             lblPowderPricedAs.TabIndex = 0;
             lblPowderPricedAs.Text = "Powder Priced as:";
             // 
             // cmbPowderPricedAs
             // 
             cmbPowderPricedAs.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbPowderPricedAs.Location = new Point(229, 20);
-            cmbPowderPricedAs.Margin = new Padding(4, 5, 4, 5);
+            cmbPowderPricedAs.Location = new Point(160, 12);
             cmbPowderPricedAs.Name = "cmbPowderPricedAs";
-            cmbPowderPricedAs.Size = new Size(284, 33);
+            cmbPowderPricedAs.Size = new Size(200, 23);
             cmbPowderPricedAs.TabIndex = 1;
             // 
             // lblCostType
             // 
             lblCostType.AutoSize = true;
-            lblCostType.Location = new Point(536, 27);
-            lblCostType.Margin = new Padding(4, 0, 4, 0);
+            lblCostType.Location = new Point(375, 16);
             lblCostType.Name = "lblCostType";
-            lblCostType.Size = new Size(94, 25);
+            lblCostType.Size = new Size(62, 15);
             lblCostType.TabIndex = 2;
             lblCostType.Text = "Cost Type:";
             // 
             // cmbCostType
             // 
             cmbCostType.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbCostType.Location = new Point(679, 20);
-            cmbCostType.Margin = new Padding(4, 5, 4, 5);
+            cmbCostType.Location = new Point(475, 12);
             cmbCostType.Name = "cmbCostType";
-            cmbCostType.Size = new Size(313, 33);
+            cmbCostType.Size = new Size(220, 23);
             cmbCostType.TabIndex = 3;
             // 
             // chkCostTypeOverride
             // 
             chkCostTypeOverride.AutoSize = true;
-            chkCostTypeOverride.Location = new Point(1014, 27);
-            chkCostTypeOverride.Margin = new Padding(4, 5, 4, 5);
+            chkCostTypeOverride.Location = new Point(710, 16);
             chkCostTypeOverride.Name = "chkCostTypeOverride";
-            chkCostTypeOverride.Size = new Size(106, 29);
+            chkCostTypeOverride.Size = new Size(71, 19);
             chkCostTypeOverride.TabIndex = 4;
             chkCostTypeOverride.Text = "Override";
             // 
             // btnToggleOverride
             // 
-            btnToggleOverride.Location = new Point(1128, 19);
-            btnToggleOverride.Margin = new Padding(4, 5, 4, 5);
+            btnToggleOverride.Location = new Point(790, 11);
             btnToggleOverride.Name = "btnToggleOverride";
-            btnToggleOverride.Size = new Size(171, 43);
+            btnToggleOverride.Size = new Size(120, 26);
             btnToggleOverride.TabIndex = 5;
             btnToggleOverride.Text = "Toggle Override";
             btnToggleOverride.Click += btnToggleOverride_Click;
@@ -953,210 +872,186 @@ namespace QuotingTool.Forms
             // lblStdFinishRatesHdr
             // 
             lblStdFinishRatesHdr.AutoSize = true;
-            lblStdFinishRatesHdr.Location = new Point(2, 59);
-            lblStdFinishRatesHdr.Margin = new Padding(4, 0, 4, 0);
+            lblStdFinishRatesHdr.Location = new Point(1, 35);
             lblStdFinishRatesHdr.Name = "lblStdFinishRatesHdr";
-            lblStdFinishRatesHdr.Size = new Size(540, 25);
+            lblStdFinishRatesHdr.Size = new Size(358, 15);
             lblStdFinishRatesHdr.TabIndex = 6;
             lblStdFinishRatesHdr.Text = "STANDARD (non-mill) FINISHING RATES (powdercoat or anodised)";
             // 
             // lblFCColHdr
             // 
-            lblFCColHdr.Location = new Point(2, 84);
-            lblFCColHdr.Margin = new Padding(4, 0, 4, 0);
+            lblFCColHdr.Location = new Point(1, 50);
             lblFCColHdr.Name = "lblFCColHdr";
-            lblFCColHdr.Size = new Size(400, 30);
+            lblFCColHdr.Size = new Size(280, 18);
             lblFCColHdr.TabIndex = 7;
             // 
             // lblFCTypHdr
             // 
-            lblFCTypHdr.Location = new Point(556, 84);
-            lblFCTypHdr.Margin = new Padding(4, 0, 4, 0);
+            lblFCTypHdr.Location = new Point(389, 50);
             lblFCTypHdr.Name = "lblFCTypHdr";
-            lblFCTypHdr.Size = new Size(100, 30);
+            lblFCTypHdr.Size = new Size(70, 18);
             lblFCTypHdr.TabIndex = 8;
             lblFCTypHdr.Text = "Typical";
             // 
             // lblFCMinHdr
             // 
-            lblFCMinHdr.Location = new Point(668, 84);
-            lblFCMinHdr.Margin = new Padding(4, 0, 4, 0);
+            lblFCMinHdr.Location = new Point(468, 50);
             lblFCMinHdr.Name = "lblFCMinHdr";
-            lblFCMinHdr.Size = new Size(79, 30);
+            lblFCMinHdr.Size = new Size(55, 18);
             lblFCMinHdr.TabIndex = 9;
             lblFCMinHdr.Text = "Min";
             // 
             // lblFCMaxHdr
             // 
-            lblFCMaxHdr.Location = new Point(771, 84);
-            lblFCMaxHdr.Margin = new Padding(4, 0, 4, 0);
+            lblFCMaxHdr.Location = new Point(540, 50);
             lblFCMaxHdr.Name = "lblFCMaxHdr";
-            lblFCMaxHdr.Size = new Size(79, 30);
+            lblFCMaxHdr.Size = new Size(55, 18);
             lblFCMaxHdr.TabIndex = 10;
             lblFCMaxHdr.Text = "Max";
             // 
             // lblFinishingCostPricePerM2
             // 
-            lblFinishingCostPricePerM2.Location = new Point(2, 118);
-            lblFinishingCostPricePerM2.Margin = new Padding(4, 0, 4, 0);
+            lblFinishingCostPricePerM2.Location = new Point(1, 71);
             lblFinishingCostPricePerM2.Name = "lblFinishingCostPricePerM2";
-            lblFinishingCostPricePerM2.Size = new Size(400, 30);
+            lblFinishingCostPricePerM2.Size = new Size(280, 18);
             lblFinishingCostPricePerM2.TabIndex = 11;
             lblFinishingCostPricePerM2.Text = "Finishing Cost Price $/m²";
             // 
             // txtFinishingCostPricePerM2
             // 
-            txtFinishingCostPricePerM2.Location = new Point(556, 114);
-            txtFinishingCostPricePerM2.Margin = new Padding(4, 5, 4, 5);
+            txtFinishingCostPricePerM2.Location = new Point(389, 68);
             txtFinishingCostPricePerM2.Name = "txtFinishingCostPricePerM2";
-            txtFinishingCostPricePerM2.Size = new Size(98, 31);
+            txtFinishingCostPricePerM2.Size = new Size(70, 23);
             txtFinishingCostPricePerM2.TabIndex = 12;
             // 
             // lblB42
             // 
-            lblB42.Location = new Point(2, 154);
-            lblB42.Margin = new Padding(4, 0, 4, 0);
+            lblB42.Location = new Point(1, 92);
             lblB42.Name = "lblB42";
-            lblB42.Size = new Size(400, 30);
+            lblB42.Size = new Size(280, 18);
             lblB42.TabIndex = 13;
             lblB42.Text = "POA/Other Vendor Cost $/m²";
             // 
             // txtB42
             // 
-            txtB42.Location = new Point(556, 150);
-            txtB42.Margin = new Padding(4, 5, 4, 5);
+            txtB42.Location = new Point(389, 90);
             txtB42.Name = "txtB42";
-            txtB42.Size = new Size(98, 31);
+            txtB42.Size = new Size(70, 23);
             txtB42.TabIndex = 14;
             // 
             // lblFinishingPrice
             // 
-            lblFinishingPrice.Location = new Point(2, 191);
-            lblFinishingPrice.Margin = new Padding(4, 0, 4, 0);
+            lblFinishingPrice.Location = new Point(1, 115);
             lblFinishingPrice.Name = "lblFinishingPrice";
-            lblFinishingPrice.Size = new Size(400, 30);
+            lblFinishingPrice.Size = new Size(280, 18);
             lblFinishingPrice.TabIndex = 15;
             lblFinishingPrice.Text = "Finishing Sell Price $/m²";
             // 
             // txtFinishingPrice
             // 
-            txtFinishingPrice.Location = new Point(556, 187);
-            txtFinishingPrice.Margin = new Padding(4, 5, 4, 5);
+            txtFinishingPrice.Location = new Point(389, 112);
             txtFinishingPrice.Name = "txtFinishingPrice";
-            txtFinishingPrice.Size = new Size(98, 31);
+            txtFinishingPrice.Size = new Size(70, 23);
             txtFinishingPrice.TabIndex = 16;
             // 
             // lblB44
             // 
-            lblB44.Location = new Point(2, 227);
-            lblB44.Margin = new Padding(4, 0, 4, 0);
+            lblB44.Location = new Point(1, 136);
             lblB44.Name = "lblB44";
-            lblB44.Size = new Size(400, 30);
+            lblB44.Size = new Size(280, 18);
             lblB44.TabIndex = 17;
             lblB44.Text = "Finishing Sell Price override $/m²";
             // 
             // txtB44
             // 
-            txtB44.Location = new Point(556, 223);
-            txtB44.Margin = new Padding(4, 5, 4, 5);
+            txtB44.Location = new Point(389, 134);
             txtB44.Name = "txtB44";
-            txtB44.Size = new Size(98, 31);
+            txtB44.Size = new Size(70, 23);
             txtB44.TabIndex = 18;
             // 
             // lblFinishingMargin
             // 
-            lblFinishingMargin.Location = new Point(2, 260);
-            lblFinishingMargin.Margin = new Padding(4, 0, 4, 0);
+            lblFinishingMargin.Location = new Point(1, 156);
             lblFinishingMargin.Name = "lblFinishingMargin";
-            lblFinishingMargin.Size = new Size(400, 30);
+            lblFinishingMargin.Size = new Size(280, 18);
             lblFinishingMargin.TabIndex = 19;
             lblFinishingMargin.Text = "Margin %";
             // 
             // lblFinishingMarginValue
             // 
-            lblFinishingMarginValue.Location = new Point(556, 260);
-            lblFinishingMarginValue.Margin = new Padding(4, 0, 4, 0);
+            lblFinishingMarginValue.Location = new Point(389, 156);
             lblFinishingMarginValue.Name = "lblFinishingMarginValue";
-            lblFinishingMarginValue.Size = new Size(100, 30);
+            lblFinishingMarginValue.Size = new Size(70, 18);
             lblFinishingMarginValue.TabIndex = 20;
             lblFinishingMarginValue.Text = "0.00%";
             // 
             // lblBulkHdr
             // 
             lblBulkHdr.AutoSize = true;
-            lblBulkHdr.Location = new Point(2, 290);
-            lblBulkHdr.Margin = new Padding(4, 0, 4, 0);
+            lblBulkHdr.Location = new Point(1, 174);
             lblBulkHdr.Name = "lblBulkHdr";
-            lblBulkHdr.Size = new Size(249, 25);
+            lblBulkHdr.Size = new Size(168, 15);
             lblBulkHdr.TabIndex = 21;
             lblBulkHdr.Text = "Bulk / Non-bulk Rates (AP/PP)";
             // 
             // lblB48
             // 
-            lblB48.Location = new Point(2, 319);
-            lblB48.Margin = new Padding(4, 0, 4, 0);
+            lblB48.Location = new Point(1, 191);
             lblB48.Name = "lblB48";
-            lblB48.Size = new Size(343, 30);
+            lblB48.Size = new Size(240, 18);
             lblB48.TabIndex = 22;
             lblB48.Text = "Mill BULK POA Cost $/m²:";
             // 
             // txtB48
             // 
-            txtB48.Location = new Point(556, 316);
-            txtB48.Margin = new Padding(4, 5, 4, 5);
+            txtB48.Location = new Point(389, 190);
             txtB48.Name = "txtB48";
-            txtB48.Size = new Size(98, 31);
+            txtB48.Size = new Size(70, 23);
             txtB48.TabIndex = 23;
             // 
             // lblB50
             // 
-            lblB50.Location = new Point(788, 319);
-            lblB50.Margin = new Padding(4, 0, 4, 0);
+            lblB50.Location = new Point(552, 191);
             lblB50.Name = "lblB50";
-            lblB50.Size = new Size(343, 30);
+            lblB50.Size = new Size(240, 18);
             lblB50.TabIndex = 24;
             lblB50.Text = "Mill BULK Sell Price $/m²:";
             // 
             // txtB50
             // 
-            txtB50.Location = new Point(1217, 316);
-            txtB50.Margin = new Padding(4, 5, 4, 5);
+            txtB50.Location = new Point(852, 190);
             txtB50.Name = "txtB50";
-            txtB50.Size = new Size(98, 31);
+            txtB50.Size = new Size(70, 23);
             txtB50.TabIndex = 25;
             // 
             // lblB52
             // 
-            lblB52.Location = new Point(2, 354);
-            lblB52.Margin = new Padding(4, 0, 4, 0);
+            lblB52.Location = new Point(1, 212);
             lblB52.Name = "lblB52";
-            lblB52.Size = new Size(343, 30);
+            lblB52.Size = new Size(240, 18);
             lblB52.TabIndex = 26;
             lblB52.Text = "Mill NON-Bulk POA Cost $/m²:";
             // 
             // txtB52
             // 
-            txtB52.Location = new Point(556, 351);
-            txtB52.Margin = new Padding(4, 5, 4, 5);
+            txtB52.Location = new Point(389, 211);
             txtB52.Name = "txtB52";
-            txtB52.Size = new Size(98, 31);
+            txtB52.Size = new Size(70, 23);
             txtB52.TabIndex = 27;
             // 
             // lblB54
             // 
-            lblB54.Location = new Point(788, 354);
-            lblB54.Margin = new Padding(4, 0, 4, 0);
+            lblB54.Location = new Point(552, 212);
             lblB54.Name = "lblB54";
-            lblB54.Size = new Size(343, 30);
+            lblB54.Size = new Size(240, 18);
             lblB54.TabIndex = 28;
             lblB54.Text = "Mill NON-Bulk Sell Price $/m²:";
             // 
             // txtB54
             // 
-            txtB54.Location = new Point(1217, 351);
-            txtB54.Margin = new Padding(4, 5, 4, 5);
+            txtB54.Location = new Point(852, 211);
             txtB54.Name = "txtB54";
-            txtB54.Size = new Size(98, 31);
+            txtB54.Size = new Size(70, 23);
             txtB54.TabIndex = 29;
             // 
             // grpAnodisedThresholds
@@ -1170,90 +1065,79 @@ namespace QuotingTool.Forms
             grpAnodisedThresholds.Controls.Add(lblThresholdMargin);
             grpAnodisedThresholds.Controls.Add(lblThresholdMarginValue);
             grpAnodisedThresholds.Controls.Add(btnBulkNonBulkRates);
-            grpAnodisedThresholds.Location = new Point(4, 1055);
-            grpAnodisedThresholds.Margin = new Padding(4, 5, 4, 5);
+            grpAnodisedThresholds.Location = new Point(3, 639);
             grpAnodisedThresholds.Name = "grpAnodisedThresholds";
-            grpAnodisedThresholds.Padding = new Padding(4, 5, 4, 5);
-            grpAnodisedThresholds.Size = new Size(1443, 99);
+            grpAnodisedThresholds.Size = new Size(955, 59);
             grpAnodisedThresholds.TabIndex = 7;
             grpAnodisedThresholds.TabStop = false;
             grpAnodisedThresholds.Text = "Anodised Thresholds";
             // 
             // lblAnodisedThresholdCost
             // 
-            lblAnodisedThresholdCost.Location = new Point(17, 29);
-            lblAnodisedThresholdCost.Margin = new Padding(4, 0, 4, 0);
+            lblAnodisedThresholdCost.Location = new Point(12, 17);
             lblAnodisedThresholdCost.Name = "lblAnodisedThresholdCost";
-            lblAnodisedThresholdCost.Size = new Size(343, 30);
+            lblAnodisedThresholdCost.Size = new Size(240, 18);
             lblAnodisedThresholdCost.TabIndex = 0;
             lblAnodisedThresholdCost.Text = "Finishing Cost Price $/m² (auto):";
             // 
             // txtAnodisedThresholdCost
             // 
-            txtAnodisedThresholdCost.Location = new Point(371, 22);
-            txtAnodisedThresholdCost.Margin = new Padding(4, 5, 4, 5);
+            txtAnodisedThresholdCost.Location = new Point(260, 13);
             txtAnodisedThresholdCost.Name = "txtAnodisedThresholdCost";
-            txtAnodisedThresholdCost.Size = new Size(113, 31);
+            txtAnodisedThresholdCost.Size = new Size(80, 23);
             txtAnodisedThresholdCost.TabIndex = 1;
             // 
             // lblB57
             // 
-            lblB57.Location = new Point(529, 29);
-            lblB57.Margin = new Padding(4, 0, 4, 0);
+            lblB57.Location = new Point(370, 17);
             lblB57.Name = "lblB57";
-            lblB57.Size = new Size(286, 30);
+            lblB57.Size = new Size(200, 18);
             lblB57.TabIndex = 2;
             lblB57.Text = "Threshold Cost Price $/m² (B57):";
             // 
             // txtB57
             // 
-            txtB57.Location = new Point(829, 22);
-            txtB57.Margin = new Padding(4, 5, 4, 5);
+            txtB57.Location = new Point(580, 13);
             txtB57.Name = "txtB57";
-            txtB57.Size = new Size(113, 31);
+            txtB57.Size = new Size(80, 23);
             txtB57.TabIndex = 3;
             // 
             // lblB58
             // 
-            lblB58.Location = new Point(17, 66);
-            lblB58.Margin = new Padding(4, 0, 4, 0);
+            lblB58.Location = new Point(12, 40);
             lblB58.Name = "lblB58";
-            lblB58.Size = new Size(343, 30);
+            lblB58.Size = new Size(240, 18);
             lblB58.TabIndex = 4;
             lblB58.Text = "Finishing Sell Price $/m²:";
             // 
             // txtB58
             // 
-            txtB58.Location = new Point(371, 59);
-            txtB58.Margin = new Padding(4, 5, 4, 5);
+            txtB58.Location = new Point(260, 35);
             txtB58.Name = "txtB58";
-            txtB58.Size = new Size(113, 31);
+            txtB58.Size = new Size(80, 23);
             txtB58.TabIndex = 5;
             // 
             // lblThresholdMargin
             // 
-            lblThresholdMargin.Location = new Point(536, 62);
-            lblThresholdMargin.Margin = new Padding(4, 0, 4, 0);
+            lblThresholdMargin.Location = new Point(375, 37);
             lblThresholdMargin.Name = "lblThresholdMargin";
-            lblThresholdMargin.Size = new Size(343, 30);
+            lblThresholdMargin.Size = new Size(240, 18);
             lblThresholdMargin.TabIndex = 6;
             lblThresholdMargin.Text = "Margin %:";
             // 
             // lblThresholdMarginValue
             // 
-            lblThresholdMarginValue.Location = new Point(890, 62);
-            lblThresholdMarginValue.Margin = new Padding(4, 0, 4, 0);
+            lblThresholdMarginValue.Location = new Point(623, 37);
             lblThresholdMarginValue.Name = "lblThresholdMarginValue";
-            lblThresholdMarginValue.Size = new Size(114, 30);
+            lblThresholdMarginValue.Size = new Size(80, 18);
             lblThresholdMarginValue.TabIndex = 7;
             lblThresholdMarginValue.Text = "0.00%";
             // 
             // btnBulkNonBulkRates
             // 
-            btnBulkNonBulkRates.Location = new Point(1077, 16);
-            btnBulkNonBulkRates.Margin = new Padding(4, 5, 4, 5);
+            btnBulkNonBulkRates.Location = new Point(754, 10);
             btnBulkNonBulkRates.Name = "btnBulkNonBulkRates";
-            btnBulkNonBulkRates.Size = new Size(221, 43);
+            btnBulkNonBulkRates.Size = new Size(155, 26);
             btnBulkNonBulkRates.TabIndex = 8;
             btnBulkNonBulkRates.Text = "Bulk/Non-bulk Rates";
             btnBulkNonBulkRates.Click += btnBulkNonBulkRates_Click;
@@ -1263,11 +1147,9 @@ namespace QuotingTool.Forms
             grpSummary.Controls.Add(gridSummary);
             grpSummary.Controls.Add(lblSummaryNote1);
             grpSummary.Controls.Add(lblSummaryNote2);
-            grpSummary.Location = new Point(4, 1156);
-            grpSummary.Margin = new Padding(4, 5, 4, 5);
+            grpSummary.Location = new Point(3, 700);
             grpSummary.Name = "grpSummary";
-            grpSummary.Padding = new Padding(4, 5, 4, 5);
-            grpSummary.Size = new Size(1443, 367);
+            grpSummary.Size = new Size(955, 220);
             grpSummary.TabIndex = 8;
             grpSummary.TabStop = false;
             grpSummary.Text = "Quote Summary";
@@ -1280,81 +1162,73 @@ namespace QuotingTool.Forms
             gridSummary.BackgroundColor = SystemColors.Control;
             gridSummary.BorderStyle = BorderStyle.Fixed3D;
             gridSummary.ColumnHeadersHeight = 34;
-            gridSummary.Location = new Point(17, 40);
-            gridSummary.Margin = new Padding(4, 5, 4, 5);
+            gridSummary.Location = new Point(12, 24);
             gridSummary.Name = "gridSummary";
             gridSummary.ReadOnly = true;
             gridSummary.RowHeadersVisible = false;
             gridSummary.RowHeadersWidth = 62;
-            gridSummary.Size = new Size(1400, 258);
+            gridSummary.Size = new Size(928, 155);
             gridSummary.TabIndex = 0;
             // 
             // lblSummaryNote1
             // 
             lblSummaryNote1.AutoSize = true;
-            lblSummaryNote1.Location = new Point(17, 308);
-            lblSummaryNote1.Margin = new Padding(4, 0, 4, 0);
+            lblSummaryNote1.Location = new Point(12, 185);
             lblSummaryNote1.Name = "lblSummaryNote1";
-            lblSummaryNote1.Size = new Size(280, 25);
+            lblSummaryNote1.Size = new Size(185, 15);
             lblSummaryNote1.TabIndex = 1;
             lblSummaryNote1.Text = "* Margin $ also includes IP charge";
             // 
             // lblSummaryNote2
             // 
             lblSummaryNote2.AutoSize = true;
-            lblSummaryNote2.Location = new Point(17, 333);
-            lblSummaryNote2.Margin = new Padding(4, 0, 4, 0);
+            lblSummaryNote2.Location = new Point(12, 200);
             lblSummaryNote2.Name = "lblSummaryNote2";
-            lblSummaryNote2.Size = new Size(574, 25);
+            lblSummaryNote2.Size = new Size(375, 15);
             lblSummaryNote2.TabIndex = 2;
             lblSummaryNote2.Text = "* Sundry costs based on sundry costs entered and slot costs estimated";
             // 
             // btnEditSundryItems
             // 
-            btnEditSundryItems.Location = new Point(11, 1533);
-            btnEditSundryItems.Margin = new Padding(4, 5, 4, 5);
+            btnEditSundryItems.Location = new Point(8, 926);
             btnEditSundryItems.Name = "btnEditSundryItems";
-            btnEditSundryItems.Size = new Size(186, 50);
+            btnEditSundryItems.Size = new Size(130, 30);
             btnEditSundryItems.TabIndex = 9;
             btnEditSundryItems.Text = "Edit Sundry Items";
             btnEditSundryItems.Click += btnEditSundryItems_Click;
             // 
             // btnRecalculateAll
             // 
-            btnRecalculateAll.Location = new Point(211, 1533);
-            btnRecalculateAll.Margin = new Padding(4, 5, 4, 5);
+            btnRecalculateAll.Location = new Point(148, 926);
             btnRecalculateAll.Name = "btnRecalculateAll";
-            btnRecalculateAll.Size = new Size(171, 50);
+            btnRecalculateAll.Size = new Size(120, 30);
             btnRecalculateAll.TabIndex = 10;
             btnRecalculateAll.Text = "Recalculate All";
             btnRecalculateAll.Click += btnRecalculateAll_Click;
             // 
             // btnSave
             // 
-            btnSave.Location = new Point(396, 1529);
-            btnSave.Margin = new Padding(4, 5, 4, 5);
+            btnSave.Location = new Point(277, 923);
             btnSave.Name = "btnSave";
-            btnSave.Size = new Size(157, 57);
+            btnSave.Size = new Size(110, 34);
             btnSave.TabIndex = 11;
             btnSave.Text = "Save";
             btnSave.Click += btnSave_Click;
             // 
             // btnRefreshSummary
             // 
-            btnRefreshSummary.Location = new Point(568, 1529);
-            btnRefreshSummary.Margin = new Padding(4, 5, 4, 5);
+            btnRefreshSummary.Location = new Point(398, 923);
             btnRefreshSummary.Name = "btnRefreshSummary";
-            btnRefreshSummary.Size = new Size(214, 57);
+            btnRefreshSummary.Size = new Size(150, 34);
             btnRefreshSummary.TabIndex = 12;
             btnRefreshSummary.Text = "Refresh Summary";
             btnRefreshSummary.Click += btnRefreshSummary_Click;
             // 
             // btnUpdateVisibility
             // 
-            btnUpdateVisibility.Location = new Point(796, 1533);
-            btnUpdateVisibility.Margin = new Padding(4, 5, 4, 5);
+            btnUpdateVisibility.Location = new Point(557, 926);
             btnUpdateVisibility.Name = "btnUpdateVisibility";
-            btnUpdateVisibility.Size = new Size(207, 50);
+            btnUpdateVisibility.Size = new Size(145, 30);
             btnUpdateVisibility.TabIndex = 13;
             btnUpdateVisibility.Text = "Update Row Visibility";
             btnUpdateVisibility.Click += btnUpdateVisibility_Click;
@@ -1363,40 +1237,35 @@ namespace QuotingTool.Forms
             // 
             grpRowVisibility.Controls.Add(lblVisibleRows);
             grpRowVisibility.Controls.Add(lblHiddenRows);
-            grpRowVisibility.Location = new Point(11, 1595);
-            grpRowVisibility.Margin = new Padding(4, 5, 4, 5);
+            grpRowVisibility.Location = new Point(8, 963);
             grpRowVisibility.Name = "grpRowVisibility";
-            grpRowVisibility.Padding = new Padding(4, 5, 4, 5);
-            grpRowVisibility.Size = new Size(1443, 133);
+            grpRowVisibility.Size = new Size(950, 80);
             grpRowVisibility.TabIndex = 14;
             grpRowVisibility.TabStop = false;
             grpRowVisibility.Text = "Row Visibility (advanced)";
             // 
             // lblVisibleRows
             // 
-            lblVisibleRows.Location = new Point(14, 37);
-            lblVisibleRows.Margin = new Padding(4, 0, 4, 0);
+            lblVisibleRows.Location = new Point(10, 22);
             lblVisibleRows.Name = "lblVisibleRows";
-            lblVisibleRows.Size = new Size(1407, 33);
+            lblVisibleRows.Size = new Size(985, 20);
             lblVisibleRows.TabIndex = 0;
             lblVisibleRows.Text = "Visible rows: —";
             // 
             // lblHiddenRows
             // 
-            lblHiddenRows.Location = new Point(14, 77);
-            lblHiddenRows.Margin = new Padding(4, 0, 4, 0);
+            lblHiddenRows.Location = new Point(10, 46);
             lblHiddenRows.Name = "lblHiddenRows";
-            lblHiddenRows.Size = new Size(1407, 33);
+            lblHiddenRows.Size = new Size(925, 20);
             lblHiddenRows.TabIndex = 1;
             lblHiddenRows.Text = "Hidden rows: —";
             // 
             // EditPricingForm
             // 
-            AutoScaleDimensions = new SizeF(10F, 25F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1500, 1170);
+            ClientSize = new Size(1050, 637);
             Controls.Add(pnlScroll);
-            Margin = new Padding(4, 5, 4, 5);
             Name = "EditPricingForm";
             Text = "Edit Pricing";
             pnlScroll.ResumeLayout(false);
