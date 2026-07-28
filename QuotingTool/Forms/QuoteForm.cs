@@ -685,8 +685,7 @@ namespace QuotingTool.Forms
 
                 int distributed = _bom.DistributeBomToQuote(_projectId);
 
-                // Reload project settings so any CRE8-imported finish/SAP values are active
-                LoadProjectSettings();
+                // RefreshGrid calls LoadProjectSettings internally, picking up any CRE8-imported finish/SAP values
                 RefreshGrid();
 
                 // ── Post-import dialog 1: Finish Summary ─────────────────────────────
@@ -720,7 +719,7 @@ namespace QuotingTool.Forms
                                 project.FinishName       = setFinishDlg.FinishName;
                                 project.FinishSapCode    = setFinishDlg.FinishSapCode;
                                 _db.UpdateProject(project);
-                                LoadProjectSettings();
+                                // RefreshGrid calls LoadProjectSettings internally so the updated finish SAP code is active
                                 RefreshGrid();
                             }
                         }

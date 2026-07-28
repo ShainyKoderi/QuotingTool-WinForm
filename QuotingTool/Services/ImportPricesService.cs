@@ -40,6 +40,8 @@ namespace QuotingTool.Services
                 var quote = quoteLines[i];
                 if (bom.ImportedPrice > 0)
                 {
+                    // Only apply non-zero imported prices; a zero ImportedPrice indicates
+                    // the PO did not supply a price for this line and the formula price should be used.
                     _db.UpdateQuoteLineManualPriceOverride(projectId, quote.PageBlock, quote.RowInBlock, bom.ImportedPrice);
                     updated++;
                 }

@@ -13,6 +13,8 @@ namespace QuotingTool.Forms
     /// </summary>
     public sealed class ImportSetFinishDialog : Form
     {
+        private const string DefaultFinishSapCode = "NON";
+
         private readonly ComboBox _cmbFinishType;
         private readonly ComboBox _cmbFinishApplicator;
         private readonly ComboBox _cmbFinishGroup;
@@ -107,7 +109,7 @@ namespace QuotingTool.Forms
             // Finish SAP Code
             Controls.Add(new Label { Left = labelLeft, Top = y + 3, Width = 140, Text = "Finish SAP Code:" });
             _txtFinishSapCode = new TextBox { Left = controlLeft, Top = y, Width = controlWidth };
-            _txtFinishSapCode.Text = currentFinishSapCode ?? "NON";
+            _txtFinishSapCode.Text = !string.IsNullOrWhiteSpace(currentFinishSapCode) ? currentFinishSapCode : DefaultFinishSapCode;
             Controls.Add(_txtFinishSapCode);
             y += 42;
 
