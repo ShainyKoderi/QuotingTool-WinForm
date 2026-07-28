@@ -47,6 +47,8 @@ namespace QuotingTool.Forms
             grpMillFinishPricing = new GroupBox();
             lblSapDiscountHeader = new Label();
             txtCustomerSapDiscount = new TextBox();
+            lblDeliveryCharge = new Label();
+            txtDeliveryCharge = new TextBox();
             lblMFColHdr = new Label();
             lblMFTypHdr = new Label();
             lblMFMinHdr = new Label();
@@ -462,6 +464,8 @@ namespace QuotingTool.Forms
             // 
             grpMillFinishPricing.Controls.Add(lblSapDiscountHeader);
             grpMillFinishPricing.Controls.Add(txtCustomerSapDiscount);
+            grpMillFinishPricing.Controls.Add(lblDeliveryCharge);
+            grpMillFinishPricing.Controls.Add(txtDeliveryCharge);
             grpMillFinishPricing.Controls.Add(lblMFColHdr);
             grpMillFinishPricing.Controls.Add(lblMFTypHdr);
             grpMillFinishPricing.Controls.Add(lblMFMinHdr);
@@ -512,12 +516,28 @@ namespace QuotingTool.Forms
             txtCustomerSapDiscount.Size = new Size(80, 23);
             txtCustomerSapDiscount.TabIndex = 1;
             // 
+            // lblDeliveryCharge
+            // 
+            lblDeliveryCharge.AutoSize = true;
+            lblDeliveryCharge.Location = new Point(281, 17);
+            lblDeliveryCharge.Name = "lblDeliveryCharge";
+            lblDeliveryCharge.Size = new Size(93, 15);
+            lblDeliveryCharge.TabIndex = 2;
+            lblDeliveryCharge.Text = "Delivery Charge:";
+            // 
+            // txtDeliveryCharge
+            // 
+            txtDeliveryCharge.Location = new Point(380, 15);
+            txtDeliveryCharge.Name = "txtDeliveryCharge";
+            txtDeliveryCharge.Size = new Size(80, 23);
+            txtDeliveryCharge.TabIndex = 3;
+            // 
             // lblMFColHdr
             // 
             lblMFColHdr.Location = new Point(12, 35);
             lblMFColHdr.Name = "lblMFColHdr";
             lblMFColHdr.Size = new Size(240, 18);
-            lblMFColHdr.TabIndex = 2;
+            lblMFColHdr.TabIndex = 4;
             // 
             // lblMFTypHdr
             // 
@@ -1336,6 +1356,8 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.GroupBox grpMillFinishPricing;
         private System.Windows.Forms.Label lblSapDiscountHeader;
         private System.Windows.Forms.TextBox txtCustomerSapDiscount;
+        private System.Windows.Forms.Label lblDeliveryCharge;
+        private System.Windows.Forms.TextBox txtDeliveryCharge;
         private System.Windows.Forms.Label lblMFColHdr;
         private System.Windows.Forms.Label lblMFTypHdr;
         private System.Windows.Forms.Label lblMFMinHdr;

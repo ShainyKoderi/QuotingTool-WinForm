@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using QuotingTool.Data;
@@ -16,6 +17,8 @@ namespace QuotingTool.Forms
         private readonly ResetPriceService _resetPrice;
         private readonly ExportQuoteService _exportQuote;
         private readonly SapExportService _sapExport;
+        private readonly BomService _bom;
+        private readonly QuotePdfService _quotePdf;
         private const int MaxQuotePages = 6;
         private const int MaxRowsPerPage = 40;
         private const int MaxQuoteLines = MaxQuotePages * MaxRowsPerPage;
@@ -36,6 +39,9 @@ namespace QuotingTool.Forms
         private Dictionary<string, int> _ipMasterByCodes = new(StringComparer.Ordinal);
         // Section codes in the THRESHOLDS named range; used for the BF column threshold flag
         private HashSet<string> _thresholdSections = new(StringComparer.OrdinalIgnoreCase);
+        private string _projectFinishSapCode = "NON";
+        private string _thresholdChoice = "No";
+        private bool _autoUpdatingPages;
 
         public QuoteForm(DatabaseContext db)
         {
@@ -45,6 +51,8 @@ namespace QuotingTool.Forms
             _resetPrice = new ResetPriceService(db);
             _exportQuote = new ExportQuoteService(db);
             _sapExport = new SapExportService(db);
+            _bom = new BomService(db);
+            _quotePdf = new QuotePdfService(db);
             InitializeComponent();
             LoadExtrusionMaster();
             LoadIPMasterData();
@@ -79,14 +87,7 @@ namespace QuotingTool.Forms
         public void LoadProject(int projectId)
         {
             _projectId = projectId;
-            var pricing = _db.GetEditPricing(projectId);
-            _metalPricePerKg = pricing?.MetalPrice ?? 0m;
-            if (pricing != null)
-            {
-                _ip1RatePerKg = pricing.IP1UpchargePerKg > 0 ? pricing.IP1UpchargePerKg : 1.00m;
-                _ip2RatePerKg = pricing.IP2UpchargePerKg > 0 ? pricing.IP2UpchargePerKg : 2.00m;
-                _ip3RatePerKg = pricing.IP3PanoramicFixedKgRate > 0 ? pricing.IP3PanoramicFixedKgRate : 25.85m;
-            }
+            LoadProjectSettings();
             RefreshGrid();
             UpdatePrintAreaLabel();
         }
@@ -94,15 +95,7 @@ namespace QuotingTool.Forms
         private void RefreshGrid()
         {
             if (_projectId <= 0) return;
-            // Always reload metal price and IP rates so changes saved on the Edit Pricing tab are reflected here.
-            var pricing = _db.GetEditPricing(_projectId);
-            _metalPricePerKg = pricing?.MetalPrice ?? 0m;
-            if (pricing != null)
-            {
-                _ip1RatePerKg = pricing.IP1UpchargePerKg > 0 ? pricing.IP1UpchargePerKg : 1.00m;
-                _ip2RatePerKg = pricing.IP2UpchargePerKg > 0 ? pricing.IP2UpchargePerKg : 2.00m;
-                _ip3RatePerKg = pricing.IP3PanoramicFixedKgRate > 0 ? pricing.IP3PanoramicFixedKgRate : 25.85m;
-            }
+            LoadProjectSettings();
             _bindingGrid = true;
             _lines = new BindingList<QuoteLine>(_db.GetQuoteLines(_projectId).ToList());
             foreach (var line in _lines)
@@ -121,6 +114,9 @@ namespace QuotingTool.Forms
             }
             gridQuote.DataSource = _lines;
             _bindingGrid = false;
+            UpdateAutomaticPageSetup();
+            UpdateValidationStates();
+            UpdatePriceBreakdown();
         }
 
         /// <summary>
@@ -183,17 +179,22 @@ namespace QuotingTool.Forms
             var millFinishEach = CalculateMillFinishEach(line);
             var ipEach = CalculateIpEach(line);
             var slottingSundryEach = line.SubsillSurcharge;
-
-            line.Price = FormulaCalculationService.CalculatePriceEach(
+            var calculatedPrice = FormulaCalculationService.CalculatePriceEach(
                 millFinishEach,
                 ipEach: ipEach,
                 sfSellEach: 0m,
                 slottingSundryEach: slottingSundryEach);
-
+            line.Price = line.ManualPriceOverride ?? calculatedPrice;
             line.TotalPrice = FormulaCalculationService.CalculateSellTotal(line.Price, line.Quantity);
             // Keep legacy SellPrice (col J) synchronized with TotalPrice so existing
             // exports/queries that still read SellPrice receive the recalculated value.
             line.SellPrice = line.TotalPrice;
+            line.SapColourCode = FormulaCalculationService.CalculateSapColourCode(
+                line.ExtrusionCode,
+                _thresholdSections.Contains(line.ExtrusionCode),
+                NormalizeThresholdChoice(_thresholdChoice),
+                line.IgnoreFinish,
+                _projectFinishSapCode);
         }
 
         private decimal CalculateMillFinishEach(QuoteLine line)
@@ -237,16 +238,12 @@ namespace QuotingTool.Forms
             gridQuote.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
             gridQuote.DataError += (s, e) =>
             {
-                // The Section combo box only accepts values from ExtrusionMaster; suppress
-                // the formatting exception for legacy/custom codes not in that list, but keep
-                // the row's typed value instead of silently discarding it.
                 e.ThrowException = false;
                 System.Diagnostics.Debug.WriteLine(
                     $"gridQuote DataError at row {e.RowIndex}, col {e.ColumnIndex}: {e.Exception?.Message}");
             };
             gridQuote.DataBindingComplete += (s, e) =>
             {
-                EnsureSectionComboColumn();
                 SetColHeader("PageBlock", "Page", 50, false);
                 SetColHeader("LineNumber", "Ln", 50, false);
                 SetColHeader("RowInBlock", "Row", 50, true);
@@ -257,6 +254,7 @@ namespace QuotingTool.Forms
                 SetColHeader("Quantity", "Qty", QtyColumnWidth, false);
                 SetColHeader("LengthM", "Length (m)", LengthColumnWidth, false);
                 SetColHeader("IpGrade", "IP", 50, false);
+                SetColHeader("ManualPriceOverride", "Override $ Each", 110, false);
                 SetColHeader("Price", "$ Each", PriceColumnWidth, false);
                 SetColHeader("TotalPrice", "$ Total", TotalColumnWidth, false);
                 SetColHeader("SellPrice", "Sell Price", 90, true);
@@ -268,7 +266,6 @@ namespace QuotingTool.Forms
                 HideCol("ProjectId");
                 // Description/Alloy/Temper auto-load from the Section master; $ Each and
                 // $ Total are calculated from Length, so none of these are manually edited.
-                SetReadOnly("Description", true);
                 SetReadOnly("Alloy", true);
                 SetReadOnly("Temper", true);
                 SetReadOnly("Price", true);
@@ -276,37 +273,11 @@ namespace QuotingTool.Forms
 
                 SetColFormat("Quantity", "0.##", DataGridViewContentAlignment.MiddleRight);
                 SetColFormat("LengthM", "0.###", DataGridViewContentAlignment.MiddleRight);
+                SetColFormat("ManualPriceOverride", "0.0000", DataGridViewContentAlignment.MiddleRight);
                 SetColFormat("Price", "0.0000", DataGridViewContentAlignment.MiddleRight);
                 SetColFormat("TotalPrice", "0.0000", DataGridViewContentAlignment.MiddleRight);
                 SetColFormat("SubsillSurcharge", "0.0000", DataGridViewContentAlignment.MiddleRight);
             };
-        }
-
-        /// <summary>
-        /// Replaces the auto-generated Section (ExtrusionCode) text column with a dropdown
-        /// (ComboBox) column populated from the ExtrusionMaster list, so users pick a valid
-        /// Section instead of typing it freehand.
-        /// </summary>
-        private void EnsureSectionComboColumn()
-        {
-            if (!gridQuote.Columns.Contains("ExtrusionCode")) return;
-            if (gridQuote.Columns["ExtrusionCode"] is DataGridViewComboBoxColumn) return;
-
-            int index = gridQuote.Columns["ExtrusionCode"].Index;
-            gridQuote.Columns.Remove("ExtrusionCode");
-
-            var combo = new DataGridViewComboBoxColumn
-            {
-                Name = "ExtrusionCode",
-                DataPropertyName = "ExtrusionCode",
-                HeaderText = "Section",
-                Width = 110,
-                DisplayStyle = DataGridViewComboBoxDisplayStyle.ComboBox,
-                FlatStyle = FlatStyle.Standard,
-                Sorted = true
-            };
-            combo.Items.AddRange(_extrusionMasterByCode.Keys.Cast<object>().ToArray());
-            gridQuote.Columns.Insert(index, combo);
         }
 
         private void SetReadOnly(string propName, bool readOnly)
@@ -340,10 +311,8 @@ namespace QuotingTool.Forms
 
         private void cmbPageSelector_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (_projectId <= 0) return;
-            int pageCount = cmbPageSelector.SelectedIndex + 1;
-            _pageSetup.SetPageLayout(_projectId, pageCount);
-            UpdatePrintAreaLabel();
+            if (_autoUpdatingPages || !cmbPageSelector.Enabled)
+                return;
         }
 
         private void btnFixLengths_Click(object sender, EventArgs e)
@@ -460,6 +429,7 @@ namespace QuotingTool.Forms
                     // accept a current-cell/scroll change (e.g. mid-layout, no visible columns, etc.)
                 }
             }));
+            UpdateAutomaticPageSetup();
         }
 
         private void btnDeleteSelected_Click(object sender, EventArgs e)
@@ -471,6 +441,8 @@ namespace QuotingTool.Forms
                 _db.DeleteQuoteLine(line.Id);
 
             _lines.Remove(line);
+            UpdateAutomaticPageSetup();
+            UpdatePriceBreakdown();
         }
 
         private void btnSave_Click(object sender, EventArgs e)
@@ -486,6 +458,13 @@ namespace QuotingTool.Forms
             gridQuote.EndEdit();
 
             var lines = _lines.ToList();
+            var validationErrors = CollectValidationErrors(lines);
+            if (validationErrors.Count > 0)
+            {
+                MessageBox.Show(string.Join(Environment.NewLine, validationErrors), "Validation",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
             foreach (var line in lines)
             {
@@ -496,6 +475,7 @@ namespace QuotingTool.Forms
                 _db.UpsertQuoteLine(line);
             }
 
+            UpdateAutomaticPageSetup();
             MessageBox.Show("Quote saved.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Information);
             RefreshGrid();
         }
@@ -512,14 +492,7 @@ namespace QuotingTool.Forms
             if (gridQuote.Rows[e.RowIndex].DataBoundItem is not QuoteLine line) return;
 
             // Refresh metal price and IP rates in case the Edit Pricing tab was saved since this tab loaded.
-            var pricing = _db.GetEditPricing(_projectId);
-            _metalPricePerKg = pricing?.MetalPrice ?? _metalPricePerKg;
-            if (pricing != null)
-            {
-                _ip1RatePerKg = pricing.IP1UpchargePerKg > 0 ? pricing.IP1UpchargePerKg : _ip1RatePerKg;
-                _ip2RatePerKg = pricing.IP2UpchargePerKg > 0 ? pricing.IP2UpchargePerKg : _ip2RatePerKg;
-                _ip3RatePerKg = pricing.IP3PanoramicFixedKgRate > 0 ? pricing.IP3PanoramicFixedKgRate : _ip3RatePerKg;
-            }
+            LoadProjectSettings();
 
             line.LineNumber = line.LineNumber <= 0 ? e.RowIndex + 1 : line.LineNumber;
 
@@ -535,6 +508,7 @@ namespace QuotingTool.Forms
             SetCellValue(row, "Alloy",        line.Alloy);
             SetCellValue(row, "Temper",       line.Temper);
             SetCellValue(row, "IpGrade",      line.IpGrade);
+            SetCellValue(row, "SapColourCode", line.SapColourCode);
             SetCellValue(row, "Price",        line.Price);
             SetCellValue(row, "TotalPrice",   line.TotalPrice);
             _bindingGrid = false;
@@ -543,6 +517,9 @@ namespace QuotingTool.Forms
             // new values immediately without waiting for the next paint cycle.
             gridQuote.InvalidateRow(e.RowIndex);
 
+            row.ErrorText = ValidateLine(line);
+            UpdateAutomaticPageSetup();
+            UpdatePriceBreakdown();
             _db.UpsertQuoteLine(line);
         }
 
@@ -550,6 +527,246 @@ namespace QuotingTool.Forms
         {
             if (gridQuote.Columns.Contains(columnName))
                 row.Cells[columnName].Value = value;
+        }
+
+        private void LoadProjectSettings()
+        {
+            var pricing = _db.GetEditPricing(_projectId);
+            _metalPricePerKg = pricing?.MetalPrice ?? 0m;
+            if (pricing != null)
+            {
+                _ip1RatePerKg = pricing.IP1UpchargePerKg > 0 ? pricing.IP1UpchargePerKg : 1.00m;
+                _ip2RatePerKg = pricing.IP2UpchargePerKg > 0 ? pricing.IP2UpchargePerKg : 2.00m;
+                _ip3RatePerKg = pricing.IP3PanoramicFixedKgRate > 0 ? pricing.IP3PanoramicFixedKgRate : 25.85m;
+            }
+
+            var project = _db.GetProject(_projectId);
+            _projectFinishSapCode = string.IsNullOrWhiteSpace(project?.FinishSapCode) ? "NON" : project.FinishSapCode;
+            _thresholdChoice = string.IsNullOrWhiteSpace(project?.ThresholdChoice) ? "No" : project.ThresholdChoice;
+        }
+
+        private void UpdateAutomaticPageSetup()
+        {
+            if (_projectId <= 0)
+                return;
+
+            int activeLineCount = _lines.Count(IsMeaningfulLine);
+            int pageCount = Math.Min(MaxQuotePages, Math.Max(1, (int)Math.Ceiling(activeLineCount / (decimal)MaxRowsPerPage)));
+            _pageSetup.SetPageLayout(_projectId, pageCount);
+            _autoUpdatingPages = true;
+            cmbPageSelector.SelectedIndex = pageCount - 1;
+            _autoUpdatingPages = false;
+            UpdatePrintAreaLabel();
+        }
+
+        private void UpdateValidationStates()
+        {
+            for (int i = 0; i < gridQuote.Rows.Count && i < _lines.Count; i++)
+                gridQuote.Rows[i].ErrorText = ValidateLine(_lines[i]);
+        }
+
+        private List<string> CollectValidationErrors(IEnumerable<QuoteLine> lines)
+            => lines
+                .Select((line, index) => (Message: ValidateLine(line), Index: index))
+                .Where(x => !string.IsNullOrWhiteSpace(x.Message))
+                .Select(x => $"Row {x.Index + 1}: {x.Message}")
+                .ToList();
+
+        private string ValidateLine(QuoteLine line)
+        {
+            if (!IsMeaningfulLine(line))
+                return string.Empty;
+
+            if (line.Quantity <= 0)
+                return "Quantity must be greater than 0.";
+            if (line.LengthM <= 0 && !HasManualPriceWithoutLength(line))
+                return "Length must be greater than 0.";
+            if (line.ManualPriceOverride.HasValue && line.ManualPriceOverride.Value < 0)
+                return "Price override cannot be negative.";
+            return string.Empty;
+        }
+
+        private static bool IsMeaningfulLine(QuoteLine line)
+            => !string.IsNullOrWhiteSpace(line.ExtrusionCode)
+               || !string.IsNullOrWhiteSpace(line.Description)
+               || line.Quantity > 0
+               || line.LengthM > 0
+               || line.ManualPriceOverride.HasValue;
+
+        private static bool HasManualPriceWithoutLength(QuoteLine line)
+            => line.ManualPriceOverride.HasValue
+               && line.ManualPriceOverride.Value >= 0
+               && string.IsNullOrWhiteSpace(line.ExtrusionCode) == false
+               && line.ExtrusionCode.StartsWith("SUNDRY", StringComparison.OrdinalIgnoreCase);
+
+        private void gridQuote_SelectionChanged(object sender, EventArgs e) => UpdatePriceBreakdown();
+
+        private void UpdatePriceBreakdown()
+        {
+            if (gridQuote.CurrentRow?.DataBoundItem is not QuoteLine line)
+            {
+                lblPriceBreakdown.Text = "Select a quote line to review the calculation.";
+                return;
+            }
+
+            decimal kgEach = 0m;
+            if (_extrusionMasterByCode.TryGetValue(line.ExtrusionCode ?? string.Empty, out var master))
+                kgEach = FormulaCalculationService.CalculateKgEach(master.MassPerM, line.LengthM);
+
+            var millFinishEach = CalculateMillFinishEach(line);
+            var ipEach = CalculateIpEach(line);
+            var overrideText = line.ManualPriceOverride.HasValue
+                ? $"{line.ManualPriceOverride.Value.ToString("0.0000", CultureInfo.InvariantCulture)} (manual override)"
+                : "—";
+
+            lblPriceBreakdown.Text =
+                $"Section: {line.ExtrusionCode}{Environment.NewLine}" +
+                $"Kg each: {kgEach:0.####}{Environment.NewLine}" +
+                $"Mill finish each: {millFinishEach:0.0000}{Environment.NewLine}" +
+                $"IP each: {ipEach:0.0000}{Environment.NewLine}" +
+                $"Slotting / sundry: {line.SubsillSurcharge:0.0000}{Environment.NewLine}" +
+                $"Override: {overrideText}{Environment.NewLine}" +
+                $"Final $ each: {line.Price:0.0000}{Environment.NewLine}" +
+                $"Line total: {line.TotalPrice:0.0000}{Environment.NewLine}" +
+                $"SAP code: {line.SapColourCode}";
+        }
+
+        private static string NormalizeThresholdChoice(string thresholdChoice)
+            => string.Equals(thresholdChoice, "Project Colour", StringComparison.OrdinalIgnoreCase) ? "No" : thresholdChoice;
+
+        private void btnImportQuoteLines_Click(object sender, EventArgs e)
+        {
+            if (_projectId <= 0)
+            {
+                MessageBox.Show("No project open.");
+                return;
+            }
+
+            using var ofd = new OpenFileDialog
+            {
+                Filter = "BOM files (*.csv;*.xlsx;*.xlsm)|*.csv;*.xlsx;*.xlsm|CSV Files (*.csv)|*.csv|Excel Files (*.xlsx;*.xlsm)|*.xlsx;*.xlsm",
+                Title = "Import quote lines"
+            };
+
+            if (ofd.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            try
+            {
+                int imported = ofd.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)
+                    ? _bom.ImportBomFromCsv(_projectId, ofd.FileName)
+                    : _bom.ImportBomFromWorkbook(_projectId, ofd.FileName);
+                int distributed = _bom.DistributeBomToQuote(_projectId);
+                RefreshGrid();
+                MessageBox.Show($"Imported {imported} BOM row(s) and distributed {distributed} row(s) to the quote.",
+                    "Import Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Import failed:\n{ex.Message}", "Import Failed",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnExportPdf_Click(object sender, EventArgs e)
+        {
+            if (_projectId <= 0)
+            {
+                MessageBox.Show("No project open.");
+                return;
+            }
+
+            using var options = new QuotePdfOptionsDialog();
+            if (options.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            using var sfd = new SaveFileDialog
+            {
+                Filter = "PDF Files (*.pdf)|*.pdf",
+                DefaultExt = "pdf",
+                FileName = $"Quote_{DateTime.Today:yyyyMMdd}.pdf"
+            };
+
+            if (sfd.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            _quotePdf.ExportQuotePdf(_projectId, sfd.FileName, options.IncludeQuoteLetter, options.Unpriced);
+            MessageBox.Show($"PDF saved to:\n{sfd.FileName}", "Export PDF",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void gridQuote_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Control && e.KeyCode == Keys.V)
+            {
+                PasteClipboardIntoGrid();
+                e.Handled = true;
+            }
+        }
+
+        private void PasteClipboardIntoGrid()
+        {
+            if (_projectId <= 0 || gridQuote.CurrentCell == null)
+                return;
+
+            var text = Clipboard.GetText();
+            if (string.IsNullOrWhiteSpace(text))
+                return;
+
+            var editableColumns = gridQuote.Columns
+                .Cast<DataGridViewColumn>()
+                .Where(c => c.Visible && !c.ReadOnly)
+                .OrderBy(c => c.DisplayIndex)
+                .ToList();
+
+            if (editableColumns.Count == 0)
+                return;
+
+            int startColumnIndex = editableColumns.FindIndex(c => c.Index == gridQuote.CurrentCell.ColumnIndex);
+            if (startColumnIndex < 0)
+                startColumnIndex = 0;
+
+            var rows = text.Replace("\r\n", "\n").TrimEnd('\n').Split('\n');
+            int rowIndex = gridQuote.CurrentCell.RowIndex;
+
+            foreach (var rowText in rows)
+            {
+                if (rowIndex >= _lines.Count)
+                    btnAddRow_Click(this, EventArgs.Empty);
+
+                if (rowIndex >= _lines.Count)
+                    break;
+
+                var cells = rowText.Split('\t');
+                for (int i = 0; i < cells.Length && startColumnIndex + i < editableColumns.Count; i++)
+                {
+                    var column = editableColumns[startColumnIndex + i];
+                    gridQuote.Rows[rowIndex].Cells[column.Index].Value = ConvertClipboardValue(column.DataPropertyName, cells[i]);
+                }
+
+                rowIndex++;
+            }
+
+            gridQuote.EndEdit();
+        }
+
+        private static object ConvertClipboardValue(string propertyName, string value)
+        {
+            value = value.Trim();
+            if (propertyName is nameof(QuoteLine.Quantity) or nameof(QuoteLine.LengthM) or nameof(QuoteLine.ManualPriceOverride) or nameof(QuoteLine.SubsillSurcharge))
+            {
+                if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var numeric) ||
+                    decimal.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out numeric))
+                {
+                    return numeric;
+                }
+                return 0m;
+            }
+
+            if (propertyName == nameof(QuoteLine.SubsillFlag))
+                return value.Equals("Y", StringComparison.OrdinalIgnoreCase) || value.Equals("Yes", StringComparison.OrdinalIgnoreCase) || value == "1";
+
+            return value;
         }
     }
 }

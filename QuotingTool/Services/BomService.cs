@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using ClosedXML.Excel;
 using CsvHelper;
 using CsvHelper.Configuration;
 using QuotingTool.Data;
@@ -116,6 +117,50 @@ namespace QuotingTool.Services
             return rowNumber;
         }
 
+        public int ImportBomFromWorkbook(int projectId, string workbookPath)
+        {
+            if (!File.Exists(workbookPath))
+                throw new FileNotFoundException($"Workbook file not found: {workbookPath}");
+
+            _db.DeleteBomLines(projectId);
+
+            using var workbook = new XLWorkbook(workbookPath);
+            var worksheet = workbook.Worksheets.First();
+            var rows = worksheet.RangeUsed()?.RowsUsed().ToList() ?? new List<IXLRangeRow>();
+            if (rows.Count <= 1)
+                return 0;
+
+            int rowNumber = 0;
+            foreach (var row in rows.Skip(1))
+            {
+                rowNumber++;
+
+                string extCode = GetCellText(row, 2);
+                string desc = GetCellText(row, 3);
+                decimal qty = ParseDecimal(GetCellText(row, 4));
+                decimal lengthRaw = ParseDecimal(GetCellText(row, 5));
+                string finish = GetCellText(row, 7);
+                decimal impPrice = ParseDecimal(GetCellText(row, 9));
+                bool subsill = ParseBool(GetCellText(row, 22));
+                decimal lengthM = lengthRaw > 1000 ? lengthRaw / 1000m : lengthRaw;
+
+                _db.InsertBomLine(new BomLine
+                {
+                    ProjectId = projectId,
+                    RowNumber = rowNumber,
+                    ExtrusionCode = extCode,
+                    Description = desc,
+                    Quantity = qty,
+                    LengthM = lengthM,
+                    Finish = finish,
+                    ImportedPrice = impPrice,
+                    SubsillFlag = subsill
+                });
+            }
+
+            return rowNumber;
+        }
+
         /// <summary>
         /// Distributes BomLines into QuoteLines.
         /// - Determines page count from row count thresholds.
@@ -202,6 +247,8 @@ namespace QuotingTool.Services
         {
             if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
                 return result;
+            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out result))
+                return result;
             return 0m;
         }
 
@@ -211,5 +258,8 @@ namespace QuotingTool.Services
             return value.Trim() == "1" || value.Trim().Equals("true", StringComparison.OrdinalIgnoreCase)
                 || value.Trim().Equals("yes", StringComparison.OrdinalIgnoreCase);
         }
+
+        private static string GetCellText(IXLRangeRow row, int columnNumber)
+            => row.Cell(columnNumber).GetFormattedString().Trim();
     }
 }

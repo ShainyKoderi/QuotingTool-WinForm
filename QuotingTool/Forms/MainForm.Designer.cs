@@ -32,7 +32,6 @@ namespace QuotingTool.Forms
             quoteTab = new System.Windows.Forms.TabPage();
             editPricingTab = new System.Windows.Forms.TabPage();
             quoteLetterTab = new System.Windows.Forms.TabPage();
-            noPricingTab = new System.Windows.Forms.TabPage();
             bomTab = new System.Windows.Forms.TabPage();
             monthlyUpdateTab = new System.Windows.Forms.TabPage();
             statusStrip = new System.Windows.Forms.StatusStrip();
@@ -82,7 +81,6 @@ namespace QuotingTool.Forms
             tabControl.Controls.Add(quoteTab);
             tabControl.Controls.Add(editPricingTab);
             tabControl.Controls.Add(quoteLetterTab);
-            tabControl.Controls.Add(noPricingTab);
             tabControl.Controls.Add(bomTab);
             tabControl.Controls.Add(monthlyUpdateTab);
             tabControl.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -97,8 +95,6 @@ namespace QuotingTool.Forms
             editPricingTab.Padding = new System.Windows.Forms.Padding(3);
             quoteLetterTab.Text = "Quote Letter";
             quoteLetterTab.Padding = new System.Windows.Forms.Padding(3);
-            noPricingTab.Text = "No Pricing";
-            noPricingTab.Padding = new System.Windows.Forms.Padding(3);
             bomTab.Text = "BOM Import";
             bomTab.Padding = new System.Windows.Forms.Padding(3);
             monthlyUpdateTab.Text = "Monthly Update";
@@ -134,7 +130,6 @@ namespace QuotingTool.Forms
             EmbedForm(new QuoteForm(_db), quoteTab);
             EmbedForm(new EditPricingForm(_db), editPricingTab);
             EmbedForm(new QuoteLetterForm(_db), quoteLetterTab);
-            EmbedForm(new QuoteNoPricingForm(_db), noPricingTab);
             EmbedForm(new BomImportForm(_db), bomTab);
             EmbedForm(new MonthlyUpdateForm(_db), monthlyUpdateTab);
         }
@@ -167,7 +162,6 @@ namespace QuotingTool.Forms
         public System.Windows.Forms.TabPage quoteTab;
         public System.Windows.Forms.TabPage editPricingTab;
         public System.Windows.Forms.TabPage quoteLetterTab;
-        public System.Windows.Forms.TabPage noPricingTab;
         public System.Windows.Forms.TabPage bomTab;
         public System.Windows.Forms.TabPage monthlyUpdateTab;
         private System.Windows.Forms.StatusStrip statusStrip;

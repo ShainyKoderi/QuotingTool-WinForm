@@ -146,6 +146,7 @@ namespace QuotingTool.Forms
 
             // ── Mill Finish / IP Upcharges ────────────────────────────────────
             txtCustomerSapDiscount.Text = project.CustomerSapDiscount.ToString("F2");
+            txtDeliveryCharge.Text = project.DeliveryCharge.ToString("F2");
             txtMetalPrice.Text = ep.MetalPrice.ToString("F4");
             txtIP1Upcharge.Text = ep.IP1UpchargePerKg.ToString("F2");
             txtIP2Upcharge.Text = ep.IP2UpchargePerKg.ToString("F2");
@@ -291,6 +292,7 @@ namespace QuotingTool.Forms
                 ep.FinishingCostPricePerM2 = ep.Price_B57;
 
             project.CustomerSapDiscount = ParseDecimal(txtCustomerSapDiscount.Text);
+            project.DeliveryCharge = ParseDecimal(txtDeliveryCharge.Text, 97m);
 
             // ── Computed totals (Quantities section) ──────────────────────────
             // Compute total kg accurately using the kg/m value from ExtrusionMaster
