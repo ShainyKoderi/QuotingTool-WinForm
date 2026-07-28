@@ -53,8 +53,6 @@ namespace QuotingTool.Forms
             SetComboOrText(cmbLocalLogo, string.IsNullOrWhiteSpace(project.AddLocAlLogos) ? project.LocalLogo : project.AddLocAlLogos);
             SetComboOrText(cmbGenerateMillFinishAlternative, (project.GenerateMillFinishAlternative || project.GenerateMfAlt) ? "Yes" : "No");
             txtQuoteValidity.Text = string.IsNullOrWhiteSpace(project.QuoteValidity) ? "30 days" : project.QuoteValidity;
-            UpdateFinishCustomState();
-            UpdateFinishSapCode(autoOnly: true);
             _loadingProject = false;
             UpdateFinishCustomState();
             UpdateFinishSapCode(autoOnly: true);

@@ -16,7 +16,8 @@ namespace QuotingTool.Services
 
         public void ExportQuotePdf(int projectId, string filePath, bool includeQuoteLetter, bool unpriced)
         {
-            var project = _db.GetProject(projectId) ?? new Project();
+            var project = _db.GetProject(projectId)
+                ?? throw new InvalidOperationException($"Project {projectId} was not found.");
             var lines = _db.GetQuoteLines(projectId)
                 .Where(l => !string.IsNullOrWhiteSpace(l.ExtrusionCode) || !string.IsNullOrWhiteSpace(l.Description))
                 .OrderBy(l => l.PageBlock)

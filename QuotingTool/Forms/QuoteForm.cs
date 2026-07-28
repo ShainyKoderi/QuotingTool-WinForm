@@ -581,8 +581,8 @@ namespace QuotingTool.Forms
                 return "Quantity must be greater than 0.";
             if (line.LengthM <= 0 && !HasManualPriceWithoutLength(line))
                 return "Length must be greater than 0.";
-            if (line.ManualPriceOverride.HasValue && line.ManualPriceOverride.Value < 0)
-                return "Price override cannot be negative.";
+            if (line.ManualPriceOverride.HasValue && line.ManualPriceOverride.Value <= 0)
+                return "Price override must be greater than 0.";
             return string.Empty;
         }
 
@@ -595,7 +595,7 @@ namespace QuotingTool.Forms
 
         private static bool HasManualPriceWithoutLength(QuoteLine line)
             => line.ManualPriceOverride.HasValue
-               && line.ManualPriceOverride.Value >= 0
+               && line.ManualPriceOverride.Value > 0
                && string.IsNullOrWhiteSpace(line.ExtrusionCode) == false
                && line.ExtrusionCode.StartsWith("SUNDRY", StringComparison.OrdinalIgnoreCase);
 
