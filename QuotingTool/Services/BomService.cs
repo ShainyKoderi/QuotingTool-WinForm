@@ -259,6 +259,11 @@ namespace QuotingTool.Services
                 || value.Trim().Equals("yes", StringComparison.OrdinalIgnoreCase);
         }
 
+        /// <summary>
+        /// Returns a trimmed string value from the given worksheet row/column position.
+        /// Used by Excel BOM import so the same B/C/D/E/G/I/V positional mapping can be
+        /// reused across both CSV and workbook-based imports.
+        /// </summary>
         private static string GetCellText(IXLRangeRow row, int columnNumber)
             => row.Cell(columnNumber).GetFormattedString().Trim();
     }

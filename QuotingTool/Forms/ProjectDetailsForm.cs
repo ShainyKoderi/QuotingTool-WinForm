@@ -230,6 +230,10 @@ namespace QuotingTool.Forms
                  string.Equals(c.ShortDesc, finishName, StringComparison.OrdinalIgnoreCase)));
         }
 
+        // The legacy workbook stores "Project Colour" as "No" because threshold rows only
+        // receive a special threshold SAP code when an explicit clear-anodised option is chosen.
+        // The WinForms UI shows the friendlier "Project Colour" label, but persistence keeps
+        // compatibility with the existing workbook/database value.
         private static string ToThresholdStoredValue(string displayValue)
             => string.Equals(displayValue, ProjectColourThresholdOption, StringComparison.OrdinalIgnoreCase)
                 ? "No"

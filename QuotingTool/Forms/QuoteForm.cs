@@ -596,7 +596,7 @@ namespace QuotingTool.Forms
         private static bool HasManualPriceWithoutLength(QuoteLine line)
             => line.ManualPriceOverride.HasValue
                && line.ManualPriceOverride.Value > 0
-               && string.IsNullOrWhiteSpace(line.ExtrusionCode) == false
+               && !string.IsNullOrWhiteSpace(line.ExtrusionCode)
                && line.ExtrusionCode.StartsWith("SUNDRY", StringComparison.OrdinalIgnoreCase);
 
         private void gridQuote_SelectionChanged(object sender, EventArgs e) => UpdatePriceBreakdown();
@@ -750,6 +750,11 @@ namespace QuotingTool.Forms
             gridQuote.EndEdit();
         }
 
+        /// <summary>
+        /// Converts pasted clipboard values into the grid's expected typed values.
+        /// Numeric fields accept both invariant-culture and current-culture decimal input so
+        /// pasted Excel data works for users with different decimal separators.
+        /// </summary>
         private static object ConvertClipboardValue(string propertyName, string value)
         {
             value = value.Trim();

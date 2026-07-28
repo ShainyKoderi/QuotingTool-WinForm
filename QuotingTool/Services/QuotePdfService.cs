@@ -24,8 +24,8 @@ namespace QuotingTool.Services
                 .ThenBy(l => l.RowInBlock)
                 .ToList();
             var total = lines.Sum(l => l.TotalPrice);
-            var finish = string.IsNullOrWhiteSpace(project.FinishName) ? project.FinishType : project.FinishName;
-            var quotedBy = string.IsNullOrWhiteSpace(project.AccountManager) ? project.QuotedBy : project.AccountManager;
+            var finish = GetFinishDisplay(project);
+            var quotedBy = GetQuotedByDisplay(project);
             var header = GetRegionalHeader(project.Region);
             var logo = GetLocalLogoLabel(project);
 
@@ -173,6 +173,12 @@ namespace QuotingTool.Services
 
         public static string GetRegionalHeader(string region)
             => string.IsNullOrWhiteSpace(region) ? "CAPRAL ALUMINIUM" : $"CAPRAL ALUMINIUM - {region.ToUpperInvariant()}";
+
+        public static string GetFinishDisplay(Project project)
+            => string.IsNullOrWhiteSpace(project.FinishName) ? project.FinishType : project.FinishName;
+
+        public static string GetQuotedByDisplay(Project project)
+            => string.IsNullOrWhiteSpace(project.AccountManager) ? project.QuotedBy : project.AccountManager;
 
         public static string GetLocalLogoLabel(Project project)
         {

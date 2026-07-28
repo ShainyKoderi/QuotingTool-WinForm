@@ -68,14 +68,12 @@ namespace QuotingTool.Forms
             lblAttentionValue.Text = string.IsNullOrWhiteSpace(_project.AttentionTo) ? _project.Attention : _project.AttentionTo;
             lblDateValue.Text = (_project.RevisionDate ?? DateTime.Today).ToString("dd MMMM yyyy");
             lblReValue.Text = _project.ProjectName;
-            lblColourValue.Text = string.IsNullOrWhiteSpace(_project.FinishName) ? _project.FinishType : _project.FinishName;
+            lblColourValue.Text = QuotePdfService.GetFinishDisplay(_project);
             lblProjectPriceValue.Text = _projectPrice.ToString("C2");
             lblDeliveryValue.Text = "Shown on the Quote PDF";
             lblFooterLeft.Text = "All prices exclude GST";
             lblFooterRight.Text = $"Quote valid for {(_project.QuoteValidity ?? "30 days")}";
-            lblAccountManager.Text = string.IsNullOrWhiteSpace(_project.AccountManager)
-                ? string.IsNullOrWhiteSpace(_project.QuotedBy) ? string.Empty : _project.QuotedBy
-                : _project.AccountManager;
+            lblAccountManager.Text = QuotePdfService.GetQuotedByDisplay(_project);
             lblLocalLogoValue.Text = QuotePdfService.GetLocalLogoLabel(_project);
             lblLetterBody.Text = LetterBodyText;
             lblTerms.Text = "Standard terms and conditions apply. Please review Capral Limited's standard conditions of sale before ordering.\n\nDelivery timing, final quantities, and any project-specific variations remain subject to written confirmation and acceptance by Capral Limited.";

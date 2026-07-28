@@ -99,7 +99,7 @@ namespace QuotingTool.Forms
             if (string.IsNullOrWhiteSpace(_monthlyUpdatePassword))
             {
                 MessageBox.Show(
-                    "Monthly update password is not configured. Set QUOTINGTOOL_MONTHLY_UPDATE_PASSWORD or Security:MonthlyUpdatePassword in appsettings.json.",
+                    "Monthly update password is not configured. Set QUOTINGTOOL_MONTHLY_UPDATE_PASSWORD (takes precedence) or Security:MonthlyUpdatePassword in appsettings.json.",
                     "Monthly Update", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
