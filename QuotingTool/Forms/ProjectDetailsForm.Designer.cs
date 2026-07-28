@@ -54,7 +54,6 @@ namespace QuotingTool.Forms
             cmbGenerateMillFinishAlternative = new ComboBox();
             lblQuoteValidity = new Label();
             txtQuoteValidity = new TextBox();
-            btnImportCre8 = new Button();
             btnSave = new Button();
             pnlScroll.SuspendLayout();
             SuspendLayout();
@@ -103,7 +102,6 @@ namespace QuotingTool.Forms
             pnlScroll.Controls.Add(cmbGenerateMillFinishAlternative);
             pnlScroll.Controls.Add(lblQuoteValidity);
             pnlScroll.Controls.Add(txtQuoteValidity);
-            pnlScroll.Controls.Add(btnImportCre8);
             pnlScroll.Controls.Add(btnSave);
             pnlScroll.Dock = DockStyle.Fill;
             pnlScroll.Location = new Point(0, 0);
@@ -457,15 +455,6 @@ namespace QuotingTool.Forms
             txtQuoteValidity.TabIndex = 44;
             txtQuoteValidity.Text = "30 days";
             // 
-            // btnImportCre8
-            // 
-            btnImportCre8.Location = new Point(412, 14);
-            btnImportCre8.Name = "btnImportCre8";
-            btnImportCre8.Size = new Size(128, 30);
-            btnImportCre8.TabIndex = 49;
-            btnImportCre8.Text = "Import CRE8";
-            btnImportCre8.Click += btnImportCre8_Click;
-            // 
             // btnSave
             // 
             btnSave.BackColor = Color.FromArgb(0, 120, 215);
@@ -534,7 +523,6 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.ComboBox cmbGenerateMillFinishAlternative;
         private System.Windows.Forms.Label lblQuoteValidity;
         private System.Windows.Forms.TextBox txtQuoteValidity;
-        private System.Windows.Forms.Button btnImportCre8;
         private System.Windows.Forms.Button btnSave;
     }
 }

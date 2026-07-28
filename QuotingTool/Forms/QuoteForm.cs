@@ -19,6 +19,8 @@ namespace QuotingTool.Forms
         private readonly SapExportService _sapExport;
         private readonly BomService _bom;
         private readonly QuotePdfService _quotePdf;
+        private readonly Cre8ImportService _cre8Import;
+        private readonly ImportPricesService _importPrices;
         private const int MaxQuotePages = 6;
         private const int MaxRowsPerPage = 40;
         private const int MaxQuoteLines = MaxQuotePages * MaxRowsPerPage;
@@ -53,6 +55,8 @@ namespace QuotingTool.Forms
             _sapExport = new SapExportService(db);
             _bom = new BomService(db);
             _quotePdf = new QuotePdfService(db);
+            _cre8Import = new Cre8ImportService(db);
+            _importPrices = new ImportPricesService(db);
             InitializeComponent();
             LoadExtrusionMaster();
             LoadIPMasterData();
@@ -642,10 +646,21 @@ namespace QuotingTool.Forms
                 return;
             }
 
+            // Ask whether this is a CRE8 Extrusion PO or a regular BOM / quote lines file
+            var isCre8 = MessageBox.Show(
+                "Is this a CRE8 Extrusion PO file?\n\nClick 'Yes' for CRE8 PO, or 'No' for regular quote lines / BOM.",
+                "Import Type",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question) == DialogResult.Yes;
+
+            string fileFilter = isCre8
+                ? "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*"
+                : "BOM files (*.csv;*.xlsx;*.xlsm)|*.csv;*.xlsx;*.xlsm|CSV Files (*.csv)|*.csv|Excel Files (*.xlsx;*.xlsm)|*.xlsx;*.xlsm";
+
             using var ofd = new OpenFileDialog
             {
-                Filter = "BOM files (*.csv;*.xlsx;*.xlsm)|*.csv;*.xlsx;*.xlsm|CSV Files (*.csv)|*.csv|Excel Files (*.xlsx;*.xlsm)|*.xlsx;*.xlsm",
-                Title = "Import quote lines"
+                Filter = fileFilter,
+                Title  = isCre8 ? "Import CRE8 Extrusion PO" : "Import quote lines"
             };
 
             if (ofd.ShowDialog(this) != DialogResult.OK)
@@ -653,12 +668,90 @@ namespace QuotingTool.Forms
 
             try
             {
-                int imported = ofd.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)
-                    ? _bom.ImportBomFromCsv(_projectId, ofd.FileName)
-                    : _bom.ImportBomFromWorkbook(_projectId, ofd.FileName);
+                int imported;
+                if (isCre8)
+                {
+                    // Import project-level details (customer, finish, etc.) from the CRE8 PO
+                    _cre8Import.ImportProjectDetails(_projectId, ofd.FileName);
+                    // Also treat the same file as a BOM to import the line items
+                    imported = _bom.ImportBomFromCsv(_projectId, ofd.FileName);
+                }
+                else
+                {
+                    imported = ofd.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)
+                        ? _bom.ImportBomFromCsv(_projectId, ofd.FileName)
+                        : _bom.ImportBomFromWorkbook(_projectId, ofd.FileName);
+                }
+
                 int distributed = _bom.DistributeBomToQuote(_projectId);
+
+                // Reload project settings so any CRE8-imported finish/SAP values are active
+                LoadProjectSettings();
                 RefreshGrid();
-                MessageBox.Show($"Imported {imported} BOM row(s) and distributed {distributed} row(s) to the quote.",
+
+                // ── Post-import dialog 1: Finish Summary ─────────────────────────────
+                var uniqueFinishes   = _bom.GetUniqueFinishes(_projectId);
+                var mostCommonFinish = _bom.GetMostCommonFinish(_projectId);
+
+                using (var summaryDlg = new ImportFinishSummaryDialog(mostCommonFinish, uniqueFinishes))
+                {
+                    summaryDlg.ShowDialog(this);
+
+                    // ── Post-import dialog 2 (conditional): Set Finish ────────────────
+                    if (summaryDlg.EditFinishColours)
+                    {
+                        var project = _db.GetProject(_projectId);
+                        if (project != null)
+                        {
+                            var colourGroups = _db.GetColourGroups().ToList();
+                            using var setFinishDlg = new ImportSetFinishDialog(
+                                colourGroups,
+                                project.FinishType,
+                                project.FinishApplicator,
+                                project.FinishGroup,
+                                project.FinishName,
+                                project.FinishSapCode);
+
+                            if (setFinishDlg.ShowDialog(this) == DialogResult.OK)
+                            {
+                                project.FinishType       = setFinishDlg.FinishType;
+                                project.FinishApplicator = setFinishDlg.FinishApplicator;
+                                project.FinishGroup      = setFinishDlg.FinishGroup;
+                                project.FinishName       = setFinishDlg.FinishName;
+                                project.FinishSapCode    = setFinishDlg.FinishSapCode;
+                                _db.UpdateProject(project);
+                                LoadProjectSettings();
+                                RefreshGrid();
+                            }
+                        }
+                    }
+                }
+
+                // ── Post-import dialog 3: Pricing ────────────────────────────────────
+                using (var pricingDlg = new ImportPricingDialog())
+                {
+                    if (pricingDlg.ShowDialog(this) == DialogResult.OK)
+                    {
+                        if (pricingDlg.Choice == ImportPricingChoice.UseImportedPrices)
+                        {
+                            int pricesUpdated = _importPrices.ImportPricesToQuote(_projectId);
+                            RefreshGrid();
+                            MessageBox.Show(
+                                $"Applied {pricesUpdated} imported price(s) to the quote.\n" +
+                                "Use 'Reset Price Formulas' to return to calculated pricing.",
+                                "Import Prices", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else if (pricingDlg.Choice == ImportPricingChoice.Yes)
+                        {
+                            MessageBox.Show(
+                                "Switch to the Edit Pricing tab to review and adjust pricing.",
+                                "Edit Pricing", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                }
+
+                MessageBox.Show(
+                    $"Imported {imported} row(s) and distributed {distributed} to the quote.",
                     "Import Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)

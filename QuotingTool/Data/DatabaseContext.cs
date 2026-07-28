@@ -343,6 +343,22 @@ namespace QuotingTool.Data
                 new { projectId, pageBlock, rowInBlock, price });
         }
 
+        public void UpdateQuoteLineManualPriceOverride(int projectId, int pageBlock, int rowInBlock, decimal? manualPriceOverride)
+        {
+            using var conn = GetConnection();
+            conn.Execute(
+                "UPDATE QuoteLines SET ManualPriceOverride=@manualPriceOverride WHERE ProjectId=@projectId AND PageBlock=@pageBlock AND RowInBlock=@rowInBlock",
+                new { projectId, pageBlock, rowInBlock, manualPriceOverride });
+        }
+
+        public void ClearAllManualPriceOverrides(int projectId)
+        {
+            using var conn = GetConnection();
+            conn.Execute(
+                "UPDATE QuoteLines SET ManualPriceOverride=NULL WHERE ProjectId=@projectId",
+                new { projectId });
+        }
+
         public void UpdateQuoteLineLengthM(int projectId, int pageBlock, int rowInBlock, decimal lengthM)
         {
             using var conn = GetConnection();

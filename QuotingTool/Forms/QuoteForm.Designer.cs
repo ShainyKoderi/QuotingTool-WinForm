@@ -69,7 +69,7 @@ namespace QuotingTool.Forms
 
             btnImportQuoteLines.Location = new System.Drawing.Point(330, 80);
             btnImportQuoteLines.Size = new System.Drawing.Size(120, 28);
-            btnImportQuoteLines.Text = "Import BOM";
+            btnImportQuoteLines.Text = "Import...";
             btnImportQuoteLines.Click += new System.EventHandler(btnImportQuoteLines_Click);
 
             btnExportQuote.Location = new System.Drawing.Point(460, 80);
