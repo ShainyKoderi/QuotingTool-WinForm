@@ -13,8 +13,6 @@ namespace QuotingTool.Forms
         private void InitializeComponent()
         {
             pnlButtons = new Panel();
-            btnPrintLetter = new Button();
-            btnSavePdf = new Button();
             btnRefresh = new Button();
             pnlPreview = new Panel();
             lblBrand = new Label();
@@ -39,6 +37,7 @@ namespace QuotingTool.Forms
             lblTerms = new Label();
             lblAccountManager = new Label();
             lblTitle = new Label();
+            lblLocalLogoValue = new Label();
             pnlButtons.SuspendLayout();
             pnlPreview.SuspendLayout();
             SuspendLayout();
@@ -46,39 +45,19 @@ namespace QuotingTool.Forms
             // pnlButtons
             // 
             pnlButtons.Controls.Add(lblTitle);
-            pnlButtons.Controls.Add(btnPrintLetter);
-            pnlButtons.Controls.Add(btnSavePdf);
             pnlButtons.Controls.Add(btnRefresh);
             pnlButtons.Dock = DockStyle.Top;
             pnlButtons.Location = new Point(0, 0);
             pnlButtons.Name = "pnlButtons";
-            pnlButtons.Size = new Size(900, 74);
+            pnlButtons.Size = new Size(900, 52);
             pnlButtons.TabIndex = 1;
-            // 
-            // btnPrintLetter
-            // 
-            btnPrintLetter.Location = new Point(12, 40);
-            btnPrintLetter.Name = "btnPrintLetter";
-            btnPrintLetter.Size = new Size(100, 28);
-            btnPrintLetter.TabIndex = 0;
-            btnPrintLetter.Text = "Print Letter";
-            btnPrintLetter.Click += btnPrintLetter_Click;
-            // 
-            // btnSavePdf
-            // 
-            btnSavePdf.Location = new Point(118, 40);
-            btnSavePdf.Name = "btnSavePdf";
-            btnSavePdf.Size = new Size(100, 28);
-            btnSavePdf.TabIndex = 1;
-            btnSavePdf.Text = "Save as PDF";
-            btnSavePdf.Click += btnSavePdf_Click;
             // 
             // btnRefresh
             // 
-            btnRefresh.Location = new Point(224, 40);
+            btnRefresh.Location = new Point(12, 12);
             btnRefresh.Name = "btnRefresh";
             btnRefresh.Size = new Size(90, 28);
-            btnRefresh.TabIndex = 2;
+            btnRefresh.TabIndex = 0;
             btnRefresh.Text = "Refresh";
             btnRefresh.Click += btnRefresh_Click;
             // 
@@ -108,10 +87,11 @@ namespace QuotingTool.Forms
             pnlPreview.Controls.Add(lblFooterRight);
             pnlPreview.Controls.Add(lblTerms);
             pnlPreview.Controls.Add(lblAccountManager);
+            pnlPreview.Controls.Add(lblLocalLogoValue);
             pnlPreview.Dock = DockStyle.Fill;
-            pnlPreview.Location = new Point(0, 74);
+            pnlPreview.Location = new Point(0, 52);
             pnlPreview.Name = "pnlPreview";
-            pnlPreview.Size = new Size(900, 726);
+            pnlPreview.Size = new Size(900, 748);
             pnlPreview.TabIndex = 0;
             // 
             // lblBrand
@@ -121,7 +101,7 @@ namespace QuotingTool.Forms
             lblBrand.ForeColor = Color.Teal;
             lblBrand.Location = new Point(32, 24);
             lblBrand.Name = "lblBrand";
-            lblBrand.Size = new Size(233, 30);
+            lblBrand.Size = new Size(310, 30);
             lblBrand.TabIndex = 0;
             lblBrand.Text = "CAPRAL ALUMINIUM";
             // 
@@ -145,7 +125,7 @@ namespace QuotingTool.Forms
             // 
             lblToValue.Location = new Point(140, 130);
             lblToValue.Name = "lblToValue";
-            lblToValue.Size = new Size(100, 23);
+            lblToValue.Size = new Size(500, 23);
             lblToValue.TabIndex = 3;
             // 
             // lblAttention
@@ -159,7 +139,7 @@ namespace QuotingTool.Forms
             // 
             lblAttentionValue.Location = new Point(140, 158);
             lblAttentionValue.Name = "lblAttentionValue";
-            lblAttentionValue.Size = new Size(100, 23);
+            lblAttentionValue.Size = new Size(500, 23);
             lblAttentionValue.TabIndex = 5;
             // 
             // lblDate
@@ -173,7 +153,7 @@ namespace QuotingTool.Forms
             // 
             lblDateValue.Location = new Point(140, 186);
             lblDateValue.Name = "lblDateValue";
-            lblDateValue.Size = new Size(100, 23);
+            lblDateValue.Size = new Size(500, 23);
             lblDateValue.TabIndex = 7;
             // 
             // lblRe
@@ -187,7 +167,7 @@ namespace QuotingTool.Forms
             // 
             lblReValue.Location = new Point(140, 214);
             lblReValue.Name = "lblReValue";
-            lblReValue.Size = new Size(100, 23);
+            lblReValue.Size = new Size(500, 23);
             lblReValue.TabIndex = 9;
             // 
             // lblLetterBody
@@ -231,7 +211,7 @@ namespace QuotingTool.Forms
             // 
             lblDelivery.Location = new Point(32, 576);
             lblDelivery.Name = "lblDelivery";
-            lblDelivery.Size = new Size(100, 23);
+            lblDelivery.Size = new Size(120, 23);
             lblDelivery.TabIndex = 15;
             // 
             // lblDeliveryValue
@@ -277,14 +257,24 @@ namespace QuotingTool.Forms
             lblAccountManager.Size = new Size(0, 15);
             lblAccountManager.TabIndex = 20;
             // 
+            // lblLocalLogoValue
+            // 
+            lblLocalLogoValue.AutoSize = true;
+            lblLocalLogoValue.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblLocalLogoValue.ForeColor = Color.DarkGreen;
+            lblLocalLogoValue.Location = new Point(32, 64);
+            lblLocalLogoValue.Name = "lblLocalLogoValue";
+            lblLocalLogoValue.Size = new Size(0, 15);
+            lblLocalLogoValue.TabIndex = 21;
+            // 
             // lblTitle
             // 
             lblTitle.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
-            lblTitle.Location = new Point(14, 5);
+            lblTitle.Location = new Point(14, 10);
             lblTitle.Name = "lblTitle";
-            lblTitle.Size = new Size(300, 30);
+            lblTitle.Size = new Size(420, 30);
             lblTitle.TabIndex = 3;
-            lblTitle.Text = "4. QuoteLetter";
+            lblTitle.Text = "4. Quote Letter Preview";
             // 
             // QuoteLetterForm
             // 
@@ -312,8 +302,6 @@ namespace QuotingTool.Forms
         }
 
         private System.Windows.Forms.Panel pnlButtons;
-        private System.Windows.Forms.Button btnPrintLetter;
-        private System.Windows.Forms.Button btnSavePdf;
         private System.Windows.Forms.Button btnRefresh;
         private System.Windows.Forms.Panel pnlPreview;
         private System.Windows.Forms.Label lblBrand;
@@ -338,5 +326,6 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.Label lblTerms;
         private System.Windows.Forms.Label lblAccountManager;
         private Label lblTitle;
+        private Label lblLocalLogoValue;
     }
 }

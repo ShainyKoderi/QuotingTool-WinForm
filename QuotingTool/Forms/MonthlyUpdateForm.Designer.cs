@@ -21,6 +21,7 @@ namespace QuotingTool.Forms
             this.txtBilletPremium = new System.Windows.Forms.TextBox();
             this.btnOpen         = new System.Windows.Forms.Button();
             this.btnClose        = new System.Windows.Forms.Button();
+            this.btnUnlock       = new System.Windows.Forms.Button();
             this.lblStatus       = new System.Windows.Forms.Label();
             this.grpMatrix       = new System.Windows.Forms.GroupBox();
             this.gridPricingMatrix = new System.Windows.Forms.DataGridView();
@@ -36,7 +37,7 @@ namespace QuotingTool.Forms
             this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
             this.lblTitle.Location = new System.Drawing.Point(10, 8);
             this.lblTitle.Size = new System.Drawing.Size(400, 30);
-            this.lblTitle.Text = "5. Monthly Update";
+            this.lblTitle.Text = "6. Monthly Update";
 
             // Revision Date
             this.lblRevDate.AutoSize = true;
@@ -67,6 +68,12 @@ namespace QuotingTool.Forms
             this.txtBilletPremium.Size = new System.Drawing.Size(150, 23);
 
             // Buttons
+            this.btnUnlock.Location = new System.Drawing.Point(430, 165);
+            this.btnUnlock.Name = "btnUnlock";
+            this.btnUnlock.Size = new System.Drawing.Size(200, 30);
+            this.btnUnlock.Text = "Unlock Admin Settings";
+            this.btnUnlock.Click += new System.EventHandler(this.btnUnlock_Click);
+
             this.btnOpen.Location = new System.Drawing.Point(10, 165);
             this.btnOpen.Name = "btnOpen";
             this.btnOpen.Size = new System.Drawing.Size(200, 30);
@@ -91,7 +98,7 @@ namespace QuotingTool.Forms
                 this.lblTitle, this.lblRevDate, this.dtpRevisionDate,
                 this.lblLMERate, this.txtLMERate,
                 this.lblBillet, this.txtBilletPremium,
-                this.btnOpen, this.btnClose, this.lblStatus
+                this.btnOpen, this.btnClose, this.btnUnlock, this.lblStatus
             });
             this.pnlTop.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlTop.Height = 240;
@@ -134,6 +141,7 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.TextBox txtBilletPremium;
         private System.Windows.Forms.Button btnOpen;
         private System.Windows.Forms.Button btnClose;
+        private System.Windows.Forms.Button btnUnlock;
         private System.Windows.Forms.Label lblStatus;
         private System.Windows.Forms.GroupBox grpMatrix;
         private System.Windows.Forms.DataGridView gridPricingMatrix;

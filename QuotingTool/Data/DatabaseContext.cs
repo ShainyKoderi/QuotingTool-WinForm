@@ -271,16 +271,17 @@ namespace QuotingTool.Data
                       SubsillFlag=@SubsillFlag, SubsillSurcharge=@SubsillSurcharge,
                       SapColourCode=@SapColourCode, IgnoreFinish=@IgnoreFinish,
                       Alloy=@Alloy, Temper=@Temper, TotalPrice=@TotalPrice, LineNumber=@LineNumber,
+                      ManualPriceOverride=@ManualPriceOverride,
                       IpGrade=@IpGrade
                       WHERE ProjectId=@ProjectId AND PageBlock=@PageBlock AND RowInBlock=@RowInBlock", line);
             else
                 conn.Execute(
                     @"INSERT INTO QuoteLines (ProjectId,PageBlock,RowInBlock,ExtrusionCode,Description,
                       Quantity,LengthM,Price,SellPrice,SubsillFlag,SubsillSurcharge,
-                      SapColourCode,IgnoreFinish,Alloy,Temper,TotalPrice,LineNumber,IpGrade)
+                      SapColourCode,IgnoreFinish,Alloy,Temper,TotalPrice,LineNumber,ManualPriceOverride,IpGrade)
                       VALUES (@ProjectId,@PageBlock,@RowInBlock,@ExtrusionCode,@Description,
                       @Quantity,@LengthM,@Price,@SellPrice,@SubsillFlag,@SubsillSurcharge,
-                      @SapColourCode,@IgnoreFinish,@Alloy,@Temper,@TotalPrice,@LineNumber,@IpGrade)", line);
+                      @SapColourCode,@IgnoreFinish,@Alloy,@Temper,@TotalPrice,@LineNumber,@ManualPriceOverride,@IpGrade)", line);
         }
 
         public void DeleteQuoteLines(int projectId)

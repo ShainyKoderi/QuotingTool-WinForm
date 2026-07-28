@@ -20,10 +20,6 @@ namespace QuotingTool.Forms
             txtProjectName = new TextBox();
             lblRevDate = new Label();
             dtpRevisionDate = new DateTimePicker();
-            lblLME = new Label();
-            txtLMERate = new TextBox();
-            lblBillet = new Label();
-            txtBilletPremium = new TextBox();
             lblRegion = new Label();
             cmbRegion = new ComboBox();
             lblQuotedBy = new Label();
@@ -43,9 +39,9 @@ namespace QuotingTool.Forms
             lblFinishApplicator = new Label();
             cmbFinishApplicator = new ComboBox();
             lblFinishGroup = new Label();
-            txtFinishGroup = new TextBox();
+            cmbFinishGroup = new ComboBox();
             lblFinishName = new Label();
-            txtFinishName = new TextBox();
+            cmbFinishName = new ComboBox();
             lblFinishCustom = new Label();
             txtFinishCustomName = new TextBox();
             lblSapCode = new Label();
@@ -58,10 +54,6 @@ namespace QuotingTool.Forms
             cmbGenerateMillFinishAlternative = new ComboBox();
             lblQuoteValidity = new Label();
             txtQuoteValidity = new TextBox();
-            lblCustomerSapDiscount = new Label();
-            txtCustomerSapDiscount = new TextBox();
-            lblDeliveryCharge = new Label();
-            txtDeliveryCharge = new TextBox();
             btnImportCre8 = new Button();
             btnSave = new Button();
             pnlScroll.SuspendLayout();
@@ -77,10 +69,6 @@ namespace QuotingTool.Forms
             pnlScroll.Controls.Add(txtProjectName);
             pnlScroll.Controls.Add(lblRevDate);
             pnlScroll.Controls.Add(dtpRevisionDate);
-            pnlScroll.Controls.Add(lblLME);
-            pnlScroll.Controls.Add(txtLMERate);
-            pnlScroll.Controls.Add(lblBillet);
-            pnlScroll.Controls.Add(txtBilletPremium);
             pnlScroll.Controls.Add(lblRegion);
             pnlScroll.Controls.Add(cmbRegion);
             pnlScroll.Controls.Add(lblQuotedBy);
@@ -100,9 +88,9 @@ namespace QuotingTool.Forms
             pnlScroll.Controls.Add(lblFinishApplicator);
             pnlScroll.Controls.Add(cmbFinishApplicator);
             pnlScroll.Controls.Add(lblFinishGroup);
-            pnlScroll.Controls.Add(txtFinishGroup);
+            pnlScroll.Controls.Add(cmbFinishGroup);
             pnlScroll.Controls.Add(lblFinishName);
-            pnlScroll.Controls.Add(txtFinishName);
+            pnlScroll.Controls.Add(cmbFinishName);
             pnlScroll.Controls.Add(lblFinishCustom);
             pnlScroll.Controls.Add(txtFinishCustomName);
             pnlScroll.Controls.Add(lblSapCode);
@@ -115,10 +103,6 @@ namespace QuotingTool.Forms
             pnlScroll.Controls.Add(cmbGenerateMillFinishAlternative);
             pnlScroll.Controls.Add(lblQuoteValidity);
             pnlScroll.Controls.Add(txtQuoteValidity);
-            pnlScroll.Controls.Add(lblCustomerSapDiscount);
-            pnlScroll.Controls.Add(txtCustomerSapDiscount);
-            pnlScroll.Controls.Add(lblDeliveryCharge);
-            pnlScroll.Controls.Add(txtDeliveryCharge);
             pnlScroll.Controls.Add(btnImportCre8);
             pnlScroll.Controls.Add(btnSave);
             pnlScroll.Dock = DockStyle.Fill;
@@ -184,42 +168,6 @@ namespace QuotingTool.Forms
             dtpRevisionDate.Name = "dtpRevisionDate";
             dtpRevisionDate.Size = new Size(102, 23);
             dtpRevisionDate.TabIndex = 6;
-            // 
-            // lblLME
-            // 
-            lblLME.AutoSize = true;
-            lblLME.Location = new Point(462, 166);
-            lblLME.Name = "lblLME";
-            lblLME.Size = new Size(121, 15);
-            lblLME.TabIndex = 7;
-            lblLME.Text = "LME Rate (read-only):";
-            // 
-            // txtLMERate
-            // 
-            txtLMERate.BackColor = SystemColors.Control;
-            txtLMERate.Location = new Point(603, 162);
-            txtLMERate.Name = "txtLMERate";
-            txtLMERate.ReadOnly = true;
-            txtLMERate.Size = new Size(68, 23);
-            txtLMERate.TabIndex = 8;
-            // 
-            // lblBillet
-            // 
-            lblBillet.AutoSize = true;
-            lblBillet.Location = new Point(452, 196);
-            lblBillet.Name = "lblBillet";
-            lblBillet.Size = new Size(150, 15);
-            lblBillet.TabIndex = 9;
-            lblBillet.Text = "Billet Premium (read-only):";
-            // 
-            // txtBilletPremium
-            // 
-            txtBilletPremium.BackColor = SystemColors.Control;
-            txtBilletPremium.Location = new Point(603, 192);
-            txtBilletPremium.Name = "txtBilletPremium";
-            txtBilletPremium.ReadOnly = true;
-            txtBilletPremium.Size = new Size(68, 23);
-            txtBilletPremium.TabIndex = 10;
             // 
             // lblRegion
             // 
@@ -382,12 +330,13 @@ namespace QuotingTool.Forms
             lblFinishGroup.TabIndex = 29;
             lblFinishGroup.Text = "Finish Group:";
             // 
-            // txtFinishGroup
+            // cmbFinishGroup
             // 
-            txtFinishGroup.Location = new Point(141, 480);
-            txtFinishGroup.Name = "txtFinishGroup";
-            txtFinishGroup.Size = new Size(285, 23);
-            txtFinishGroup.TabIndex = 30;
+            cmbFinishGroup.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbFinishGroup.Location = new Point(141, 480);
+            cmbFinishGroup.Name = "cmbFinishGroup";
+            cmbFinishGroup.Size = new Size(285, 23);
+            cmbFinishGroup.TabIndex = 30;
             // 
             // lblFinishName
             // 
@@ -398,12 +347,13 @@ namespace QuotingTool.Forms
             lblFinishName.TabIndex = 31;
             lblFinishName.Text = "Finish Name:";
             // 
-            // txtFinishName
+            // cmbFinishName
             // 
-            txtFinishName.Location = new Point(141, 510);
-            txtFinishName.Name = "txtFinishName";
-            txtFinishName.Size = new Size(285, 23);
-            txtFinishName.TabIndex = 32;
+            cmbFinishName.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbFinishName.Location = new Point(141, 510);
+            cmbFinishName.Name = "cmbFinishName";
+            cmbFinishName.Size = new Size(285, 23);
+            cmbFinishName.TabIndex = 32;
             // 
             // lblFinishCustom
             // 
@@ -448,7 +398,8 @@ namespace QuotingTool.Forms
             // 
             // cmbThresholdChoice
             // 
-            cmbThresholdChoice.Items.AddRange(new object[] { "No", "Anodised Thresholds", "20um Clear", "25um Clear" });
+            cmbThresholdChoice.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbThresholdChoice.Items.AddRange(new object[] { "Project Colour", "20um Clear", "25um Clear" });
             cmbThresholdChoice.Location = new Point(141, 569);
             cmbThresholdChoice.Name = "cmbThresholdChoice";
             cmbThresholdChoice.Size = new Size(285, 23);
@@ -506,39 +457,6 @@ namespace QuotingTool.Forms
             txtQuoteValidity.TabIndex = 44;
             txtQuoteValidity.Text = "30 days";
             // 
-            // lblCustomerSapDiscount
-            // 
-            lblCustomerSapDiscount.AutoSize = true;
-            lblCustomerSapDiscount.Location = new Point(462, 251);
-            lblCustomerSapDiscount.Name = "lblCustomerSapDiscount";
-            lblCustomerSapDiscount.Size = new Size(149, 15);
-            lblCustomerSapDiscount.TabIndex = 45;
-            lblCustomerSapDiscount.Text = "Customer SAP Discount %:";
-            // 
-            // txtCustomerSapDiscount
-            // 
-            txtCustomerSapDiscount.Location = new Point(462, 269);
-            txtCustomerSapDiscount.Name = "txtCustomerSapDiscount";
-            txtCustomerSapDiscount.Size = new Size(140, 23);
-            txtCustomerSapDiscount.TabIndex = 46;
-            // 
-            // lblDeliveryCharge
-            // 
-            lblDeliveryCharge.AutoSize = true;
-            lblDeliveryCharge.Location = new Point(455, 224);
-            lblDeliveryCharge.Name = "lblDeliveryCharge";
-            lblDeliveryCharge.Size = new Size(93, 15);
-            lblDeliveryCharge.TabIndex = 47;
-            lblDeliveryCharge.Text = "Delivery Charge:";
-            // 
-            // txtDeliveryCharge
-            // 
-            txtDeliveryCharge.Location = new Point(548, 221);
-            txtDeliveryCharge.Name = "txtDeliveryCharge";
-            txtDeliveryCharge.Size = new Size(123, 23);
-            txtDeliveryCharge.TabIndex = 48;
-            txtDeliveryCharge.Text = "97.00";
-            // 
             // btnImportCre8
             // 
             btnImportCre8.Location = new Point(412, 14);
@@ -582,10 +500,6 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.TextBox txtProjectName;
         private System.Windows.Forms.Label lblRevDate;
         private System.Windows.Forms.DateTimePicker dtpRevisionDate;
-        private System.Windows.Forms.Label lblLME;
-        private System.Windows.Forms.TextBox txtLMERate;
-        private System.Windows.Forms.Label lblBillet;
-        private System.Windows.Forms.TextBox txtBilletPremium;
         private System.Windows.Forms.Label lblRegion;
         private System.Windows.Forms.ComboBox cmbRegion;
         private System.Windows.Forms.Label lblQuotedBy;
@@ -605,9 +519,9 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.Label lblFinishApplicator;
         private System.Windows.Forms.ComboBox cmbFinishApplicator;
         private System.Windows.Forms.Label lblFinishGroup;
-        private System.Windows.Forms.TextBox txtFinishGroup;
+        private System.Windows.Forms.ComboBox cmbFinishGroup;
         private System.Windows.Forms.Label lblFinishName;
-        private System.Windows.Forms.TextBox txtFinishName;
+        private System.Windows.Forms.ComboBox cmbFinishName;
         private System.Windows.Forms.Label lblFinishCustom;
         private System.Windows.Forms.TextBox txtFinishCustomName;
         private System.Windows.Forms.Label lblSapCode;
@@ -620,10 +534,6 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.ComboBox cmbGenerateMillFinishAlternative;
         private System.Windows.Forms.Label lblQuoteValidity;
         private System.Windows.Forms.TextBox txtQuoteValidity;
-        private System.Windows.Forms.Label lblCustomerSapDiscount;
-        private System.Windows.Forms.TextBox txtCustomerSapDiscount;
-        private System.Windows.Forms.Label lblDeliveryCharge;
-        private System.Windows.Forms.TextBox txtDeliveryCharge;
         private System.Windows.Forms.Button btnImportCre8;
         private System.Windows.Forms.Button btnSave;
     }

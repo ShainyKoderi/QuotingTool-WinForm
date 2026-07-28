@@ -96,22 +96,25 @@ namespace QuotingTool.Forms
                 muf.LoadProject(CurrentProjectId);
             if (quoteLetterTab.Controls.Count > 0 && quoteLetterTab.Controls[0] is QuoteLetterForm qlf)
                 qlf.LoadProject(CurrentProjectId);
-            if (noPricingTab.Controls.Count > 0 && noPricingTab.Controls[0] is QuoteNoPricingForm qnp)
-                qnp.LoadProject(CurrentProjectId);
         }
 
         private void btnNewProject_Click(object sender, EventArgs e)
         {
+            using var dialog = new NewQuoteDialog();
+            if (dialog.ShowDialog(this) != DialogResult.OK)
+                return;
+
             int newId = _db.CreateProject(new Project
             {
-                CustomerName = "New Customer",
-                ProjectName = "New Project",
-                RevisionDate = DateTime.Today
+                CustomerName = dialog.CustomerName,
+                ProjectName = dialog.ProjectName,
+                Region = dialog.SelectedRegion,
+                RevisionDate = dialog.QuoteDate
             });
             _db.UpsertEditPricing(new EditPricing { ProjectId = newId });
             SetCurrentProject(newId);
             _nav.NavigateTo("Project Details", tabControl);
-            MessageBox.Show($"New project created (ID {newId}).", "New Project", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"New quote created (ID {newId}).", "New Quote", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnOpenProject_Click(object sender, EventArgs e)

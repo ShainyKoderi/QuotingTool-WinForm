@@ -67,6 +67,7 @@ namespace QuotingTool.Data
         public string Temper { get; set; } = string.Empty;          // col F (auto)
         public decimal TotalPrice { get; set; }
         public int LineNumber { get; set; }
+        public decimal? ManualPriceOverride { get; set; }
         // Col AV: IP (Ingress Protection) grade for this line (0 = none, 1-3 = IP1/IP2/IP3 panoramic).
         // Auto-computed from the section's PH code via IPMasterData; can be overridden by the user.
         public int IpGrade { get; set; }

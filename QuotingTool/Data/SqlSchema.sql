@@ -301,6 +301,7 @@ IF COL_LENGTH('Projects','CustomerSapDiscount') IS NULL ALTER TABLE Projects ADD
 IF COL_LENGTH('QuoteLines','TotalPrice') IS NULL ALTER TABLE QuoteLines ADD TotalPrice DECIMAL(18,4) DEFAULT 0;
 IF COL_LENGTH('QuoteLines','LineNumber') IS NULL ALTER TABLE QuoteLines ADD LineNumber INT DEFAULT 0;
 IF COL_LENGTH('QuoteLines','IpGrade') IS NULL ALTER TABLE QuoteLines ADD IpGrade INT DEFAULT 0;
+IF COL_LENGTH('QuoteLines','ManualPriceOverride') IS NULL ALTER TABLE QuoteLines ADD ManualPriceOverride DECIMAL(18,4) NULL;
 
 -- Add missing columns to EditPricing
 IF COL_LENGTH('EditPricing','PricingNotes') IS NULL ALTER TABLE EditPricing ADD PricingNotes NVARCHAR(2000);
