@@ -1,7 +1,6 @@
 using System;
 using System.Windows.Forms;
 using QuotingTool.Data;
-using QuotingTool.Services;
 
 namespace QuotingTool.Forms
 {
@@ -12,7 +11,6 @@ namespace QuotingTool.Forms
         private const string ProjectColourThresholdOption = "Project Colour";
 
         private readonly DatabaseContext _db;
-        private readonly Cre8ImportService _cre8Import;
         private List<ColourGroup> _colourGroups = new();
         private int _projectId;
         private bool _loadingProject;
@@ -20,7 +18,6 @@ namespace QuotingTool.Forms
         public ProjectDetailsForm(DatabaseContext db)
         {
             _db = db;
-            _cre8Import = new Cre8ImportService(db);
             InitializeComponent();
             ConfigureLookups();
         }
@@ -95,34 +92,6 @@ namespace QuotingTool.Forms
         }
 
         private void btnSave_Click(object sender, EventArgs e) => SaveProject();
-
-        private void btnImportCre8_Click(object sender, EventArgs e)
-        {
-            if (_projectId <= 0)
-            {
-                MessageBox.Show("No project open.");
-                return;
-            }
-
-            using var ofd = new OpenFileDialog
-            {
-                Filter = "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*"
-            };
-
-            if (ofd.ShowDialog(this) != DialogResult.OK)
-                return;
-
-            try
-            {
-                var result = _cre8Import.ImportProjectDetails(_projectId, ofd.FileName);
-                LoadProject(_projectId);
-                MessageBox.Show(result.Message, "Import CRE8", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Import failed:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
 
         private static void SetComboOrText(ComboBox cmb, string value)
         {

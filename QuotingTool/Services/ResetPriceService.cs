@@ -16,7 +16,8 @@ namespace QuotingTool.Services
 
         /// <summary>
         /// Copies MasterFormulas.FormulaExpression (interpreted as a price value)
-        /// back to QuoteLines.Price for all 6 page blocks.
+        /// back to QuoteLines.Price for all 6 page blocks, and clears any
+        /// ManualPriceOverride values (including those set by "Use Imported Prices").
         /// </summary>
         /// <returns>Number of price cells reset.</returns>
         public int ResetPriceFormulas(int projectId)
@@ -32,6 +33,10 @@ namespace QuotingTool.Services
                     resetCount++;
                 }
             }
+
+            // Clear any manual price overrides (including those applied by "Use Imported Prices")
+            // so that price calculations return to the formula-driven values.
+            _db.ClearAllManualPriceOverrides(projectId);
 
             return resetCount;
         }

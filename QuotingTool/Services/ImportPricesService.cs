@@ -16,8 +16,10 @@ namespace QuotingTool.Services
         public ImportPricesService(DatabaseContext db) => _db = db;
 
         /// <summary>
-        /// Copies ImportedPrice from BomLines to QuoteLines.Price.
+        /// Copies ImportedPrice from BomLines to QuoteLines.ManualPriceOverride.
         /// Matches by RowNumber / (PageBlock + RowInBlock) ordering.
+        /// Setting ManualPriceOverride ensures prices are treated as overrides and
+        /// persist until the user explicitly resets price formulas.
         /// </summary>
         /// <returns>Number of prices updated.</returns>
         public int ImportPricesToQuote(int projectId)
@@ -36,8 +38,13 @@ namespace QuotingTool.Services
             {
                 var bom   = bomLines[i];
                 var quote = quoteLines[i];
-                _db.UpdateQuoteLinePrice(projectId, quote.PageBlock, quote.RowInBlock, bom.ImportedPrice);
-                updated++;
+                if (bom.ImportedPrice > 0)
+                {
+                    // Only apply non-zero imported prices; a zero ImportedPrice indicates
+                    // the PO did not supply a price for this line and the formula price should be used.
+                    _db.UpdateQuoteLineManualPriceOverride(projectId, quote.PageBlock, quote.RowInBlock, bom.ImportedPrice);
+                    updated++;
+                }
             }
 
             return updated;
