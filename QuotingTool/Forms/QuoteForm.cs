@@ -647,20 +647,24 @@ namespace QuotingTool.Forms
             }
 
             // Ask whether this is a CRE8 Extrusion PO or a regular BOM / quote lines file
-            var isCre8 = MessageBox.Show(
-                "Is this a CRE8 Extrusion PO file?\n\nClick 'Yes' for CRE8 PO, or 'No' for regular quote lines / BOM.",
-                "Import Type",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question) == DialogResult.Yes;
+            //var isCre8 = MessageBox.Show(
+            //    "Is this a CRE8 Extrusion PO file?\n\nClick 'Yes' for CRE8 PO, or 'No' for regular quote lines / BOM.",
+            //    "Import Type",
+            //    MessageBoxButtons.YesNo,
+            //    MessageBoxIcon.Question) == DialogResult.Yes;
 
-            string fileFilter = isCre8
-                ? "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*"
-                : "BOM files (*.csv;*.xlsx;*.xlsm)|*.csv;*.xlsx;*.xlsm|CSV Files (*.csv)|*.csv|Excel Files (*.xlsx;*.xlsm)|*.xlsx;*.xlsm";
+            //string fileFilter = isCre8
+            //    ? "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*"
+            //    : "BOM files (*.csv;*.xlsx;*.xlsm)|*.csv;*.xlsx;*.xlsm|CSV Files (*.csv)|*.csv|Excel Files (*.xlsx;*.xlsm)|*.xlsx;*.xlsm";
+
+            string fileFilter = "BOM files (*.csv;*.xlsx;*.xlsm)|*.csv;*.xlsx;*.xlsm|CSV Files (*.csv)|*.csv|Excel Files (*.xlsx;*.xlsm)|*.xlsx;*.xlsm";
+
 
             using var ofd = new OpenFileDialog
             {
                 Filter = fileFilter,
-                Title  = isCre8 ? "Import CRE8 Extrusion PO" : "Import quote lines"
+                //Title = isCre8 ? "Import CRE8 Extrusion PO" : "Import quote lines"
+                Title =  "Import quote lines"
             };
 
             if (ofd.ShowDialog(this) != DialogResult.OK)
@@ -669,19 +673,19 @@ namespace QuotingTool.Forms
             try
             {
                 int imported;
-                if (isCre8)
-                {
-                    // Import project-level details (customer, finish, etc.) from the CRE8 PO
-                    _cre8Import.ImportProjectDetails(_projectId, ofd.FileName);
-                    // Also treat the same file as a BOM to import the line items
-                    imported = _bom.ImportBomFromCsv(_projectId, ofd.FileName);
-                }
-                else
-                {
-                    imported = ofd.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)
+                //if (isCre8)
+                //{
+                //    // Import project-level details (customer, finish, etc.) from the CRE8 PO
+                //    _cre8Import.ImportProjectDetails(_projectId, ofd.FileName);
+                //    // Also treat the same file as a BOM to import the line items
+                //    imported = _bom.ImportBomFromCsv(_projectId, ofd.FileName);
+                //}
+                //else
+                //{
+                  imported = ofd.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)
                         ? _bom.ImportBomFromCsv(_projectId, ofd.FileName)
                         : _bom.ImportBomFromWorkbook(_projectId, ofd.FileName);
-                }
+               //}
 
                 int distributed = _bom.DistributeBomToQuote(_projectId);
 

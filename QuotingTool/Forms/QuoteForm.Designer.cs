@@ -12,143 +12,238 @@ namespace QuotingTool.Forms
 
         private void InitializeComponent()
         {
-            lblTitle = new System.Windows.Forms.Label();
-            lblPageSelector = new System.Windows.Forms.Label();
-            cmbPageSelector = new System.Windows.Forms.ComboBox();
-            lblPrintArea = new System.Windows.Forms.Label();
-            btnFixLengths = new System.Windows.Forms.Button();
-            btnResetPrices = new System.Windows.Forms.Button();
-            btnImportQuoteLines = new System.Windows.Forms.Button();
-            btnExportQuote = new System.Windows.Forms.Button();
-            btnExportPdf = new System.Windows.Forms.Button();
-            btnCopyForSap = new System.Windows.Forms.Button();
-            btnSundryItems = new System.Windows.Forms.Button();
-            btnSave = new System.Windows.Forms.Button();
-            btnAddRow = new System.Windows.Forms.Button();
-            btnDeleteSelected = new System.Windows.Forms.Button();
-            gridQuote = new System.Windows.Forms.DataGridView();
-            pnlToolbar = new System.Windows.Forms.Panel();
-            pnlRight = new System.Windows.Forms.Panel();
-            lblBreakdownTitle = new System.Windows.Forms.Label();
-            lblPriceBreakdown = new System.Windows.Forms.Label();
+            lblTitle = new Label();
+            lblPageSelector = new Label();
+            cmbPageSelector = new ComboBox();
+            lblPrintArea = new Label();
+            btnFixLengths = new Button();
+            btnResetPrices = new Button();
+            btnImportQuoteLines = new Button();
+            btnExportQuote = new Button();
+            btnExportPdf = new Button();
+            btnCopyForSap = new Button();
+            btnSundryItems = new Button();
+            btnSave = new Button();
+            btnAddRow = new Button();
+            btnDeleteSelected = new Button();
+            gridQuote = new DataGridView();
+            pnlToolbar = new Panel();
+            pnlRight = new Panel();
+            lblPriceBreakdown = new Label();
+            lblBreakdownTitle = new Label();
             ((System.ComponentModel.ISupportInitialize)gridQuote).BeginInit();
             pnlToolbar.SuspendLayout();
             pnlRight.SuspendLayout();
             SuspendLayout();
-
-            lblTitle.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
-            lblTitle.Location = new System.Drawing.Point(10, 8);
-            lblTitle.Size = new System.Drawing.Size(300, 30);
+            // 
+            // lblTitle
+            // 
+            lblTitle.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
+            lblTitle.Location = new Point(10, 8);
+            lblTitle.Name = "lblTitle";
+            lblTitle.Size = new Size(300, 30);
+            lblTitle.TabIndex = 0;
             lblTitle.Text = "2. Quote";
-
+            // 
+            // lblPageSelector
+            // 
             lblPageSelector.AutoSize = true;
-            lblPageSelector.Location = new System.Drawing.Point(10, 48);
+            lblPageSelector.Location = new Point(10, 48);
+            lblPageSelector.Name = "lblPageSelector";
+            lblPageSelector.Size = new Size(76, 15);
+            lblPageSelector.TabIndex = 1;
             lblPageSelector.Text = "Pages (auto):";
-
-            cmbPageSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            // 
+            // cmbPageSelector
+            // 
+            cmbPageSelector.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbPageSelector.Enabled = false;
             cmbPageSelector.Items.AddRange(new object[] { "1 page", "2 pages", "3 pages", "4 pages", "5 pages", "6 pages" });
-            cmbPageSelector.Location = new System.Drawing.Point(110, 45);
-            cmbPageSelector.Size = new System.Drawing.Size(120, 23);
-            cmbPageSelector.SelectedIndex = 0;
-            cmbPageSelector.SelectedIndexChanged += new System.EventHandler(cmbPageSelector_SelectedIndexChanged);
-
+            cmbPageSelector.Location = new Point(110, 45);
+            cmbPageSelector.Name = "cmbPageSelector";
+            cmbPageSelector.Size = new Size(120, 23);
+            cmbPageSelector.TabIndex = 2;
+            cmbPageSelector.SelectedIndexChanged += cmbPageSelector_SelectedIndexChanged;
+            // 
+            // lblPrintArea
+            // 
             lblPrintArea.AutoSize = true;
-            lblPrintArea.Location = new System.Drawing.Point(250, 48);
+            lblPrintArea.Location = new Point(250, 48);
+            lblPrintArea.Name = "lblPrintArea";
+            lblPrintArea.Size = new Size(75, 15);
+            lblPrintArea.TabIndex = 3;
             lblPrintArea.Text = "Print area: —";
-
-            btnFixLengths.Location = new System.Drawing.Point(10, 80);
-            btnFixLengths.Size = new System.Drawing.Size(150, 28);
+            // 
+            // btnFixLengths
+            // 
+            btnFixLengths.Location = new Point(10, 80);
+            btnFixLengths.Name = "btnFixLengths";
+            btnFixLengths.Size = new Size(150, 28);
+            btnFixLengths.TabIndex = 4;
             btnFixLengths.Text = "Fix Lengths (mm → m)";
-            btnFixLengths.Click += new System.EventHandler(btnFixLengths_Click);
-
-            btnResetPrices.Location = new System.Drawing.Point(170, 80);
-            btnResetPrices.Size = new System.Drawing.Size(150, 28);
+            btnFixLengths.Click += btnFixLengths_Click;
+            // 
+            // btnResetPrices
+            // 
+            btnResetPrices.Location = new Point(170, 80);
+            btnResetPrices.Name = "btnResetPrices";
+            btnResetPrices.Size = new Size(150, 28);
+            btnResetPrices.TabIndex = 5;
             btnResetPrices.Text = "Reset Price Formulas";
-            btnResetPrices.Click += new System.EventHandler(btnResetPrices_Click);
-
-            btnImportQuoteLines.Location = new System.Drawing.Point(330, 80);
-            btnImportQuoteLines.Size = new System.Drawing.Size(120, 28);
+            btnResetPrices.Click += btnResetPrices_Click;
+            // 
+            // btnImportQuoteLines
+            // 
+            btnImportQuoteLines.Location = new Point(427, 41);
+            btnImportQuoteLines.Name = "btnImportQuoteLines";
+            btnImportQuoteLines.Size = new Size(120, 28);
+            btnImportQuoteLines.TabIndex = 6;
             btnImportQuoteLines.Text = "Import...";
-            btnImportQuoteLines.Click += new System.EventHandler(btnImportQuoteLines_Click);
-
-            btnExportQuote.Location = new System.Drawing.Point(460, 80);
-            btnExportQuote.Size = new System.Drawing.Size(120, 28);
+            btnImportQuoteLines.Click += btnImportQuoteLines_Click;
+            // 
+            // btnExportQuote
+            // 
+            btnExportQuote.Location = new Point(553, 41);
+            btnExportQuote.Name = "btnExportQuote";
+            btnExportQuote.Size = new Size(120, 28);
+            btnExportQuote.TabIndex = 7;
             btnExportQuote.Text = "Export Quote";
-            btnExportQuote.Click += new System.EventHandler(btnExportQuote_Click);
-
-            btnExportPdf.Location = new System.Drawing.Point(590, 80);
-            btnExportPdf.Size = new System.Drawing.Size(120, 28);
+            btnExportQuote.Click += btnExportQuote_Click;
+            // 
+            // btnExportPdf
+            // 
+            btnExportPdf.Location = new Point(679, 41);
+            btnExportPdf.Name = "btnExportPdf";
+            btnExportPdf.Size = new Size(120, 28);
+            btnExportPdf.TabIndex = 8;
             btnExportPdf.Text = "Print / PDF...";
-            btnExportPdf.Click += new System.EventHandler(btnExportPdf_Click);
-
-            btnCopyForSap.Location = new System.Drawing.Point(720, 80);
-            btnCopyForSap.Size = new System.Drawing.Size(120, 28);
+            btnExportPdf.Click += btnExportPdf_Click;
+            // 
+            // btnCopyForSap
+            // 
+            btnCopyForSap.Location = new Point(528, 80);
+            btnCopyForSap.Name = "btnCopyForSap";
+            btnCopyForSap.Size = new Size(120, 28);
+            btnCopyForSap.TabIndex = 9;
             btnCopyForSap.Text = "Copy for SAP";
-            btnCopyForSap.Click += new System.EventHandler(btnCopyForSap_Click);
-
-            btnSundryItems.Location = new System.Drawing.Point(850, 80);
-            btnSundryItems.Size = new System.Drawing.Size(120, 28);
+            btnCopyForSap.Click += btnCopyForSap_Click;
+            // 
+            // btnSundryItems
+            // 
+            btnSundryItems.Location = new Point(654, 80);
+            btnSundryItems.Name = "btnSundryItems";
+            btnSundryItems.Size = new Size(120, 28);
+            btnSundryItems.TabIndex = 10;
             btnSundryItems.Text = "Sundry Items";
-            btnSundryItems.Click += new System.EventHandler(btnSundryItems_Click);
-
-            btnSave.BackColor = System.Drawing.Color.FromArgb(0, 120, 215);
-            btnSave.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            btnSave.ForeColor = System.Drawing.Color.White;
-            btnSave.Location = new System.Drawing.Point(980, 77);
-            btnSave.Size = new System.Drawing.Size(120, 34);
+            btnSundryItems.Click += btnSundryItems_Click;
+            // 
+            // btnSave
+            // 
+            btnSave.BackColor = Color.FromArgb(0, 120, 215);
+            btnSave.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnSave.ForeColor = Color.White;
+            btnSave.Location = new Point(793, 77);
+            btnSave.Name = "btnSave";
+            btnSave.Size = new Size(120, 34);
+            btnSave.TabIndex = 11;
             btnSave.Text = "Save";
             btnSave.UseVisualStyleBackColor = false;
-            btnSave.Click += new System.EventHandler(btnSave_Click);
-
-            btnAddRow.Location = new System.Drawing.Point(1110, 80);
-            btnAddRow.Size = new System.Drawing.Size(95, 28);
+            btnSave.Click += btnSave_Click;
+            // 
+            // btnAddRow
+            // 
+            btnAddRow.Location = new Point(326, 80);
+            btnAddRow.Name = "btnAddRow";
+            btnAddRow.Size = new Size(95, 28);
+            btnAddRow.TabIndex = 12;
             btnAddRow.Text = "Add Row";
-            btnAddRow.Click += new System.EventHandler(btnAddRow_Click);
-
-            btnDeleteSelected.Location = new System.Drawing.Point(1210, 80);
-            btnDeleteSelected.Size = new System.Drawing.Size(95, 28);
+            btnAddRow.Click += btnAddRow_Click;
+            // 
+            // btnDeleteSelected
+            // 
+            btnDeleteSelected.Location = new Point(427, 80);
+            btnDeleteSelected.Name = "btnDeleteSelected";
+            btnDeleteSelected.Size = new Size(95, 28);
+            btnDeleteSelected.TabIndex = 13;
             btnDeleteSelected.Text = "Delete Row";
-            btnDeleteSelected.Click += new System.EventHandler(btnDeleteSelected_Click);
-
-            pnlToolbar.Controls.AddRange(new System.Windows.Forms.Control[]
-            {
-                lblTitle, lblPageSelector, cmbPageSelector, lblPrintArea,
-                btnFixLengths, btnResetPrices, btnImportQuoteLines, btnExportQuote, btnExportPdf, btnCopyForSap, btnSundryItems, btnSave,
-                btnAddRow, btnDeleteSelected
-            });
-            pnlToolbar.Dock = System.Windows.Forms.DockStyle.Top;
-            pnlToolbar.Height = 120;
-
+            btnDeleteSelected.Click += btnDeleteSelected_Click;
+            // 
+            // gridQuote
+            // 
             gridQuote.AllowUserToAddRows = false;
             gridQuote.AllowUserToDeleteRows = false;
-            gridQuote.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            gridQuote.Dock = System.Windows.Forms.DockStyle.Fill;
-            gridQuote.CurrentCellDirtyStateChanged += new System.EventHandler(gridQuote_CurrentCellDirtyStateChanged);
-            gridQuote.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(gridQuote_CellValueChanged);
-            gridQuote.SelectionChanged += new System.EventHandler(gridQuote_SelectionChanged);
-            gridQuote.KeyDown += new System.Windows.Forms.KeyEventHandler(gridQuote_KeyDown);
-
+            gridQuote.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            gridQuote.Dock = DockStyle.Fill;
+            gridQuote.Location = new Point(0, 120);
+            gridQuote.Name = "gridQuote";
+            gridQuote.Size = new Size(1369, 580);
+            gridQuote.TabIndex = 0;
+            gridQuote.CellValueChanged += gridQuote_CellValueChanged;
+            gridQuote.CurrentCellDirtyStateChanged += gridQuote_CurrentCellDirtyStateChanged;
+            gridQuote.SelectionChanged += gridQuote_SelectionChanged;
+            gridQuote.KeyDown += gridQuote_KeyDown;
+            // 
+            // pnlToolbar
+            // 
+            pnlToolbar.Controls.Add(lblTitle);
+            pnlToolbar.Controls.Add(lblPageSelector);
+            pnlToolbar.Controls.Add(cmbPageSelector);
+            pnlToolbar.Controls.Add(lblPrintArea);
+            pnlToolbar.Controls.Add(btnFixLengths);
+            pnlToolbar.Controls.Add(btnResetPrices);
+            pnlToolbar.Controls.Add(btnImportQuoteLines);
+            pnlToolbar.Controls.Add(btnExportQuote);
+            pnlToolbar.Controls.Add(btnExportPdf);
+            pnlToolbar.Controls.Add(btnCopyForSap);
+            pnlToolbar.Controls.Add(btnSundryItems);
+            pnlToolbar.Controls.Add(btnSave);
+            pnlToolbar.Controls.Add(btnAddRow);
+            pnlToolbar.Controls.Add(btnDeleteSelected);
+            pnlToolbar.Dock = DockStyle.Top;
+            pnlToolbar.Location = new Point(0, 0);
+            pnlToolbar.Name = "pnlToolbar";
+            pnlToolbar.Size = new Size(1550, 120);
+            pnlToolbar.TabIndex = 2;
+            // 
+            // pnlRight
+            // 
             pnlRight.Controls.Add(lblPriceBreakdown);
             pnlRight.Controls.Add(lblBreakdownTitle);
-            pnlRight.Dock = System.Windows.Forms.DockStyle.Right;
-            pnlRight.Width = 240;
-            pnlRight.Padding = new System.Windows.Forms.Padding(12);
-
-            lblBreakdownTitle.Dock = System.Windows.Forms.DockStyle.Top;
-            lblBreakdownTitle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            lblBreakdownTitle.Height = 30;
-            lblBreakdownTitle.Text = "Price build-up";
-
-            lblPriceBreakdown.Dock = System.Windows.Forms.DockStyle.Fill;
+            pnlRight.Dock = DockStyle.Right;
+            pnlRight.Location = new Point(1369, 120);
+            pnlRight.Name = "pnlRight";
+            pnlRight.Padding = new Padding(12);
+            pnlRight.Size = new Size(181, 580);
+            pnlRight.TabIndex = 1;
+            // 
+            // lblPriceBreakdown
+            // 
+            lblPriceBreakdown.Dock = DockStyle.Fill;
+            lblPriceBreakdown.Location = new Point(12, 42);
+            lblPriceBreakdown.Name = "lblPriceBreakdown";
+            lblPriceBreakdown.Size = new Size(157, 526);
+            lblPriceBreakdown.TabIndex = 0;
             lblPriceBreakdown.Text = "Select a quote line to review the calculation.";
-
-            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(1550, 700);
+            // 
+            // lblBreakdownTitle
+            // 
+            lblBreakdownTitle.Dock = DockStyle.Top;
+            lblBreakdownTitle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            lblBreakdownTitle.Location = new Point(12, 12);
+            lblBreakdownTitle.Name = "lblBreakdownTitle";
+            lblBreakdownTitle.Size = new Size(157, 30);
+            lblBreakdownTitle.TabIndex = 1;
+            lblBreakdownTitle.Text = "Price build-up";
+            // 
+            // QuoteForm
+            // 
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(1550, 700);
             Controls.Add(gridQuote);
             Controls.Add(pnlRight);
             Controls.Add(pnlToolbar);
+            Name = "QuoteForm";
             Text = "Quote";
             ((System.ComponentModel.ISupportInitialize)gridQuote).EndInit();
             pnlToolbar.ResumeLayout(false);

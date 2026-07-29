@@ -231,7 +231,6 @@ namespace QuotingTool.Forms
             txtAttention.Name = "txtAttention";
             txtAttention.Size = new Size(285, 23);
             txtAttention.TabIndex = 18;
-            txtAttention.Text = "To whom it may concern";
             // 
             // lblMarketSeg
             // 
