@@ -17,7 +17,7 @@ namespace QuotingTool.Data
         public string QuotedBy { get; set; } = string.Empty;           // named range: quoted_by (A6)
         public string AccountManager { get; set; } = string.Empty;     // A7
         public string Attention { get; set; } = string.Empty;          // named range: attention (B12)
-        public string AttentionTo { get; set; } = "To whom it may concern";
+        public string AttentionTo { get; set; } = "";
         public string QuoteValidity { get; set; } = "30 days";
         public string MarketSegment { get; set; } = string.Empty;      // named range: Market_Segment
         public string ProductSegment { get; set; } = string.Empty;     // named range: product_segment

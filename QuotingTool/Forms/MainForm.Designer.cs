@@ -13,116 +13,240 @@ namespace QuotingTool.Forms
 
         private void InitializeComponent()
         {
-            menuStrip = new System.Windows.Forms.MenuStrip();
-            menuFile = new System.Windows.Forms.ToolStripMenuItem();
-            menuFileNewProject = new System.Windows.Forms.ToolStripMenuItem();
-            menuFileOpenProject = new System.Windows.Forms.ToolStripMenuItem();
-            menuFileSep1 = new System.Windows.Forms.ToolStripSeparator();
-            menuFileExit = new System.Windows.Forms.ToolStripMenuItem();
-            menuTools = new System.Windows.Forms.ToolStripMenuItem();
-            menuToolsSundryItems = new System.Windows.Forms.ToolStripMenuItem();
-            menuToolsCopyForSap = new System.Windows.Forms.ToolStripMenuItem();
-            menuToolsUserManagement = new System.Windows.Forms.ToolStripMenuItem();
-            menuHelp = new System.Windows.Forms.ToolStripMenuItem();
-            menuHelpAbout = new System.Windows.Forms.ToolStripMenuItem();
-            toolStrip = new System.Windows.Forms.ToolStrip();
-            btnNewProject = new System.Windows.Forms.ToolStripButton();
-            btnOpenProject = new System.Windows.Forms.ToolStripButton();
-            tabControl = new System.Windows.Forms.TabControl();
-            projectDetailsTab = new System.Windows.Forms.TabPage();
-            quoteTab = new System.Windows.Forms.TabPage();
-            editPricingTab = new System.Windows.Forms.TabPage();
-            quoteLetterTab = new System.Windows.Forms.TabPage();
-            noPricingTab = new System.Windows.Forms.TabPage();
-            bomTab = new System.Windows.Forms.TabPage();
-            monthlyUpdateTab = new System.Windows.Forms.TabPage();
-            statusStrip = new System.Windows.Forms.StatusStrip();
-            statusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            menuStrip = new MenuStrip();
+            menuFile = new ToolStripMenuItem();
+            menuFileNewProject = new ToolStripMenuItem();
+            menuFileOpenProject = new ToolStripMenuItem();
+            menuFileSep1 = new ToolStripSeparator();
+            menuFileExit = new ToolStripMenuItem();
+            menuTools = new ToolStripMenuItem();
+            menuToolsSundryItems = new ToolStripMenuItem();
+            menuToolsCopyForSap = new ToolStripMenuItem();
+            menuToolsUserManagement = new ToolStripMenuItem();
+            menuHelp = new ToolStripMenuItem();
+            menuHelpAbout = new ToolStripMenuItem();
+            toolStrip = new ToolStrip();
+            btnNewProject = new ToolStripButton();
+            btnOpenProject = new ToolStripButton();
+            tabControl = new TabControl();
+            projectDetailsTab = new TabPage();
+            quoteTab = new TabPage();
+            editPricingTab = new TabPage();
+            quoteLetterTab = new TabPage();
+            bomTab = new TabPage();
+            monthlyUpdateTab = new TabPage();
+            statusStrip = new StatusStrip();
+            statusLabel = new ToolStripStatusLabel();
             menuStrip.SuspendLayout();
             toolStrip.SuspendLayout();
             tabControl.SuspendLayout();
             statusStrip.SuspendLayout();
             SuspendLayout();
-
-            menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { menuFile, menuTools, menuHelp });
-            menuStrip.Location = new System.Drawing.Point(0, 0);
-            menuStrip.Size = new System.Drawing.Size(1200, 24);
-
-            menuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { menuFileNewProject, menuFileOpenProject, menuFileSep1, menuFileExit });
+            // 
+            // menuStrip
+            // 
+            menuStrip.Items.AddRange(new ToolStripItem[] { menuFile, menuTools, menuHelp });
+            menuStrip.Location = new Point(0, 0);
+            menuStrip.Name = "menuStrip";
+            menuStrip.Size = new Size(1200, 24);
+            menuStrip.TabIndex = 2;
+            // 
+            // menuFile
+            // 
+            menuFile.DropDownItems.AddRange(new ToolStripItem[] { menuFileNewProject, menuFileOpenProject, menuFileSep1, menuFileExit });
+            menuFile.Name = "menuFile";
+            menuFile.Size = new Size(37, 20);
             menuFile.Text = "&File";
+            // 
+            // menuFileNewProject
+            // 
+            menuFileNewProject.Name = "menuFileNewProject";
+            menuFileNewProject.ShortcutKeys = Keys.Control | Keys.N;
+            menuFileNewProject.Size = new Size(195, 22);
             menuFileNewProject.Text = "&New Project";
-            menuFileNewProject.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N;
-            menuFileNewProject.Click += new System.EventHandler(menuFileNewProject_Click);
+            menuFileNewProject.Click += menuFileNewProject_Click;
+            // 
+            // menuFileOpenProject
+            // 
+            menuFileOpenProject.Name = "menuFileOpenProject";
+            menuFileOpenProject.ShortcutKeys = Keys.Control | Keys.O;
+            menuFileOpenProject.Size = new Size(195, 22);
             menuFileOpenProject.Text = "&Open Project...";
-            menuFileOpenProject.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O;
-            menuFileOpenProject.Click += new System.EventHandler(menuFileOpenProject_Click);
+            menuFileOpenProject.Click += menuFileOpenProject_Click;
+            // 
+            // menuFileSep1
+            // 
+            menuFileSep1.Name = "menuFileSep1";
+            menuFileSep1.Size = new Size(192, 6);
+            // 
+            // menuFileExit
+            // 
+            menuFileExit.Name = "menuFileExit";
+            menuFileExit.Size = new Size(195, 22);
             menuFileExit.Text = "E&xit";
-            menuFileExit.Click += new System.EventHandler(menuFileExit_Click);
-
-            menuTools.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { menuToolsSundryItems, menuToolsCopyForSap, menuToolsUserManagement });
+            menuFileExit.Click += menuFileExit_Click;
+            // 
+            // menuTools
+            // 
+            menuTools.DropDownItems.AddRange(new ToolStripItem[] { menuToolsSundryItems, menuToolsCopyForSap, menuToolsUserManagement });
+            menuTools.Name = "menuTools";
+            menuTools.Size = new Size(47, 20);
             menuTools.Text = "&Tools";
+            // 
+            // menuToolsSundryItems
+            // 
+            menuToolsSundryItems.Name = "menuToolsSundryItems";
+            menuToolsSundryItems.Size = new Size(171, 22);
             menuToolsSundryItems.Text = "Sundry Items";
-            menuToolsSundryItems.Click += new System.EventHandler(menuToolsSundryItems_Click);
+            menuToolsSundryItems.Click += menuToolsSundryItems_Click;
+            // 
+            // menuToolsCopyForSap
+            // 
+            menuToolsCopyForSap.Name = "menuToolsCopyForSap";
+            menuToolsCopyForSap.Size = new Size(171, 22);
             menuToolsCopyForSap.Text = "Copy for SAP";
-            menuToolsCopyForSap.Click += new System.EventHandler(menuToolsCopyForSap_Click);
+            menuToolsCopyForSap.Click += menuToolsCopyForSap_Click;
+            // 
+            // menuToolsUserManagement
+            // 
+            menuToolsUserManagement.Name = "menuToolsUserManagement";
+            menuToolsUserManagement.Size = new Size(171, 22);
             menuToolsUserManagement.Text = "User Management";
-            menuToolsUserManagement.Click += new System.EventHandler(menuToolsUserManagement_Click);
-
-            menuHelp.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { menuHelpAbout });
+            menuToolsUserManagement.Click += menuToolsUserManagement_Click;
+            // 
+            // menuHelp
+            // 
+            menuHelp.DropDownItems.AddRange(new ToolStripItem[] { menuHelpAbout });
+            menuHelp.Name = "menuHelp";
+            menuHelp.Size = new Size(44, 20);
             menuHelp.Text = "&Help";
+            // 
+            // menuHelpAbout
+            // 
+            menuHelpAbout.Name = "menuHelpAbout";
+            menuHelpAbout.Size = new Size(107, 22);
             menuHelpAbout.Text = "&About";
-            menuHelpAbout.Click += new System.EventHandler(menuHelpAbout_Click);
-
-            toolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { btnNewProject, btnOpenProject });
-            toolStrip.Location = new System.Drawing.Point(0, 24);
-            toolStrip.Size = new System.Drawing.Size(1200, 25);
+            menuHelpAbout.Click += menuHelpAbout_Click;
+            // 
+            // toolStrip
+            // 
+            toolStrip.Items.AddRange(new ToolStripItem[] { btnNewProject, btnOpenProject });
+            toolStrip.Location = new Point(0, 24);
+            toolStrip.Name = "toolStrip";
+            toolStrip.Size = new Size(1200, 25);
+            toolStrip.TabIndex = 1;
+            // 
+            // btnNewProject
+            // 
+            btnNewProject.Name = "btnNewProject";
+            btnNewProject.Size = new Size(75, 22);
             btnNewProject.Text = "New Project";
-            btnNewProject.Click += new System.EventHandler(btnNewProject_Click);
+            btnNewProject.Click += btnNewProject_Click;
+            // 
+            // btnOpenProject
+            // 
+            btnOpenProject.Name = "btnOpenProject";
+            btnOpenProject.Size = new Size(80, 22);
             btnOpenProject.Text = "Open Project";
-            btnOpenProject.Click += new System.EventHandler(btnOpenProject_Click);
-
+            btnOpenProject.Click += btnOpenProject_Click;
+            // 
+            // tabControl
+            // 
             tabControl.Controls.Add(projectDetailsTab);
             tabControl.Controls.Add(quoteTab);
             tabControl.Controls.Add(editPricingTab);
             tabControl.Controls.Add(quoteLetterTab);
-            tabControl.Controls.Add(noPricingTab);
             tabControl.Controls.Add(bomTab);
             tabControl.Controls.Add(monthlyUpdateTab);
-            tabControl.Dock = System.Windows.Forms.DockStyle.Fill;
-            tabControl.Location = new System.Drawing.Point(0, 49);
-            tabControl.Size = new System.Drawing.Size(1200, 700);
-
+            tabControl.Dock = DockStyle.Fill;
+            tabControl.Location = new Point(0, 49);
+            tabControl.Name = "tabControl";
+            tabControl.SelectedIndex = 0;
+            tabControl.Size = new Size(1200, 700);
+            tabControl.TabIndex = 0;
+            // 
+            // projectDetailsTab
+            // 
+            projectDetailsTab.Location = new Point(4, 24);
+            projectDetailsTab.Name = "projectDetailsTab";
+            projectDetailsTab.Padding = new Padding(3);
+            projectDetailsTab.Size = new Size(1192, 672);
+            projectDetailsTab.TabIndex = 0;
             projectDetailsTab.Text = "Project Details";
-            projectDetailsTab.Padding = new System.Windows.Forms.Padding(3);
+            // 
+            // quoteTab
+            // 
+            quoteTab.Location = new Point(4, 24);
+            quoteTab.Name = "quoteTab";
+            quoteTab.Padding = new Padding(3);
+            quoteTab.Size = new Size(1192, 672);
+            quoteTab.TabIndex = 1;
             quoteTab.Text = "Quote";
-            quoteTab.Padding = new System.Windows.Forms.Padding(3);
+            // 
+            // editPricingTab
+            // 
+            editPricingTab.Location = new Point(4, 24);
+            editPricingTab.Name = "editPricingTab";
+            editPricingTab.Padding = new Padding(3);
+            editPricingTab.Size = new Size(1192, 672);
+            editPricingTab.TabIndex = 2;
             editPricingTab.Text = "Edit Pricing";
-            editPricingTab.Padding = new System.Windows.Forms.Padding(3);
+            // 
+            // quoteLetterTab
+            // 
+            quoteLetterTab.Location = new Point(4, 24);
+            quoteLetterTab.Name = "quoteLetterTab";
+            quoteLetterTab.Padding = new Padding(3);
+            quoteLetterTab.Size = new Size(1192, 672);
+            quoteLetterTab.TabIndex = 3;
             quoteLetterTab.Text = "Quote Letter";
-            quoteLetterTab.Padding = new System.Windows.Forms.Padding(3);
-            noPricingTab.Text = "No Pricing";
-            noPricingTab.Padding = new System.Windows.Forms.Padding(3);
+            // 
+            // bomTab
+            // 
+            bomTab.Location = new Point(4, 24);
+            bomTab.Name = "bomTab";
+            bomTab.Padding = new Padding(3);
+            bomTab.Size = new Size(1192, 672);
+            bomTab.TabIndex = 5;
             bomTab.Text = "BOM Import";
-            bomTab.Padding = new System.Windows.Forms.Padding(3);
+            // 
+            // monthlyUpdateTab
+            // 
+            monthlyUpdateTab.Location = new Point(4, 24);
+            monthlyUpdateTab.Name = "monthlyUpdateTab";
+            monthlyUpdateTab.Padding = new Padding(3);
+            monthlyUpdateTab.Size = new Size(1192, 672);
+            monthlyUpdateTab.TabIndex = 6;
             monthlyUpdateTab.Text = "Monthly Update";
-            monthlyUpdateTab.Padding = new System.Windows.Forms.Padding(3);
-
-            statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { statusLabel });
-            statusStrip.Location = new System.Drawing.Point(0, 749);
-            statusStrip.Size = new System.Drawing.Size(1200, 22);
+            // 
+            // statusStrip
+            // 
+            statusStrip.Items.AddRange(new ToolStripItem[] { statusLabel });
+            statusStrip.Location = new Point(0, 749);
+            statusStrip.Name = "statusStrip";
+            statusStrip.Size = new Size(1200, 22);
+            statusStrip.TabIndex = 3;
+            // 
+            // statusLabel
+            // 
+            statusLabel.Name = "statusLabel";
+            statusLabel.Size = new Size(93, 17);
             statusLabel.Text = "No project open";
-
-            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(1200, 771);
+            // 
+            // MainForm
+            // 
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(1200, 771);
             Controls.Add(tabControl);
             Controls.Add(toolStrip);
             Controls.Add(menuStrip);
             Controls.Add(statusStrip);
             MainMenuStrip = menuStrip;
-            MinimumSize = new System.Drawing.Size(900, 600);
+            MinimumSize = new Size(900, 600);
+            Name = "MainForm";
             Text = "QuotingTool – Aluminium Extrusion Pricing";
-            Load += new System.EventHandler(MainForm_Load);
+            Load += MainForm_Load;
             menuStrip.ResumeLayout(false);
             menuStrip.PerformLayout();
             toolStrip.ResumeLayout(false);
@@ -132,14 +256,6 @@ namespace QuotingTool.Forms
             statusStrip.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
-
-            EmbedForm(new ProjectDetailsForm(_db), projectDetailsTab);
-            EmbedForm(new QuoteForm(_db), quoteTab);
-            EmbedForm(new EditPricingForm(_db), editPricingTab);
-            EmbedForm(new QuoteLetterForm(_db), quoteLetterTab);
-            EmbedForm(new QuoteNoPricingForm(_db), noPricingTab);
-            EmbedForm(new BomImportForm(_db), bomTab);
-            EmbedForm(new MonthlyUpdateForm(_db), monthlyUpdateTab);
         }
 
         private static void EmbedForm(System.Windows.Forms.Form form, System.Windows.Forms.TabPage tab)
@@ -171,7 +287,6 @@ namespace QuotingTool.Forms
         public System.Windows.Forms.TabPage quoteTab;
         public System.Windows.Forms.TabPage editPricingTab;
         public System.Windows.Forms.TabPage quoteLetterTab;
-        public System.Windows.Forms.TabPage noPricingTab;
         public System.Windows.Forms.TabPage bomTab;
         public System.Windows.Forms.TabPage monthlyUpdateTab;
         private System.Windows.Forms.StatusStrip statusStrip;

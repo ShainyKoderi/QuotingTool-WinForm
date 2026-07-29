@@ -25,7 +25,7 @@ namespace QuotingTool.Forms
             _pageSetup = new PageSetupService(_db);
             _sapExport = new SapExportService(_db);
             InitializeComponent();
-            _allTabs.AddRange(new[] { projectDetailsTab, quoteTab, editPricingTab, quoteLetterTab, noPricingTab, bomTab, monthlyUpdateTab });
+            _allTabs.AddRange(new[] { projectDetailsTab, quoteTab, editPricingTab, quoteLetterTab,  bomTab, monthlyUpdateTab });
             ApplyRoleAccess();
         }
 
@@ -104,8 +104,8 @@ namespace QuotingTool.Forms
                 muf.LoadProject(CurrentProjectId);
             if (quoteLetterTab.Controls.Count > 0 && quoteLetterTab.Controls[0] is QuoteLetterForm qlf)
                 qlf.LoadProject(CurrentProjectId);
-            if (noPricingTab.Controls.Count > 0 && noPricingTab.Controls[0] is QuoteNoPricingForm qnp)
-                qnp.LoadProject(CurrentProjectId);
+            //if (noPricingTab.Controls.Count > 0 && noPricingTab.Controls[0] is QuoteNoPricingForm qnp)
+            //    qnp.LoadProject(CurrentProjectId);
         }
 
         private void btnNewProject_Click(object sender, EventArgs e)
@@ -180,7 +180,7 @@ namespace QuotingTool.Forms
                 _ => _allTabs.Where(t => t == projectDetailsTab
                                          || t == quoteTab
                                          || t == quoteLetterTab
-                                         || t == noPricingTab
+                                         //|| t == noPricingTab
                                          || t == bomTab)
             };
 
