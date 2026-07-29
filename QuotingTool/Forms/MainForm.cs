@@ -25,8 +25,17 @@ namespace QuotingTool.Forms
             _pageSetup = new PageSetupService(_db);
             _sapExport = new SapExportService(_db);
             InitializeComponent();
-            _allTabs.AddRange(new[] { projectDetailsTab, quoteTab, editPricingTab, quoteLetterTab,  bomTab, monthlyUpdateTab });
+        
+            EmbedForm(new ProjectDetailsForm(_db), projectDetailsTab);
+            EmbedForm(new QuoteForm(_db), quoteTab);
+            EmbedForm(new EditPricingForm(_db), editPricingTab);
+            EmbedForm(new QuoteLetterForm(_db), quoteLetterTab);           
+            EmbedForm(new BomImportForm(_db), bomTab);
+            EmbedForm(new MonthlyUpdateForm(_db), monthlyUpdateTab);
+
+            _allTabs.AddRange(new[] { projectDetailsTab, quoteTab, editPricingTab, quoteLetterTab, bomTab, monthlyUpdateTab });
             ApplyRoleAccess();
+
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -179,8 +188,7 @@ namespace QuotingTool.Forms
                 UserRole.SalesManager => _allTabs.Where(t => t != monthlyUpdateTab),
                 _ => _allTabs.Where(t => t == projectDetailsTab
                                          || t == quoteTab
-                                         || t == quoteLetterTab
-                                         //|| t == noPricingTab
+                                         || t == quoteLetterTab                                        
                                          || t == bomTab)
             };
 
