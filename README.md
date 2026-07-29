@@ -177,6 +177,7 @@ QuotingTool/
 - Maintain **Sundry Items** in a dedicated dialog with running total calculation
 - Edit global **Sundry master** rows with fixed section codes (`SUNDRY-1`..`SUNDRY-26`) plus **Edit Items 26+** for additional codes
 - Use `SUNDRY-*` directly in Quote **Section**; Description auto-fills and pricing uses sundry Mass/AP/PP inputs
+- Hover pricing fields on **Edit Pricing** and `$ Each`/`$ Total` on **Quote** for formula tooltips with current-value breakdowns
 - Copy quote lines to clipboard in **SAP-ready tab-separated format**
 - Import inferred **CRE8** project-details CSV data into the currently open project
 - View richer **Edit Pricing** metrics including totals, IP upcharges, summary margins, and threshold data
@@ -271,7 +272,9 @@ Includes additional workbook-derived and app-derived fields such as:
 - `MillFinishMarginPct`
 - `FinishingMarginPct`
 - `FinishingCostPricePerM2` – default **10.50 $/m²** (workbook `Pricing Matrix!E44`)
+- `Price_B49` – **Finishing BULK Cost Price $/m²** (`3.Edit Pricing!B49`)
 - `AnodisedThresholdCostPerM2` – default **10.65 $/m²** (workbook `Pricing Matrix!E49`)
+- `Price_B53` – **Finishing NON-Bulk Cost Price $/m²** (`3.Edit Pricing!B53`)
 - `ThermalBreakMarginPct`
 
 ### Current tables
