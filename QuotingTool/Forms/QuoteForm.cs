@@ -66,6 +66,7 @@ namespace QuotingTool.Forms
             LoadSundryMaster();
             LoadIPMasterData();
             ConfigureGridColumns();
+            gridQuote.CellToolTipTextNeeded += gridQuote_CellToolTipTextNeeded;
         }
 
         private void LoadExtrusionMaster()
@@ -99,7 +100,7 @@ namespace QuotingTool.Forms
             foreach (var item in _db.GetSundryItems())
             {
                 if (!string.IsNullOrWhiteSpace(item.SectionCode))
-                    _sundryMasterByCode[item.SectionCode] = item;
+                    _sundryMasterByCode[item.SectionCode.Trim()] = item;
             }
         }
 
@@ -115,6 +116,7 @@ namespace QuotingTool.Forms
         {
             if (_projectId <= 0) return;
             LoadProjectSettings();
+            LoadSundryMaster();
             _bindingGrid = true;
             _lines = new BindingList<QuoteLine>(_db.GetQuoteLines(_projectId).ToList());
             foreach (var line in _lines)
@@ -149,15 +151,18 @@ namespace QuotingTool.Forms
         /// </summary>
         private void ApplySectionLookup(QuoteLine line)
         {
-            if (string.IsNullOrWhiteSpace(line.ExtrusionCode))
+            var sectionCode = NormalizeSectionCode(line.ExtrusionCode);
+            if (string.IsNullOrWhiteSpace(sectionCode))
             {
+                line.ExtrusionCode = string.Empty;
                 line.Description = string.Empty;
                 return;
             }
+            line.ExtrusionCode = sectionCode;
 
-            if (!_extrusionMasterByCode.TryGetValue(line.ExtrusionCode, out var master))
+            if (!_extrusionMasterByCode.TryGetValue(sectionCode, out var master))
             {
-                if (_sundryMasterByCode.TryGetValue(line.ExtrusionCode, out var sundry))
+                if (_sundryMasterByCode.TryGetValue(sectionCode, out var sundry))
                 {
                     line.Description = sundry.Description ?? string.Empty;
                     if (string.IsNullOrWhiteSpace(line.Alloy))
@@ -337,6 +342,11 @@ namespace QuotingTool.Forms
                 SetColFormat("Price", "0.0000", DataGridViewContentAlignment.MiddleRight);
                 SetColFormat("TotalPrice", "0.0000", DataGridViewContentAlignment.MiddleRight);
                 SetColFormat("SubsillSurcharge", "0.0000", DataGridViewContentAlignment.MiddleRight);
+
+                if (gridQuote.Columns.Contains("Price"))
+                    gridQuote.Columns["Price"].ToolTipText = "$ Each = MF Each + IP Each + SF Sell Each + Slotting/Sundry";
+                if (gridQuote.Columns.Contains("TotalPrice"))
+                    gridQuote.Columns["TotalPrice"].ToolTipText = "$ Total = $ Each × Qty";
             };
         }
 
@@ -663,6 +673,9 @@ namespace QuotingTool.Forms
                && !string.IsNullOrWhiteSpace(line.ExtrusionCode)
                && line.ExtrusionCode.StartsWith("SUNDRY", StringComparison.OrdinalIgnoreCase);
 
+        private static string NormalizeSectionCode(string? sectionCode)
+            => string.IsNullOrWhiteSpace(sectionCode) ? string.Empty : sectionCode.Trim();
+
         private void gridQuote_SelectionChanged(object sender, EventArgs e) => UpdatePriceBreakdown();
 
         private void UpdatePriceBreakdown()
@@ -698,6 +711,36 @@ namespace QuotingTool.Forms
 
         private static string NormalizeThresholdChoice(string thresholdChoice)
             => string.Equals(thresholdChoice, "Project Colour", StringComparison.OrdinalIgnoreCase) ? "No" : thresholdChoice;
+
+        private void gridQuote_CellToolTipTextNeeded(object? sender, DataGridViewCellToolTipTextNeededEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.RowIndex >= _lines.Count || e.ColumnIndex < 0)
+                return;
+            var column = gridQuote.Columns[e.ColumnIndex];
+            if (column == null)
+                return;
+            if (gridQuote.Rows[e.RowIndex].DataBoundItem is not QuoteLine line)
+                return;
+
+            if (column.DataPropertyName == nameof(QuoteLine.Price))
+            {
+                var mfEach = CalculateMillFinishEach(line);
+                var ipEach = CalculateIpEach(line);
+                var sfEach = CalculateFinishingEach(line);
+                var sundryEach = line.SubsillSurcharge;
+                e.ToolTipText =
+                    $"$ Each = MF + IP + SF + Slotting/Sundry{Environment.NewLine}" +
+                    $"= {mfEach:0.0000} + {ipEach:0.0000} + {sfEach:0.0000} + {sundryEach:0.0000}{Environment.NewLine}" +
+                    $"= {line.Price:0.0000}";
+            }
+            else if (column.DataPropertyName == nameof(QuoteLine.TotalPrice))
+            {
+                e.ToolTipText =
+                    $"$ Total = $ Each × Qty{Environment.NewLine}" +
+                    $"= {line.Price:0.0000} × {line.Quantity:0.####}{Environment.NewLine}" +
+                    $"= {line.TotalPrice:0.0000}";
+            }
+        }
 
         private void btnImportQuoteLines_Click(object sender, EventArgs e)
         {

@@ -107,10 +107,14 @@ namespace QuotingTool.Forms
             lblBulkHdr = new Label();
             lblB48 = new Label();
             txtB48 = new TextBox();
+            lblB49 = new Label();
+            txtB49 = new TextBox();
             lblB50 = new Label();
             txtB50 = new TextBox();
             lblB52 = new Label();
             txtB52 = new TextBox();
+            lblB53 = new Label();
+            txtB53 = new TextBox();
             lblB54 = new Label();
             txtB54 = new TextBox();
             grpAnodisedThresholds = new GroupBox();
@@ -824,15 +828,19 @@ namespace QuotingTool.Forms
             grpFinishingPricing.Controls.Add(lblBulkHdr);
             grpFinishingPricing.Controls.Add(lblB48);
             grpFinishingPricing.Controls.Add(txtB48);
+            grpFinishingPricing.Controls.Add(lblB49);
+            grpFinishingPricing.Controls.Add(txtB49);
             grpFinishingPricing.Controls.Add(lblB50);
             grpFinishingPricing.Controls.Add(txtB50);
             grpFinishingPricing.Controls.Add(lblB52);
             grpFinishingPricing.Controls.Add(txtB52);
+            grpFinishingPricing.Controls.Add(lblB53);
+            grpFinishingPricing.Controls.Add(txtB53);
             grpFinishingPricing.Controls.Add(lblB54);
             grpFinishingPricing.Controls.Add(txtB54);
             grpFinishingPricing.Location = new Point(8, 395);
             grpFinishingPricing.Name = "grpFinishingPricing";
-            grpFinishingPricing.Size = new Size(950, 248);
+            grpFinishingPricing.Size = new Size(950, 282);
             grpFinishingPricing.TabIndex = 6;
             grpFinishingPricing.TabStop = false;
             grpFinishingPricing.Text = "Powder / Finishing Pricing";
@@ -1029,12 +1037,28 @@ namespace QuotingTool.Forms
             txtB48.Size = new Size(70, 23);
             txtB48.TabIndex = 23;
             // 
+            // lblB49
+            // 
+            lblB49.Location = new Point(1, 212);
+            lblB49.Name = "lblB49";
+            lblB49.Size = new Size(280, 18);
+            lblB49.TabIndex = 24;
+            lblB49.Text = "Finishing BULK Cost Price $/m²:";
+            // 
+            // txtB49
+            // 
+            txtB49.Location = new Point(389, 211);
+            txtB49.Name = "txtB49";
+            txtB49.ReadOnly = true;
+            txtB49.Size = new Size(70, 23);
+            txtB49.TabIndex = 25;
+            // 
             // lblB50
             // 
             lblB50.Location = new Point(552, 191);
             lblB50.Name = "lblB50";
             lblB50.Size = new Size(240, 18);
-            lblB50.TabIndex = 24;
+            lblB50.TabIndex = 26;
             lblB50.Text = "Mill BULK Sell Price $/m²:";
             // 
             // txtB50
@@ -1042,37 +1066,53 @@ namespace QuotingTool.Forms
             txtB50.Location = new Point(852, 190);
             txtB50.Name = "txtB50";
             txtB50.Size = new Size(70, 23);
-            txtB50.TabIndex = 25;
+            txtB50.TabIndex = 27;
             // 
             // lblB52
             // 
-            lblB52.Location = new Point(1, 212);
+            lblB52.Location = new Point(1, 233);
             lblB52.Name = "lblB52";
             lblB52.Size = new Size(240, 18);
-            lblB52.TabIndex = 26;
+            lblB52.TabIndex = 28;
             lblB52.Text = "Mill NON-Bulk POA Cost $/m²:";
             // 
             // txtB52
             // 
-            txtB52.Location = new Point(389, 211);
+            txtB52.Location = new Point(389, 232);
             txtB52.Name = "txtB52";
             txtB52.Size = new Size(70, 23);
-            txtB52.TabIndex = 27;
+            txtB52.TabIndex = 29;
+            // 
+            // lblB53
+            // 
+            lblB53.Location = new Point(1, 254);
+            lblB53.Name = "lblB53";
+            lblB53.Size = new Size(280, 18);
+            lblB53.TabIndex = 30;
+            lblB53.Text = "Finishing NON-Bulk Cost Price $/m²:";
+            // 
+            // txtB53
+            // 
+            txtB53.Location = new Point(389, 253);
+            txtB53.Name = "txtB53";
+            txtB53.ReadOnly = true;
+            txtB53.Size = new Size(70, 23);
+            txtB53.TabIndex = 31;
             // 
             // lblB54
             // 
-            lblB54.Location = new Point(552, 212);
+            lblB54.Location = new Point(552, 233);
             lblB54.Name = "lblB54";
             lblB54.Size = new Size(240, 18);
-            lblB54.TabIndex = 28;
+            lblB54.TabIndex = 32;
             lblB54.Text = "Mill NON-Bulk Sell Price $/m²:";
             // 
             // txtB54
             // 
-            txtB54.Location = new Point(852, 211);
+            txtB54.Location = new Point(852, 232);
             txtB54.Name = "txtB54";
             txtB54.Size = new Size(70, 23);
-            txtB54.TabIndex = 29;
+            txtB54.TabIndex = 33;
             // 
             // grpAnodisedThresholds
             // 
@@ -1085,7 +1125,7 @@ namespace QuotingTool.Forms
             grpAnodisedThresholds.Controls.Add(lblThresholdMargin);
             grpAnodisedThresholds.Controls.Add(lblThresholdMarginValue);
             grpAnodisedThresholds.Controls.Add(btnBulkNonBulkRates);
-            grpAnodisedThresholds.Location = new Point(3, 639);
+            grpAnodisedThresholds.Location = new Point(3, 673);
             grpAnodisedThresholds.Name = "grpAnodisedThresholds";
             grpAnodisedThresholds.Size = new Size(955, 59);
             grpAnodisedThresholds.TabIndex = 7;
@@ -1167,7 +1207,7 @@ namespace QuotingTool.Forms
             grpSummary.Controls.Add(gridSummary);
             grpSummary.Controls.Add(lblSummaryNote1);
             grpSummary.Controls.Add(lblSummaryNote2);
-            grpSummary.Location = new Point(3, 700);
+            grpSummary.Location = new Point(3, 734);
             grpSummary.Name = "grpSummary";
             grpSummary.Size = new Size(955, 220);
             grpSummary.TabIndex = 8;
@@ -1210,7 +1250,7 @@ namespace QuotingTool.Forms
             // 
             // btnEditSundryItems
             // 
-            btnEditSundryItems.Location = new Point(8, 926);
+            btnEditSundryItems.Location = new Point(8, 960);
             btnEditSundryItems.Name = "btnEditSundryItems";
             btnEditSundryItems.Size = new Size(130, 30);
             btnEditSundryItems.TabIndex = 9;
@@ -1219,7 +1259,7 @@ namespace QuotingTool.Forms
             // 
             // btnRecalculateAll
             // 
-            btnRecalculateAll.Location = new Point(148, 926);
+            btnRecalculateAll.Location = new Point(148, 960);
             btnRecalculateAll.Name = "btnRecalculateAll";
             btnRecalculateAll.Size = new Size(120, 30);
             btnRecalculateAll.TabIndex = 10;
@@ -1228,7 +1268,7 @@ namespace QuotingTool.Forms
             // 
             // btnSave
             // 
-            btnSave.Location = new Point(277, 923);
+            btnSave.Location = new Point(277, 957);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(110, 34);
             btnSave.TabIndex = 11;
@@ -1237,7 +1277,7 @@ namespace QuotingTool.Forms
             // 
             // btnRefreshSummary
             // 
-            btnRefreshSummary.Location = new Point(398, 923);
+            btnRefreshSummary.Location = new Point(398, 957);
             btnRefreshSummary.Name = "btnRefreshSummary";
             btnRefreshSummary.Size = new Size(150, 34);
             btnRefreshSummary.TabIndex = 12;
@@ -1246,7 +1286,7 @@ namespace QuotingTool.Forms
             // 
             // btnUpdateVisibility
             // 
-            btnUpdateVisibility.Location = new Point(557, 926);
+            btnUpdateVisibility.Location = new Point(557, 960);
             btnUpdateVisibility.Name = "btnUpdateVisibility";
             btnUpdateVisibility.Size = new Size(145, 30);
             btnUpdateVisibility.TabIndex = 13;
@@ -1257,7 +1297,7 @@ namespace QuotingTool.Forms
             // 
             grpRowVisibility.Controls.Add(lblVisibleRows);
             grpRowVisibility.Controls.Add(lblHiddenRows);
-            grpRowVisibility.Location = new Point(8, 963);
+            grpRowVisibility.Location = new Point(8, 997);
             grpRowVisibility.Name = "grpRowVisibility";
             grpRowVisibility.Size = new Size(950, 80);
             grpRowVisibility.TabIndex = 14;
@@ -1419,10 +1459,14 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.Label lblBulkHdr;
         private System.Windows.Forms.Label lblB48;
         private System.Windows.Forms.TextBox txtB48;
+        private System.Windows.Forms.Label lblB49;
+        private System.Windows.Forms.TextBox txtB49;
         private System.Windows.Forms.Label lblB50;
         private System.Windows.Forms.TextBox txtB50;
         private System.Windows.Forms.Label lblB52;
         private System.Windows.Forms.TextBox txtB52;
+        private System.Windows.Forms.Label lblB53;
+        private System.Windows.Forms.TextBox txtB53;
         private System.Windows.Forms.Label lblB54;
         private System.Windows.Forms.TextBox txtB54;
 

@@ -110,9 +110,11 @@ CREATE TABLE EditPricing (
     Price_B42 DECIMAL(18,4) DEFAULT 99, -- B42: POA/Other Vendor Cost $/m2
     Price_B44 DECIMAL(18,4) DEFAULT 99, -- B44: Finishing Sell Price $/m2 (user-entered)
     Price_B48 DECIMAL(18,4) DEFAULT 99, -- B48: Mill POA Cost $/m2
+    Price_B49 DECIMAL(18,4) DEFAULT 0,  -- B49: Finishing BULK Cost Price $/m2 (auto from PricingMatrix)
     Price_B50 DECIMAL(18,4) DEFAULT 99, -- B50: Mill BULK Sell Price $/m2 (user-entered)
     -- Additional fields revealed by .xlsm
     Price_B52 DECIMAL(18,4) DEFAULT 99, -- B52: Mill NON-Bulk POA Cost $/m2
+    Price_B53 DECIMAL(18,4) DEFAULT 0,  -- B53: Finishing NON-Bulk Cost Price $/m2 (auto from PricingMatrix)
     Price_B54 DECIMAL(18,4) DEFAULT 99, -- B54: Mill NON-Bulk Sell Price $/m2 (user-entered)
     Price_B57 DECIMAL(18,4) DEFAULT 0,  -- B57: Anodised Threshold Cost Price $/m2 (auto from PricingMatrix E49)
     Price_B58 DECIMAL(18,4) DEFAULT 99, -- B58: Anodised Threshold Sell Price $/m2 (user-entered)
@@ -319,6 +321,8 @@ IF COL_LENGTH('EditPricing','FinishingMarginPct') IS NULL ALTER TABLE EditPricin
 IF COL_LENGTH('EditPricing','FinishingCostPricePerM2') IS NULL ALTER TABLE EditPricing ADD FinishingCostPricePerM2 DECIMAL(18,4) DEFAULT 0;
 IF COL_LENGTH('EditPricing','AnodisedThresholdCostPerM2') IS NULL ALTER TABLE EditPricing ADD AnodisedThresholdCostPerM2 DECIMAL(18,4) DEFAULT 10.65;
 IF COL_LENGTH('EditPricing','ThermalBreakMarginPct') IS NULL ALTER TABLE EditPricing ADD ThermalBreakMarginPct DECIMAL(18,4) DEFAULT 0;
+IF COL_LENGTH('EditPricing','Price_B49') IS NULL ALTER TABLE EditPricing ADD Price_B49 DECIMAL(18,4) DEFAULT 0;
+IF COL_LENGTH('EditPricing','Price_B53') IS NULL ALTER TABLE EditPricing ADD Price_B53 DECIMAL(18,4) DEFAULT 0;
 
 -- SundryItems table (global workbook-level sundry section master)
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='SundryItems')

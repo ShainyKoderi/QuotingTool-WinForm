@@ -25,6 +25,8 @@ namespace QuotingTool.Forms
         private readonly PivotRefreshService _pivotRefresh;
         private readonly FormulaCalculationService _formulaSvc;
         private Dictionary<string, ExtrusionMaster> _extrusionByCode = [];
+        private Dictionary<string, SundryItem> _sundryByCode = [];
+        private readonly ToolTip _formulaToolTip = new();
         private int _projectId;
 
         private static readonly string[] CostTypeOptions =
@@ -118,6 +120,9 @@ namespace QuotingTool.Forms
             // always reflect the latest section data in the database.
             _extrusionByCode = _db.GetExtrusionMasterList()
                 .ToDictionary(m => m.Section, m => m, StringComparer.OrdinalIgnoreCase);
+            _sundryByCode = _db.GetSundryItems()
+                .Where(s => !string.IsNullOrWhiteSpace(s.SectionCode))
+                .ToDictionary(s => s.SectionCode.Trim(), s => s, StringComparer.OrdinalIgnoreCase);
             var ep = _db.GetEditPricing(projectId) ?? new EditPricing { ProjectId = projectId };
             var project = _db.GetProject(projectId) ?? new Project();
 
@@ -168,8 +173,10 @@ namespace QuotingTool.Forms
             txtFinishingPrice.Text = ep.FinishingPrice.ToString("F4");
             txtB44.Text = ep.Price_B44.ToString("F2");
             txtB48.Text = ep.Price_B48.ToString("F2");
+            txtB49.Text = ep.Price_B49.ToString("F4");
             txtB50.Text = ep.Price_B50.ToString("F2");
             txtB52.Text = ep.Price_B52.ToString("F2");
+            txtB53.Text = ep.Price_B53.ToString("F4");
             txtB54.Text = ep.Price_B54.ToString("F2");
 
             // ── Anodised Thresholds ────────────────────────────────────────────
@@ -242,6 +249,9 @@ namespace QuotingTool.Forms
             using var form = new SundryItemsForm(_db);
             form.LoadProject(_projectId);
             form.ShowDialog(this);
+            _sundryByCode = _db.GetSundryItems()
+                .Where(s => !string.IsNullOrWhiteSpace(s.SectionCode))
+                .ToDictionary(s => s.SectionCode.Trim(), s => s, StringComparer.OrdinalIgnoreCase);
             UpdateDerivedFields(saveChanges: false);
         }
 
@@ -289,8 +299,10 @@ namespace QuotingTool.Forms
             ep.Price_B42 = ParseDecimal(txtB42.Text);
             ep.Price_B44 = ParseDecimal(txtB44.Text);
             ep.Price_B48 = ParseDecimal(txtB48.Text);
+            ep.Price_B49 = ParseDecimal(txtB49.Text);
             ep.Price_B50 = ParseDecimal(txtB50.Text);
             ep.Price_B52 = ParseDecimal(txtB52.Text);
+            ep.Price_B53 = ParseDecimal(txtB53.Text);
             ep.Price_B54 = ParseDecimal(txtB54.Text);
             ep.Price_B57 = ParseDecimal(txtB57.Text);
             ep.Price_B58 = ParseDecimal(txtB58.Text);
@@ -304,6 +316,12 @@ namespace QuotingTool.Forms
                 ep.FinishingPrice = ep.Price_B44;
             if (ep.FinishingCostPricePerM2 == 0m && ep.Price_B57 > 0m)
                 ep.FinishingCostPricePerM2 = ep.Price_B57;
+            if (ep.Price_B49 == 0m)
+                ep.Price_B49 = ep.FinishingCostPricePerM2;
+            if (ep.Price_B53 == 0m)
+                ep.Price_B53 = ep.FinishingCostPricePerM2;
+            txtB49.Text = ep.Price_B49.ToString("F4");
+            txtB53.Text = ep.Price_B53.ToString("F4");
 
             project.CustomerSapDiscount = ParseDecimal(txtCustomerSapDiscount.Text);
             project.DeliveryCharge = ParseDecimal(txtDeliveryCharge.Text, 97m);
@@ -316,10 +334,9 @@ namespace QuotingTool.Forms
             decimal totalKg = 0m;
             foreach (var l in lines)
             {
-                if (!string.IsNullOrWhiteSpace(l.ExtrusionCode) &&
-                    _extrusionByCode.TryGetValue(l.ExtrusionCode, out var master) &&
-                    master.MassPerM > 0)
-                    totalKg += l.Quantity * l.LengthM * master.MassPerM;
+                var massPerM = GetMassPerM(l.ExtrusionCode);
+                if (massPerM > 0)
+                    totalKg += l.Quantity * l.LengthM * massPerM;
             }
 
             var totalLineValue = lines.Sum(l => l.TotalPrice);
@@ -335,6 +352,9 @@ namespace QuotingTool.Forms
             ep.IP1MarginPct = CalculateMarginPct(ep.MetalPrice + ep.IP1UpchargePerKg, ep.MetalPrice);
             ep.IP2MarginPct = CalculateMarginPct(ep.MetalPrice + ep.IP2UpchargePerKg, ep.MetalPrice);
             ep.IP3MarginPct = CalculateMarginPct(ep.IP3PanoramicFixedKgRate, ep.MetalPrice);
+            var pricingConstants = _formulaSvc.GetPricingConstants();
+            var metalCostPerKg = FormulaCalculationService.CalculateMetalCostPerKg(project.LMERate, project.BilletPremium, pricingConstants.InternalSpread);
+            ep.MillFinishMarginPct = FormulaCalculationService.CalculateMillFinishMarginPct(ep.MetalPrice, metalCostPerKg) * 100m;
             ep.FinishingMarginPct = FormulaCalculationService.CalculateFinishingMarginPct(ep.FinishingPrice, ep.FinishingCostPricePerM2, ep.Price_B42, ep.CostType) * 100m;
             ep.ThermalBreakMarginPct = FormulaCalculationService.CalculateThresholdMarginPct(ep.Price_B58, ep.AnodisedThresholdCostPerM2) * 100m;
 
@@ -345,6 +365,8 @@ namespace QuotingTool.Forms
             lblIP1MarginValue.Text = $"{ep.IP1MarginPct:N2}%";
             lblIP2MarginValue.Text = $"{ep.IP2MarginPct:N2}%";
             lblIP3MarginValue.Text = $"{ep.IP3MarginPct:N2}%";
+            lblMillFinishMarginValue.Text = $"{ep.MillFinishMarginPct:N2}%";
+            lblFinishingMarginValue.Text = $"{ep.FinishingMarginPct:N2}%";
             lblThresholdMarginValue.Text = $"{ep.ThermalBreakMarginPct:N2}%";
 
             // ── Metal price guidance (from Pricing Matrix breakpoint table) ───
@@ -353,6 +375,7 @@ namespace QuotingTool.Forms
             // Mirrors the Excel Pricing Matrix Table_Metal_BP reference.
             decimal suggestedMin = _formulaSvc.LookupMetalMinPrice(ep.TotalKg);
             decimal suggestedMax = _formulaSvc.LookupMetalMaxPrice(ep.TotalKg);
+            decimal suggestedTypical = _formulaSvc.LookupMetalTypicalPrice(ep.TotalKg);
             lblMetalPriceMin.Text = suggestedMin > 0m ? $"Min: ${suggestedMin:F2}" : "—";
             lblMetalPriceMax.Text = suggestedMax > 0m ? $"Max: ${suggestedMax:F2}" : "—";
 
@@ -363,10 +386,6 @@ namespace QuotingTool.Forms
             }
 
             var summary = _quoteSummaryService.Calculate(_projectId);
-            ep.MillFinishMarginPct = summary.MillFinishMarginPct;
-            ep.FinishingMarginPct = summary.FinishingMarginPct;
-            lblMillFinishMarginValue.Text = $"{summary.MillFinishMarginPct:N2}%";
-            lblFinishingMarginValue.Text = $"{summary.FinishingMarginPct:N2}%";
 
             if (saveChanges)
                 _db.UpsertEditPricing(ep);
@@ -397,8 +416,22 @@ namespace QuotingTool.Forms
 
             // Apply bold font to the (now auto-generated) Category column.
             StyleCategoryColumn();
+            UpdateCalculationTooltips(ep, metalCostPerKg, suggestedTypical, suggestedMin, suggestedMax);
 
             UpdateRowVisibility();
+        }
+
+        private decimal GetMassPerM(string? sectionCode)
+        {
+            if (string.IsNullOrWhiteSpace(sectionCode))
+                return 0m;
+
+            var code = sectionCode.Trim();
+            if (_extrusionByCode.TryGetValue(code, out var extrusion))
+                return extrusion.MassPerM;
+            if (_sundryByCode.TryGetValue(code, out var sundry))
+                return sundry.MassKgPerM;
+            return 0m;
         }
 
         private void UpdateRowVisibility()
@@ -424,6 +457,43 @@ namespace QuotingTool.Forms
 
         private static decimal CalculateMarginPct(decimal sell, decimal cost)
             => sell > 0m ? (sell - cost) / sell * 100m : 0m;
+
+        private void UpdateCalculationTooltips(EditPricing ep, decimal metalCostPerKg, decimal suggestedTypical, decimal suggestedMin, decimal suggestedMax)
+        {
+            var metalTooltip =
+                $"Mill Finish Sell Price $/kg (B33){Environment.NewLine}" +
+                $"Set from Table_Metal_BP by total kg (typical {suggestedTypical:F2}, min {suggestedMin:F2}, max {suggestedMax:F2}).{Environment.NewLine}" +
+                $"Current input: {ep.MetalPrice:F4}";
+            _formulaToolTip.SetToolTip(lblMetalPrice, metalTooltip);
+            _formulaToolTip.SetToolTip(txtMetalPrice, metalTooltip);
+
+            var millMarginTooltip =
+                $"Margin % (B34) = (Sell − Metal Cost) / Sell{Environment.NewLine}" +
+                $"= ({ep.MetalPrice:F4} − {metalCostPerKg:F4}) / {ep.MetalPrice:F4} = {ep.MillFinishMarginPct:F2}%";
+            _formulaToolTip.SetToolTip(lblMillFinishMargin, millMarginTooltip);
+            _formulaToolTip.SetToolTip(lblMillFinishMarginValue, millMarginTooltip);
+
+            var finishingMarginTooltip =
+                $"Margin % (B45) = IF(CostType=0, (B44−B43)/B44, (B44−B42)/B44){Environment.NewLine}" +
+                $"Current: CostType={ep.CostType}, Sell={ep.FinishingPrice:F4}, Cost={ep.FinishingCostPricePerM2:F4}, POA={ep.Price_B42:F4}{Environment.NewLine}" +
+                $"Result: {ep.FinishingMarginPct:F2}%";
+            _formulaToolTip.SetToolTip(lblFinishingMargin, finishingMarginTooltip);
+            _formulaToolTip.SetToolTip(lblFinishingMarginValue, finishingMarginTooltip);
+
+            var thresholdMarginTooltip =
+                $"Margin % (B59) = (B58 − B57) / B58{Environment.NewLine}" +
+                $"= ({ep.Price_B58:F4} − {ep.Price_B57:F4}) / {ep.Price_B58:F4} = {ep.ThermalBreakMarginPct:F2}%";
+            _formulaToolTip.SetToolTip(lblThresholdMargin, thresholdMarginTooltip);
+            _formulaToolTip.SetToolTip(lblThresholdMarginValue, thresholdMarginTooltip);
+
+            var bulkCostTooltip = "Finishing BULK Cost Price $/m² (B49), sourced from Pricing Matrix E46.";
+            _formulaToolTip.SetToolTip(lblB49, bulkCostTooltip);
+            _formulaToolTip.SetToolTip(txtB49, bulkCostTooltip);
+
+            var nonBulkCostTooltip = "Finishing NON-Bulk Cost Price $/m² (B53), sourced from Pricing Matrix E47.";
+            _formulaToolTip.SetToolTip(lblB53, nonBulkCostTooltip);
+            _formulaToolTip.SetToolTip(txtB53, nonBulkCostTooltip);
+        }
 
         /// <summary>
         /// Applies runtime font styling.

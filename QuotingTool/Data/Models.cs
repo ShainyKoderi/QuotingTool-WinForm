@@ -96,8 +96,8 @@ namespace QuotingTool.Data
     // Maps to "3.Edit Pricing" sheet
     // Key cells: C16=FinType, C25=CostType, D25=Override,
     //   B33=MetalSellPrice, B42=POACost, B43=FinishingCostPrice(auto),
-    //   B44=FinishingSellPrice, B48=MillPOACost, B50=BulkSellPrice,
-    //   B52=NonBulkPOACost, B54=NonBulkSellPrice, B57=ThresholdCostPrice(auto), B58=ThresholdSellPrice,
+    //   B44=FinishingSellPrice, B48=MillPOACost, B49=BulkCostPrice(auto), B50=BulkSellPrice,
+    //   B52=NonBulkPOACost, B53=NonBulkCostPrice(auto), B54=NonBulkSellPrice, B57=ThresholdCostPrice(auto), B58=ThresholdSellPrice,
     //   B36=TBCalcType, B37=TBMargin
     public class EditPricing
     {
@@ -111,9 +111,11 @@ namespace QuotingTool.Data
         public decimal Price_B42 { get; set; } = 99; // B42: POA/Other Vendor Cost $/m2
         public decimal Price_B44 { get; set; } = 99; // B44: Finishing Sell Price $/m2
         public decimal Price_B48 { get; set; } = 99; // B48: Mill POA Cost $/m2
+        public decimal Price_B49 { get; set; } = 0m; // B49: Finishing BULK Cost Price $/m2 (auto)
         public decimal Price_B50 { get; set; } = 99; // B50: Mill BULK Sell Price $/m2
         // Additional fields from .xlsm
         public decimal Price_B52 { get; set; } = 99;  // B52: Mill NON-Bulk POA Cost $/m2
+        public decimal Price_B53 { get; set; } = 0m;  // B53: Finishing NON-Bulk Cost Price $/m2 (auto)
         public decimal Price_B54 { get; set; } = 99;  // B54: Mill NON-Bulk Sell Price $/m2
         public decimal Price_B57 { get; set; } = 0m;  // B57: Anodised Threshold Cost Price $/m2 (auto from PricingMatrix)
         public decimal Price_B58 { get; set; } = 99;  // B58: Anodised Threshold Sell Price $/m2
