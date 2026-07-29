@@ -177,6 +177,7 @@ namespace QuotingTool.Forms
             txtB57.Text = ep.Price_B57.ToString("F4");
             txtB58.Text = ep.Price_B58.ToString("F2");
 
+            ApplyRoleAccess();
             UpdateDerivedFields(saveChanges: false);
         }
 
@@ -192,6 +193,12 @@ namespace QuotingTool.Forms
         private void btnToggleOverride_Click(object sender, EventArgs e)
         {
             if (_projectId <= 0) return;
+            if (!UserSession.HasRole(UserRole.SalesManager))
+            {
+                MessageBox.Show("Sales Manager or Administrator access is required for pricing overrides.",
+                    "Access", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             chkCostTypeOverride.Checked = _showHide.ToggleCostTypeOverride(_projectId);
             UpdateRowVisibility();
         }
@@ -214,6 +221,13 @@ namespace QuotingTool.Forms
             txtIP2Upcharge.Text = DefaultIP2Upcharge.ToString("F2");
             txtIP3Rate.Text = DefaultIP3Rate.ToString("F2");
             SavePricing();
+        }
+
+        private void ApplyRoleAccess()
+        {
+            var canAuthorize = UserSession.HasRole(UserRole.SalesManager);
+            chkCostTypeOverride.Enabled = canAuthorize;
+            btnToggleOverride.Enabled = canAuthorize;
         }
 
         private void btnBulkNonBulkRates_Click(object sender, EventArgs e)

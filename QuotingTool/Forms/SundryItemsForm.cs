@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using QuotingTool.Data;
@@ -12,7 +13,6 @@ namespace QuotingTool.Forms
         private readonly DatabaseContext _db;
         private readonly SundryItemsService _service;
         private BindingList<SundryItem> _items = new();
-        private int _projectId;
 
         public SundryItemsForm(DatabaseContext db)
         {
@@ -23,45 +23,71 @@ namespace QuotingTool.Forms
 
         public void LoadProject(int projectId)
         {
-            _projectId = projectId;
-            _items = new BindingList<SundryItem>(_service.GetItems(projectId)
-                .OrderBy(i => i.LineNumber)
-                .ThenBy(i => i.Id)
-                .ToList());
+            _items = new BindingList<SundryItem>(BuildDisplayList(_service.GetItems()));
             gridSundryItems.DataSource = _items;
-            RenumberRows();
-            RecalculateGrid();
+            ConfigureGrid();
         }
 
-        private void btnAddRow_Click(object sender, EventArgs e)
+        private static List<SundryItem> BuildDisplayList(IEnumerable<SundryItem> dbItems)
         {
+            var byCode = dbItems
+                .Where(i => !string.IsNullOrWhiteSpace(i.SectionCode))
+                .GroupBy(i => i.SectionCode, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+            var list = new List<SundryItem>();
+
+            for (int i = 1; i <= 26; i++)
+            {
+                var code = $"SUNDRY-{i}";
+                if (byCode.TryGetValue(code, out var existing))
+                    list.Add(existing);
+                else
+                    list.Add(new SundryItem { SectionCode = code, Description = $"Sundry description - {i}" });
+            }
+
+            list.AddRange(byCode.Values
+                .Where(i => TryGetSundryNumber(i.SectionCode, out var n) && n > 26)
+                .OrderBy(i => ParseSundryNumber(i.SectionCode)));
+
+            return list;
+        }
+
+        private void ConfigureGrid()
+        {
+            if (gridSundryItems.Columns.Contains(nameof(SundryItem.SectionCode)))
+                gridSundryItems.Columns[nameof(SundryItem.SectionCode)].ReadOnly = true;
+            if (gridSundryItems.Columns.Contains(nameof(SundryItem.Ap)))
+                gridSundryItems.Columns[nameof(SundryItem.Ap)].DefaultCellStyle.Format = "0";
+            if (gridSundryItems.Columns.Contains(nameof(SundryItem.Pp)))
+                gridSundryItems.Columns[nameof(SundryItem.Pp)].DefaultCellStyle.Format = "0";
+            if (gridSundryItems.Columns.Contains(nameof(SundryItem.MassKgPerM)))
+                gridSundryItems.Columns[nameof(SundryItem.MassKgPerM)].DefaultCellStyle.Format = "0.0000";
+        }
+
+        private void btnEdit26Plus_Click(object sender, EventArgs e)
+        {
+            int next = _items
+                .Select(i => ParseSundryNumber(i.SectionCode))
+                .DefaultIfEmpty(0)
+                .Max() + 1;
+            var code = $"SUNDRY-{next}";
             _items.Add(new SundryItem
             {
-                ProjectId = _projectId,
-                LineNumber = _items.Count + 1,
-                Quantity = 1,
-                Category = "Sundry"
+                SectionCode = code,
+                Description = $"Sundry description - {next}",
+                MassKgPerM = 0,
+                Ap = 0,
+                Pp = 0
             });
-            RecalculateGrid();
-        }
 
-        private void btnDeleteSelected_Click(object sender, EventArgs e)
-        {
-            if (gridSundryItems.CurrentRow?.DataBoundItem is not SundryItem item) return;
-            if (item.Id > 0)
-                _service.DeleteItem(item.Id);
-            _items.Remove(item);
-            RenumberRows();
-            RecalculateGrid();
+            int rowIndex = _items.Count - 1;
+            if (rowIndex >= 0)
+            {
+                gridSundryItems.ClearSelection();
+                gridSundryItems.Rows[rowIndex].Selected = true;
+                gridSundryItems.FirstDisplayedScrollingRowIndex = rowIndex;
+            }
         }
-
-        private void btnSaveAll_Click(object sender, EventArgs e)
-        {
-            SaveAll();
-            MessageBox.Show("Sundry items saved.", "Sundry Items", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        private void btnRecalculate_Click(object sender, EventArgs e) => RecalculateGrid();
 
         private void gridSundryItems_CurrentCellDirtyStateChanged(object sender, EventArgs e)
         {
@@ -72,42 +98,46 @@ namespace QuotingTool.Forms
         private void gridSundryItems_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.RowIndex >= _items.Count) return;
-            RecalculateGrid();
+            if (_items[e.RowIndex].Ap < 0) _items[e.RowIndex].Ap = 0;
+            if (_items[e.RowIndex].Pp < 0) _items[e.RowIndex].Pp = 0;
+            if (_items[e.RowIndex].MassKgPerM < 0) _items[e.RowIndex].MassKgPerM = 0;
+        }
+
+        private void btnCloseSave_Click(object sender, EventArgs e)
+        {
+            SaveAll();
+            DialogResult = DialogResult.OK;
+            Close();
         }
 
         private void SaveAll()
         {
-            RecalculateGrid();
             foreach (var item in _items)
             {
-                item.ProjectId = _projectId;
-                item.TotalPrice = item.Quantity * item.UnitPrice;
+                item.Description ??= string.Empty;
+                item.SectionCode = item.SectionCode?.Trim() ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(item.SectionCode))
+                    continue;
                 if (item.Id > 0)
                     _service.UpdateItem(item);
                 else
                     _db.InsertSundryItem(item);
             }
-            LoadProject(_projectId);
+            MessageBox.Show("Sundry items saved.", "Sundry Items", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private void RenumberRows()
-        {
-            for (int i = 0; i < _items.Count; i++)
-                _items[i].LineNumber = i + 1;
-            gridSundryItems.Refresh();
-        }
+        private static int ParseSundryNumber(string? sectionCode)
+            => TryGetSundryNumber(sectionCode, out var n) ? n : 0;
 
-        private void RecalculateGrid()
+        private static bool TryGetSundryNumber(string? sectionCode, out int number)
         {
-            RenumberRows();
-            decimal total = 0m;
-            foreach (var item in _items)
-            {
-                item.TotalPrice = item.Quantity * item.UnitPrice;
-                total += item.TotalPrice;
-            }
-            lblSundryTotal.Text = $"Sundry Total: {total:C2}";
-            gridSundryItems.Refresh();
+            number = 0;
+            if (string.IsNullOrWhiteSpace(sectionCode))
+                return false;
+
+            var parts = sectionCode.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            return parts.Length == 2 && parts[0].Equals("SUNDRY", StringComparison.OrdinalIgnoreCase)
+                && int.TryParse(parts[1], out number);
         }
     }
 }

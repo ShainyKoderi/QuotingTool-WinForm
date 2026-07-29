@@ -173,6 +173,24 @@ namespace QuotingTool.Data
                     }
                 }
             }
+            EnsureSundryMasterSeed(conn);
+        }
+
+        private static void EnsureSundryMasterSeed(SqlConnection conn)
+        {
+            for (int i = 1; i <= 26; i++)
+            {
+                var sectionCode = $"SUNDRY-{i}";
+                conn.Execute(
+                    @"IF NOT EXISTS (SELECT 1 FROM SundryItems WHERE SectionCode=@sectionCode)
+                      INSERT INTO SundryItems (SectionCode, Description, MassKgPerM, Ap, Pp)
+                      VALUES (@sectionCode, @description, 0, 0, 0)",
+                    new
+                    {
+                        sectionCode,
+                        description = $"Sundry description - {i}"
+                    });
+            }
         }
 
         // ── Projects ─────────────────────────────────────────────────────────
@@ -238,7 +256,6 @@ namespace QuotingTool.Data
             conn.Execute("DELETE FROM MasterFormulas WHERE ProjectId=@id", new { id });
             conn.Execute("DELETE FROM BomLines WHERE ProjectId=@id", new { id });
             conn.Execute("DELETE FROM QuoteLines WHERE ProjectId=@id", new { id });
-            conn.Execute("DELETE FROM SundryItems WHERE ProjectId=@id", new { id });
             conn.Execute("DELETE FROM QuoteSummary WHERE ProjectId=@id", new { id });
             conn.Execute("DELETE FROM QuoteFooters WHERE ProjectId=@id", new { id });
             conn.Execute("DELETE FROM PrintSettings WHERE ProjectId=@id", new { id });
@@ -471,20 +488,19 @@ namespace QuotingTool.Data
 
         // ── SundryItems ───────────────────────────────────────────────────────
 
-        public IEnumerable<SundryItem> GetSundryItems(int projectId)
+        public IEnumerable<SundryItem> GetSundryItems()
         {
             using var conn = GetConnection();
             return conn.Query<SundryItem>(
-                "SELECT * FROM SundryItems WHERE ProjectId=@projectId ORDER BY LineNumber, Id",
-                new { projectId });
+                "SELECT * FROM SundryItems ORDER BY Id");
         }
 
         public void InsertSundryItem(SundryItem item)
         {
             using var conn = GetConnection();
             conn.Execute(
-                @"INSERT INTO SundryItems (ProjectId,LineNumber,Description,Quantity,UnitPrice,TotalPrice,Category,Notes)
-                  VALUES (@ProjectId,@LineNumber,@Description,@Quantity,@UnitPrice,@TotalPrice,@Category,@Notes)",
+                @"INSERT INTO SundryItems (SectionCode,Description,MassKgPerM,Ap,Pp)
+                  VALUES (@SectionCode,@Description,@MassKgPerM,@Ap,@Pp)",
                 item);
         }
 
@@ -492,9 +508,8 @@ namespace QuotingTool.Data
         {
             using var conn = GetConnection();
             conn.Execute(
-                @"UPDATE SundryItems SET LineNumber=@LineNumber, Description=@Description,
-                  Quantity=@Quantity, UnitPrice=@UnitPrice, TotalPrice=@TotalPrice,
-                  Category=@Category, Notes=@Notes
+                @"UPDATE SundryItems SET SectionCode=@SectionCode, Description=@Description,
+                  MassKgPerM=@MassKgPerM, Ap=@Ap, Pp=@Pp
                   WHERE Id=@Id",
                 item);
         }
@@ -505,18 +520,67 @@ namespace QuotingTool.Data
             conn.Execute("DELETE FROM SundryItems WHERE Id=@id", new { id });
         }
 
-        public void DeleteAllSundryItems(int projectId)
-        {
-            using var conn = GetConnection();
-            conn.Execute("DELETE FROM SundryItems WHERE ProjectId=@projectId", new { projectId });
-        }
-
         public decimal GetSundryTotal(int projectId)
         {
             using var conn = GetConnection();
             return conn.ExecuteScalar<decimal?>(
-                "SELECT SUM(TotalPrice) FROM SundryItems WHERE ProjectId=@projectId",
+                @"SELECT SUM(TotalPrice)
+                  FROM QuoteLines
+                  WHERE ProjectId=@projectId
+                    AND ExtrusionCode LIKE 'SUNDRY-%'",
                 new { projectId }) ?? 0m;
+        }
+
+        // ── Users / Authentication ───────────────────────────────────────────
+
+        public IEnumerable<User> GetUsers()
+        {
+            using var conn = GetConnection();
+            return conn.Query<User>("SELECT * FROM Users ORDER BY Username");
+        }
+
+        public User? GetUserByUsername(string username)
+        {
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<User>(
+                "SELECT * FROM Users WHERE Username=@username",
+                new { username });
+        }
+
+        public User? GetUserById(int id)
+        {
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<User>(
+                "SELECT * FROM Users WHERE Id=@id",
+                new { id });
+        }
+
+        public int InsertUser(User user)
+        {
+            using var conn = GetConnection();
+            return conn.ExecuteScalar<int>(
+                @"INSERT INTO Users (Username,DisplayName,PasswordHash,PasswordSalt,Role,Email,IsActive)
+                  OUTPUT INSERTED.Id
+                  VALUES (@Username,@DisplayName,@PasswordHash,@PasswordSalt,@Role,@Email,@IsActive)",
+                user);
+        }
+
+        public void UpdateUser(User user)
+        {
+            using var conn = GetConnection();
+            conn.Execute(
+                @"UPDATE Users SET DisplayName=@DisplayName, Role=@Role, Email=@Email, IsActive=@IsActive
+                  WHERE Id=@Id",
+                user);
+        }
+
+        public void UpdateUserPassword(int userId, byte[] passwordHash, byte[] passwordSalt)
+        {
+            using var conn = GetConnection();
+            conn.Execute(
+                @"UPDATE Users SET PasswordHash=@passwordHash, PasswordSalt=@passwordSalt
+                  WHERE Id=@userId",
+                new { userId, passwordHash, passwordSalt });
         }
 
         // ── QuoteSummary ──────────────────────────────────────────────────────

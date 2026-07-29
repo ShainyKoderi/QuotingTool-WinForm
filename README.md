@@ -13,7 +13,9 @@ The latest updates add:
 - **Quote Letter** preview/print/export workflow
 - **Quote No Pricing** customer-facing output without prices
 - **Sundry Items** maintenance with totals stored in the database
+- **Excel-style Sundry master** (`SUNDRY-1` .. `SUNDRY-26+`) with Section, Mass kg/m, AP, PP used in Quote pricing
 - **SAP export** clipboard formatting for quote lines
+- **User authentication + role-based access** (General User, Sales Manager, Administrator)
 - **Quote summary** persistence and margin calculations
 - **Expanded project and edit pricing fields** extracted from the workbook
 - **Improved quote line persistence** with total price and line numbering
@@ -173,11 +175,25 @@ QuotingTool/
 - Generate a **No Pricing** quote view for customer-facing schedules without dollar values, then save it as a native PDF
 - Use prominent per-form **Save** actions on Project Details, Quote, Edit Pricing, and Sundry Items instead of a shared MainForm save button
 - Maintain **Sundry Items** in a dedicated dialog with running total calculation
+- Edit global **Sundry master** rows with fixed section codes (`SUNDRY-1`..`SUNDRY-26`) plus **Edit Items 26+** for additional codes
+- Use `SUNDRY-*` directly in Quote **Section**; Description auto-fills and pricing uses sundry Mass/AP/PP inputs
 - Copy quote lines to clipboard in **SAP-ready tab-separated format**
 - Import inferred **CRE8** project-details CSV data into the currently open project
 - View richer **Edit Pricing** metrics including totals, IP upcharges, summary margins, and threshold data
 - Use per-tab action buttons: **Fix Lengths**, **Reset Prices**, **Export Quote**, and **Copy for SAP** live on the **Quote** tab; **Refresh Summary** lives on the **Edit Pricing** tab near the summary section
 - Manually maintain quote lines directly on the **Quote** tab using **Add Row** / **Delete Row** in addition to **BOM Import**
+- Sign in through a **Login** form before entering the app:
+  - **General User**: Project Details, Quote, Quote Letter, No Pricing, BOM Import, Sundry editing
+  - **Sales Manager**: General access + pricing override authorisations
+  - **Administrator**: Full access including Monthly Update and User Management
+
+### Default administrator (first run)
+
+- Username: `admin`
+- Initial password:
+  - `QUOTINGTOOL_DEFAULT_ADMIN_PASSWORD` value, if configured, or
+  - a generated strong password shown in a first-run popup
+- Change this password immediately from **Tools → User Management**
 
 ---
 

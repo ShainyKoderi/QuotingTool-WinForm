@@ -139,14 +139,31 @@ namespace QuotingTool.Data
     public class SundryItem
     {
         public int Id { get; set; }
-        public int ProjectId { get; set; }
-        public int LineNumber { get; set; }
+        public string SectionCode { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public decimal Quantity { get; set; } = 1;
-        public decimal UnitPrice { get; set; }
-        public decimal TotalPrice { get; set; }
-        public string Category { get; set; } = "Sundry";
-        public string Notes { get; set; } = string.Empty;
+        public decimal MassKgPerM { get; set; }
+        public int Ap { get; set; }
+        public int Pp { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public enum UserRole
+    {
+        GeneralUser = 0,
+        SalesManager = 1,
+        Administrator = 2
+    }
+
+    public class User
+    {
+        public int Id { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public byte[] PasswordHash { get; set; } = Array.Empty<byte>();
+        public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();
+        public UserRole Role { get; set; } = UserRole.GeneralUser;
+        public string Email { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; }
     }
 
