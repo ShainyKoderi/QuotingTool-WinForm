@@ -22,6 +22,7 @@ namespace QuotingTool.Forms
             menuTools = new System.Windows.Forms.ToolStripMenuItem();
             menuToolsSundryItems = new System.Windows.Forms.ToolStripMenuItem();
             menuToolsCopyForSap = new System.Windows.Forms.ToolStripMenuItem();
+            menuToolsUserManagement = new System.Windows.Forms.ToolStripMenuItem();
             menuHelp = new System.Windows.Forms.ToolStripMenuItem();
             menuHelpAbout = new System.Windows.Forms.ToolStripMenuItem();
             toolStrip = new System.Windows.Forms.ToolStrip();
@@ -32,6 +33,7 @@ namespace QuotingTool.Forms
             quoteTab = new System.Windows.Forms.TabPage();
             editPricingTab = new System.Windows.Forms.TabPage();
             quoteLetterTab = new System.Windows.Forms.TabPage();
+            noPricingTab = new System.Windows.Forms.TabPage();
             bomTab = new System.Windows.Forms.TabPage();
             monthlyUpdateTab = new System.Windows.Forms.TabPage();
             statusStrip = new System.Windows.Forms.StatusStrip();
@@ -57,12 +59,14 @@ namespace QuotingTool.Forms
             menuFileExit.Text = "E&xit";
             menuFileExit.Click += new System.EventHandler(menuFileExit_Click);
 
-            menuTools.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { menuToolsSundryItems, menuToolsCopyForSap });
+            menuTools.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { menuToolsSundryItems, menuToolsCopyForSap, menuToolsUserManagement });
             menuTools.Text = "&Tools";
             menuToolsSundryItems.Text = "Sundry Items";
             menuToolsSundryItems.Click += new System.EventHandler(menuToolsSundryItems_Click);
             menuToolsCopyForSap.Text = "Copy for SAP";
             menuToolsCopyForSap.Click += new System.EventHandler(menuToolsCopyForSap_Click);
+            menuToolsUserManagement.Text = "User Management";
+            menuToolsUserManagement.Click += new System.EventHandler(menuToolsUserManagement_Click);
 
             menuHelp.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { menuHelpAbout });
             menuHelp.Text = "&Help";
@@ -81,6 +85,7 @@ namespace QuotingTool.Forms
             tabControl.Controls.Add(quoteTab);
             tabControl.Controls.Add(editPricingTab);
             tabControl.Controls.Add(quoteLetterTab);
+            tabControl.Controls.Add(noPricingTab);
             tabControl.Controls.Add(bomTab);
             tabControl.Controls.Add(monthlyUpdateTab);
             tabControl.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -95,6 +100,8 @@ namespace QuotingTool.Forms
             editPricingTab.Padding = new System.Windows.Forms.Padding(3);
             quoteLetterTab.Text = "Quote Letter";
             quoteLetterTab.Padding = new System.Windows.Forms.Padding(3);
+            noPricingTab.Text = "No Pricing";
+            noPricingTab.Padding = new System.Windows.Forms.Padding(3);
             bomTab.Text = "BOM Import";
             bomTab.Padding = new System.Windows.Forms.Padding(3);
             monthlyUpdateTab.Text = "Monthly Update";
@@ -130,6 +137,7 @@ namespace QuotingTool.Forms
             EmbedForm(new QuoteForm(_db), quoteTab);
             EmbedForm(new EditPricingForm(_db), editPricingTab);
             EmbedForm(new QuoteLetterForm(_db), quoteLetterTab);
+            EmbedForm(new QuoteNoPricingForm(_db), noPricingTab);
             EmbedForm(new BomImportForm(_db), bomTab);
             EmbedForm(new MonthlyUpdateForm(_db), monthlyUpdateTab);
         }
@@ -152,6 +160,7 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.ToolStripMenuItem menuTools;
         private System.Windows.Forms.ToolStripMenuItem menuToolsSundryItems;
         private System.Windows.Forms.ToolStripMenuItem menuToolsCopyForSap;
+        private System.Windows.Forms.ToolStripMenuItem menuToolsUserManagement;
         private System.Windows.Forms.ToolStripMenuItem menuHelp;
         private System.Windows.Forms.ToolStripMenuItem menuHelpAbout;
         private System.Windows.Forms.ToolStrip toolStrip;
@@ -162,6 +171,7 @@ namespace QuotingTool.Forms
         public System.Windows.Forms.TabPage quoteTab;
         public System.Windows.Forms.TabPage editPricingTab;
         public System.Windows.Forms.TabPage quoteLetterTab;
+        public System.Windows.Forms.TabPage noPricingTab;
         public System.Windows.Forms.TabPage bomTab;
         public System.Windows.Forms.TabPage monthlyUpdateTab;
         private System.Windows.Forms.StatusStrip statusStrip;

@@ -1,6 +1,7 @@
 using System;
 using System.Windows.Forms;
 using QuotingTool.Data;
+using QuotingTool.Services;
 
 namespace QuotingTool.Forms
 {
@@ -36,6 +37,10 @@ namespace QuotingTool.Forms
             SetComboOrText(cmbRegion, project.Region);
             txtQuotedBy.Text = project.QuotedBy;
             txtAccountManager.Text = project.AccountManager;
+            if (string.IsNullOrWhiteSpace(txtQuotedBy.Text))
+                txtQuotedBy.Text = UserSession.CurrentUser?.DisplayName ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(txtAccountManager.Text))
+                txtAccountManager.Text = UserSession.CurrentUser?.DisplayName ?? string.Empty;
             txtAttention.Text = string.IsNullOrWhiteSpace(project.AttentionTo) ? project.Attention : project.AttentionTo;
             SetComboOrText(cmbMarketSegment, project.MarketSegment);
             SetComboOrText(cmbProductSegment, project.ProductSegment);
@@ -66,6 +71,10 @@ namespace QuotingTool.Forms
             project.Region = cmbRegion.Text.Trim();
             project.QuotedBy = txtQuotedBy.Text.Trim();
             project.AccountManager = txtAccountManager.Text.Trim();
+            if (string.IsNullOrWhiteSpace(project.QuotedBy))
+                project.QuotedBy = UserSession.CurrentUser?.DisplayName ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(project.AccountManager))
+                project.AccountManager = UserSession.CurrentUser?.DisplayName ?? string.Empty;
             project.Attention = txtAttention.Text.Trim();
             project.AttentionTo = string.IsNullOrWhiteSpace(txtAttention.Text) ? DefaultAttentionTo : txtAttention.Text.Trim();
             project.MarketSegment = cmbMarketSegment.Text.Trim();

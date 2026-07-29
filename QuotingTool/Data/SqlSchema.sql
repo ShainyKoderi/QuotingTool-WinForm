@@ -320,19 +320,52 @@ IF COL_LENGTH('EditPricing','FinishingCostPricePerM2') IS NULL ALTER TABLE EditP
 IF COL_LENGTH('EditPricing','AnodisedThresholdCostPerM2') IS NULL ALTER TABLE EditPricing ADD AnodisedThresholdCostPerM2 DECIMAL(18,4) DEFAULT 10.65;
 IF COL_LENGTH('EditPricing','ThermalBreakMarginPct') IS NULL ALTER TABLE EditPricing ADD ThermalBreakMarginPct DECIMAL(18,4) DEFAULT 0;
 
--- SundryItems table
+-- SundryItems table (global workbook-level sundry section master)
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='SundryItems')
 CREATE TABLE SundryItems (
     Id INT IDENTITY PRIMARY KEY,
-    ProjectId INT FOREIGN KEY REFERENCES Projects(Id),
-    LineNumber INT DEFAULT 0,
+    SectionCode NVARCHAR(50) NOT NULL UNIQUE,
     Description NVARCHAR(300),
-    Quantity DECIMAL(18,4) DEFAULT 1,
-    UnitPrice DECIMAL(18,4) DEFAULT 0,
-    TotalPrice DECIMAL(18,4) DEFAULT 0,
-    Category NVARCHAR(100) DEFAULT 'Sundry',
-    Notes NVARCHAR(500),
+    MassKgPerM DECIMAL(18,4) DEFAULT 0,
+    Ap INT DEFAULT 0,
+    Pp INT DEFAULT 0,
     CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+IF COL_LENGTH('SundryItems','SectionCode') IS NULL ALTER TABLE SundryItems ADD SectionCode NVARCHAR(50) NULL;
+IF COL_LENGTH('SundryItems','MassKgPerM') IS NULL ALTER TABLE SundryItems ADD MassKgPerM DECIMAL(18,4) DEFAULT 0;
+IF COL_LENGTH('SundryItems','Ap') IS NULL ALTER TABLE SundryItems ADD Ap INT DEFAULT 0;
+IF COL_LENGTH('SundryItems','Pp') IS NULL ALTER TABLE SundryItems ADD Pp INT DEFAULT 0;
+
+IF COL_LENGTH('SundryItems','SectionCode') IS NOT NULL
+BEGIN
+    UPDATE SundryItems
+    SET SectionCode = CONCAT('SUNDRY-', Id)
+    WHERE (SectionCode IS NULL OR LTRIM(RTRIM(SectionCode)) = '');
+END
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = 'UX_SundryItems_SectionCode'
+      AND object_id = OBJECT_ID('SundryItems'))
+BEGIN
+    CREATE UNIQUE INDEX UX_SundryItems_SectionCode
+    ON SundryItems(SectionCode)
+    WHERE SectionCode IS NOT NULL;
+END
+
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'Users')
+CREATE TABLE Users (
+    Id INT IDENTITY PRIMARY KEY,
+    Username NVARCHAR(100) NOT NULL UNIQUE,
+    DisplayName NVARCHAR(200) NOT NULL,
+    PasswordHash VARBINARY(256) NOT NULL,
+    PasswordSalt VARBINARY(128) NOT NULL,
+    Role INT NOT NULL DEFAULT 0,
+    Email NVARCHAR(200) NULL,
+    IsActive BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
 );
 
 -- QuoteSummary table

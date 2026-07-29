@@ -33,7 +33,16 @@ namespace QuotingTool.Forms
         public void LoadProject(int projectId)
         {
             _projectId = projectId;
-            SetMaintenanceVisibility(false);
+            if (UserSession.IsAdministrator)
+            {
+                SetMaintenanceVisibility(true);
+                btnUnlock.Visible = false;
+            }
+            else
+            {
+                SetMaintenanceVisibility(false);
+                btnUnlock.Visible = true;
+            }
             RefreshPricingMatrix();
 
             // Pre-populate from latest revision
@@ -96,6 +105,9 @@ namespace QuotingTool.Forms
 
         private bool PromptForPassword()
         {
+            if (UserSession.IsAdministrator)
+                return true;
+
             if (string.IsNullOrWhiteSpace(_monthlyUpdatePassword))
             {
                 MessageBox.Show(

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 using QuotingTool.Data;
 using QuotingTool.Services;
@@ -13,6 +15,7 @@ namespace QuotingTool.Forms
         private readonly NavigationService _nav;
         private readonly PageSetupService _pageSetup;
         private readonly SapExportService _sapExport;
+        private readonly List<TabPage> _allTabs = new();
 
         public MainForm()
         {
@@ -22,12 +25,15 @@ namespace QuotingTool.Forms
             _pageSetup = new PageSetupService(_db);
             _sapExport = new SapExportService(_db);
             InitializeComponent();
+            _allTabs.AddRange(new[] { projectDetailsTab, quoteTab, editPricingTab, quoteLetterTab, noPricingTab, bomTab, monthlyUpdateTab });
+            ApplyRoleAccess();
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
             LoadLastProject();
+            Text = $"QuotingTool – {UserSession.CurrentUser?.DisplayName ?? "Guest"}";
         }
 
         private void TabControl_SelectedIndexChanged(object? sender, EventArgs e)
@@ -47,6 +53,8 @@ namespace QuotingTool.Forms
                 epf.LoadProject(CurrentProjectId);
             else if (form is ProjectDetailsForm pdf)
                 pdf.LoadProject(CurrentProjectId);
+            else if (form is QuoteNoPricingForm qnp)
+                qnp.LoadProject(CurrentProjectId);
         }
 
         private void LoadLastProject()
@@ -96,6 +104,8 @@ namespace QuotingTool.Forms
                 muf.LoadProject(CurrentProjectId);
             if (quoteLetterTab.Controls.Count > 0 && quoteLetterTab.Controls[0] is QuoteLetterForm qlf)
                 qlf.LoadProject(CurrentProjectId);
+            if (noPricingTab.Controls.Count > 0 && noPricingTab.Controls[0] is QuoteNoPricingForm qnp)
+                qnp.LoadProject(CurrentProjectId);
         }
 
         private void btnNewProject_Click(object sender, EventArgs e)
@@ -109,7 +119,9 @@ namespace QuotingTool.Forms
                 CustomerName = dialog.CustomerName,
                 ProjectName = dialog.ProjectName,
                 Region = dialog.SelectedRegion,
-                RevisionDate = dialog.QuoteDate
+                RevisionDate = dialog.QuoteDate,
+                QuotedBy = UserSession.CurrentUser?.DisplayName ?? string.Empty,
+                AccountManager = UserSession.CurrentUser?.DisplayName ?? string.Empty
             });
             _db.UpsertEditPricing(new EditPricing { ProjectId = newId });
             SetCurrentProject(newId);
@@ -142,6 +154,38 @@ namespace QuotingTool.Forms
             if (CurrentProjectId <= 0) { MessageBox.Show("No project open."); return; }
             int count = _sapExport.CopyToClipboard(CurrentProjectId);
             MessageBox.Show($"{count} lines copied to clipboard for SAP", "Copy for SAP", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void menuToolsUserManagement_Click(object sender, EventArgs e)
+        {
+            if (!UserSession.IsAdministrator)
+            {
+                MessageBox.Show("Administrator access required.", "User Management", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using var form = new UserManagementForm(_db);
+            form.ShowDialog(this);
+        }
+
+        private void ApplyRoleAccess()
+        {
+            menuToolsUserManagement.Visible = UserSession.IsAdministrator;
+            tabControl.TabPages.Clear();
+
+            IEnumerable<TabPage> allowedTabs = UserSession.CurrentUser?.Role switch
+            {
+                UserRole.Administrator => _allTabs,
+                UserRole.SalesManager => _allTabs.Where(t => t != monthlyUpdateTab),
+                _ => _allTabs.Where(t => t == projectDetailsTab
+                                         || t == quoteTab
+                                         || t == quoteLetterTab
+                                         || t == noPricingTab
+                                         || t == bomTab)
+            };
+
+            foreach (var tab in allowedTabs)
+                tabControl.TabPages.Add(tab);
         }
 
         private void menuHelpAbout_Click(object sender, EventArgs e)

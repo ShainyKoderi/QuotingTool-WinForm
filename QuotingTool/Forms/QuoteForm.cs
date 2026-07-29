@@ -28,11 +28,14 @@ namespace QuotingTool.Forms
         private const int LengthColumnWidth = 90;
         private const int PriceColumnWidth = 90;
         private const int TotalColumnWidth = 90;
+        private const string MillFinishType = "Mill Finish";
         private BindingList<QuoteLine> _lines = new();
         private int _projectId;
         private bool _bindingGrid;
         private Dictionary<string, ExtrusionMaster> _extrusionMasterByCode = new(StringComparer.OrdinalIgnoreCase);
+        private Dictionary<string, SundryItem> _sundryMasterByCode = new(StringComparer.OrdinalIgnoreCase);
         private decimal _metalPricePerKg;
+        private decimal _finishingSellPricePerM2;
         // IP upcharge rates loaded from EditPricing (default to workbook constants when no project pricing exists)
         private decimal _ip1RatePerKg = 1.00m;
         private decimal _ip2RatePerKg = 2.00m;
@@ -43,6 +46,7 @@ namespace QuotingTool.Forms
         private HashSet<string> _thresholdSections = new(StringComparer.OrdinalIgnoreCase);
         private string _projectFinishSapCode = "NON";
         private string _thresholdChoice = "No";
+        private string _projectFinishType = "Mill Finish";
         private bool _autoUpdatingPages;
 
         public QuoteForm(DatabaseContext db)
@@ -59,6 +63,7 @@ namespace QuotingTool.Forms
             _importPrices = new ImportPricesService(db);
             InitializeComponent();
             LoadExtrusionMaster();
+            LoadSundryMaster();
             LoadIPMasterData();
             ConfigureGridColumns();
         }
@@ -85,6 +90,16 @@ namespace QuotingTool.Forms
                 // fall back to empty lookups so the form still opens.
                 _ipMasterByCodes = new Dictionary<string, int>(StringComparer.Ordinal);
                 _thresholdSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            }
+        }
+
+        private void LoadSundryMaster()
+        {
+            _sundryMasterByCode = new Dictionary<string, SundryItem>(StringComparer.OrdinalIgnoreCase);
+            foreach (var item in _db.GetSundryItems())
+            {
+                if (!string.IsNullOrWhiteSpace(item.SectionCode))
+                    _sundryMasterByCode[item.SectionCode] = item;
             }
         }
 
@@ -141,7 +156,17 @@ namespace QuotingTool.Forms
             }
 
             if (!_extrusionMasterByCode.TryGetValue(line.ExtrusionCode, out var master))
+            {
+                if (_sundryMasterByCode.TryGetValue(line.ExtrusionCode, out var sundry))
+                {
+                    line.Description = sundry.Description ?? string.Empty;
+                    if (string.IsNullOrWhiteSpace(line.Alloy))
+                        line.Alloy = "6060";
+                    if (string.IsNullOrWhiteSpace(line.Temper))
+                        line.Temper = "T5";
+                }
                 return;
+            }
 
             // Build Description: prepend * for thermal-break sections (PDB/PLS), then base description,
             // then append " **MILL FINISH**" when Ignore Finish is set to "Yes".
@@ -175,7 +200,7 @@ namespace QuotingTool.Forms
         /// $ Each is calculated from:
         ///   MF Each (AH) = kg/m × Length × MetalSellPrice (standard path)
         ///   IP Each (AI) = kg/m × Length × IP upcharge rate (based on IpGrade: 0=none,1=IP1,2=IP2,3=IP3)
-        ///   SF Sell Each (AS) = 0 (finishing area calculation – requires ApMm/PpMm; not yet fully translated)
+        ///   SF Sell Each (AS) = finishing area × finishing sell rate (AP fallback to PP perimeter)
         ///   Slotting/Sundry ea (K) = user-entered SubsillSurcharge
         /// </summary>
         private void RecalculatePrice(QuoteLine line)
@@ -183,10 +208,11 @@ namespace QuotingTool.Forms
             var millFinishEach = CalculateMillFinishEach(line);
             var ipEach = CalculateIpEach(line);
             var slottingSundryEach = line.SubsillSurcharge;
+            var sfSellEach = CalculateFinishingEach(line);
             var calculatedPrice = FormulaCalculationService.CalculatePriceEach(
                 millFinishEach,
                 ipEach: ipEach,
-                sfSellEach: 0m,
+                sfSellEach: sfSellEach,
                 slottingSundryEach: slottingSundryEach);
             line.Price = line.ManualPriceOverride ?? calculatedPrice;
             line.TotalPrice = FormulaCalculationService.CalculateSellTotal(line.Price, line.Quantity);
@@ -203,10 +229,9 @@ namespace QuotingTool.Forms
 
         private decimal CalculateMillFinishEach(QuoteLine line)
         {
-            if (string.IsNullOrWhiteSpace(line.ExtrusionCode)) return 0m;
-            if (!_extrusionMasterByCode.TryGetValue(line.ExtrusionCode, out var master)) return 0m;
-            if (master.MassPerM <= 0 || line.LengthM <= 0 || _metalPricePerKg <= 0) return 0m;
-            return master.MassPerM * line.LengthM * _metalPricePerKg;
+            var massPerM = GetMassPerM(line.ExtrusionCode);
+            if (massPerM <= 0 || line.LengthM <= 0 || _metalPricePerKg <= 0) return 0m;
+            return massPerM * line.LengthM * _metalPricePerKg;
         }
 
         /// <summary>
@@ -216,11 +241,10 @@ namespace QuotingTool.Forms
         private decimal CalculateIpEach(QuoteLine line)
         {
             if (line.IpGrade <= 0) return 0m;
-            if (string.IsNullOrWhiteSpace(line.ExtrusionCode)) return 0m;
-            if (!_extrusionMasterByCode.TryGetValue(line.ExtrusionCode, out var master)) return 0m;
-            if (master.MassPerM <= 0 || line.LengthM <= 0) return 0m;
+            var massPerM = GetMassPerM(line.ExtrusionCode);
+            if (massPerM <= 0 || line.LengthM <= 0) return 0m;
 
-            var kgEach = master.MassPerM * line.LengthM;
+            var kgEach = massPerM * line.LengthM;
             return line.IpGrade switch
             {
                 1 => kgEach * _ip1RatePerKg,
@@ -228,6 +252,37 @@ namespace QuotingTool.Forms
                 3 => kgEach * _ip3RatePerKg,
                 _ => 0m
             };
+        }
+
+        private decimal CalculateFinishingEach(QuoteLine line)
+        {
+            if (string.Equals(_projectFinishType, MillFinishType, StringComparison.OrdinalIgnoreCase))
+                return 0m;
+            if (_finishingSellPricePerM2 <= 0 || line.LengthM <= 0 || string.IsNullOrWhiteSpace(line.ExtrusionCode))
+                return 0m;
+
+            decimal perimeterMm = 0m;
+            if (_extrusionMasterByCode.TryGetValue(line.ExtrusionCode, out var master))
+                perimeterMm = master.ApMm > 0 ? master.ApMm : master.PpMm;
+            else if (_sundryMasterByCode.TryGetValue(line.ExtrusionCode, out var sundry))
+                perimeterMm = sundry.Ap > 0 ? sundry.Ap : sundry.Pp;
+
+            if (perimeterMm <= 0)
+                return 0m;
+
+            var areaM2Each = (perimeterMm / 1000m) * line.LengthM;
+            return areaM2Each * _finishingSellPricePerM2;
+        }
+
+        private decimal GetMassPerM(string? sectionCode)
+        {
+            if (string.IsNullOrWhiteSpace(sectionCode))
+                return 0m;
+            if (_extrusionMasterByCode.TryGetValue(sectionCode, out var master))
+                return master.MassPerM;
+            if (_sundryMasterByCode.TryGetValue(sectionCode, out var sundry))
+                return sundry.MassKgPerM;
+            return 0m;
         }
 
         private void UpdatePrintAreaLabel()
@@ -274,6 +329,7 @@ namespace QuotingTool.Forms
                 SetReadOnly("Temper", true);
                 SetReadOnly("Price", true);
                 SetReadOnly("TotalPrice", true);
+                SetReadOnly("ManualPriceOverride", !UserSession.HasRole(UserRole.SalesManager));
 
                 SetColFormat("Quantity", "0.##", DataGridViewContentAlignment.MiddleRight);
                 SetColFormat("LengthM", "0.###", DataGridViewContentAlignment.MiddleRight);
@@ -374,6 +430,8 @@ namespace QuotingTool.Forms
             using var form = new SundryItemsForm(_db);
             form.LoadProject(_projectId);
             form.ShowDialog(this);
+            LoadSundryMaster();
+            RefreshGrid();
         }
 
         private void btnAddRow_Click(object sender, EventArgs e)
@@ -537,6 +595,7 @@ namespace QuotingTool.Forms
         {
             var pricing = _db.GetEditPricing(_projectId);
             _metalPricePerKg = pricing?.MetalPrice ?? 0m;
+            _finishingSellPricePerM2 = pricing?.Price_B44 ?? 0m;
             if (pricing != null)
             {
                 _ip1RatePerKg = pricing.IP1UpchargePerKg > 0 ? pricing.IP1UpchargePerKg : 1.00m;
@@ -547,6 +606,7 @@ namespace QuotingTool.Forms
             var project = _db.GetProject(_projectId);
             _projectFinishSapCode = string.IsNullOrWhiteSpace(project?.FinishSapCode) ? "NON" : project.FinishSapCode;
             _thresholdChoice = string.IsNullOrWhiteSpace(project?.ThresholdChoice) ? "No" : project.ThresholdChoice;
+            _projectFinishType = string.IsNullOrWhiteSpace(project?.FinishType) ? MillFinishType : project.FinishType;
         }
 
         private void UpdateAutomaticPageSetup()
@@ -614,11 +674,11 @@ namespace QuotingTool.Forms
             }
 
             decimal kgEach = 0m;
-            if (_extrusionMasterByCode.TryGetValue(line.ExtrusionCode ?? string.Empty, out var master))
-                kgEach = FormulaCalculationService.CalculateKgEach(master.MassPerM, line.LengthM);
+            kgEach = FormulaCalculationService.CalculateKgEach(GetMassPerM(line.ExtrusionCode), line.LengthM);
 
             var millFinishEach = CalculateMillFinishEach(line);
             var ipEach = CalculateIpEach(line);
+            var sfEach = CalculateFinishingEach(line);
             var overrideText = line.ManualPriceOverride.HasValue
                 ? $"{line.ManualPriceOverride.Value.ToString("0.0000", CultureInfo.InvariantCulture)} (manual override)"
                 : "—";
@@ -628,6 +688,7 @@ namespace QuotingTool.Forms
                 $"Kg each: {kgEach:0.####}{Environment.NewLine}" +
                 $"Mill finish each: {millFinishEach:0.0000}{Environment.NewLine}" +
                 $"IP each: {ipEach:0.0000}{Environment.NewLine}" +
+                $"SF each: {sfEach:0.0000}{Environment.NewLine}" +
                 $"Slotting / sundry: {line.SubsillSurcharge:0.0000}{Environment.NewLine}" +
                 $"Override: {overrideText}{Environment.NewLine}" +
                 $"Final $ each: {line.Price:0.0000}{Environment.NewLine}" +
