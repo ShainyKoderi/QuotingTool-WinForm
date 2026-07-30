@@ -13,6 +13,7 @@ namespace QuotingTool.Forms
         private void InitializeComponent()
         {
             pnlButtons = new Panel();
+            lblTitle = new Label();
             btnRefresh = new Button();
             pnlPreview = new Panel();
             lblBrand = new Label();
@@ -36,7 +37,6 @@ namespace QuotingTool.Forms
             lblFooterRight = new Label();
             lblTerms = new Label();
             lblAccountManager = new Label();
-            lblTitle = new Label();
             lblLocalLogoValue = new Label();
             pnlButtons.SuspendLayout();
             pnlPreview.SuspendLayout();
@@ -51,6 +51,15 @@ namespace QuotingTool.Forms
             pnlButtons.Name = "pnlButtons";
             pnlButtons.Size = new Size(900, 52);
             pnlButtons.TabIndex = 1;
+            // 
+            // lblTitle
+            // 
+            lblTitle.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
+            lblTitle.Location = new Point(14, 10);
+            lblTitle.Name = "lblTitle";
+            lblTitle.Size = new Size(420, 30);
+            lblTitle.TabIndex = 3;
+            lblTitle.Text = "Quote Letter Preview";
             // 
             // btnRefresh
             // 
@@ -101,7 +110,7 @@ namespace QuotingTool.Forms
             lblBrand.ForeColor = Color.Teal;
             lblBrand.Location = new Point(32, 24);
             lblBrand.Name = "lblBrand";
-            lblBrand.Size = new Size(310, 30);
+            lblBrand.Size = new Size(233, 30);
             lblBrand.TabIndex = 0;
             lblBrand.Text = "CAPRAL ALUMINIUM";
             // 
@@ -266,15 +275,6 @@ namespace QuotingTool.Forms
             lblLocalLogoValue.Name = "lblLocalLogoValue";
             lblLocalLogoValue.Size = new Size(0, 15);
             lblLocalLogoValue.TabIndex = 21;
-            // 
-            // lblTitle
-            // 
-            lblTitle.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
-            lblTitle.Location = new Point(14, 10);
-            lblTitle.Name = "lblTitle";
-            lblTitle.Size = new Size(420, 30);
-            lblTitle.TabIndex = 3;
-            lblTitle.Text = "4. Quote Letter Preview";
             // 
             // QuoteLetterForm
             // 

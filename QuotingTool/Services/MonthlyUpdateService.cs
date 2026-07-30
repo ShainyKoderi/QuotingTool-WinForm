@@ -30,16 +30,16 @@ namespace QuotingTool.Services
         /// Marks maintenance sheets as unlocked so they can be edited.
         /// </summary>
         /// <returns>List of sheet names that were unlocked.</returns>
-        public List<string> OpenMonthlyUpdate(int projectId)
-        {
-            var unlocked = new List<string>();
-            foreach (var sheet in MaintenanceSheets)
-            {
-                _protection.Unlock(projectId, sheet);
-                unlocked.Add(sheet);
-            }
-            return unlocked;
-        }
+        //public List<string> OpenMonthlyUpdate(int projectId)
+        //{
+        //    var unlocked = new List<string>();
+        //    foreach (var sheet in MaintenanceSheets)
+        //    {
+        //        _protection.Unlock(projectId, sheet);
+        //        unlocked.Add(sheet);
+        //    }
+        //    return unlocked;
+        //}
 
         /// <summary>
         /// Maps to 07_MonthlyUpdate_Close.ts
@@ -74,8 +74,8 @@ namespace QuotingTool.Services
             _db.UpsertEditPricing(ep);
 
             // Lock all maintenance sheets
-            foreach (var sheet in MaintenanceSheets)
-                _protection.Lock(projectId, sheet);
+            //foreach (var sheet in MaintenanceSheets)
+            //    _protection.Lock(projectId, sheet);
         }
     }
 }

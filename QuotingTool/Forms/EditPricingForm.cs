@@ -207,14 +207,9 @@ namespace QuotingTool.Forms
                 return;
             }
             chkCostTypeOverride.Checked = _showHide.ToggleCostTypeOverride(_projectId);
-            UpdateRowVisibility();
+
         }
 
-        private void btnUpdateVisibility_Click(object sender, EventArgs e)
-        {
-            UpdateDerivedFields(saveChanges: true);
-            UpdateRowVisibility();
-        }
 
         private void btnEditIpCategories_Click(object sender, EventArgs e)
         {
@@ -243,17 +238,7 @@ namespace QuotingTool.Forms
                 "Bulk/Non-bulk Rates", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private void btnEditSundryItems_Click(object sender, EventArgs e)
-        {
-            if (_projectId <= 0) return;
-            using var form = new SundryItemsForm(_db);
-            form.LoadProject(_projectId);
-            form.ShowDialog(this);
-            _sundryByCode = _db.GetSundryItems()
-                .Where(s => !string.IsNullOrWhiteSpace(s.SectionCode))
-                .ToDictionary(s => s.SectionCode.Trim(), s => s, StringComparer.OrdinalIgnoreCase);
-            UpdateDerivedFields(saveChanges: false);
-        }
+     
 
         private void btnRecalculateAll_Click(object sender, EventArgs e) => UpdateDerivedFields(saveChanges: true);
 
@@ -418,7 +403,7 @@ namespace QuotingTool.Forms
             StyleCategoryColumn();
             UpdateCalculationTooltips(ep, metalCostPerKg, suggestedTypical, suggestedMin, suggestedMax);
 
-            UpdateRowVisibility();
+
         }
 
         private decimal GetMassPerM(string? sectionCode)
@@ -434,15 +419,7 @@ namespace QuotingTool.Forms
             return 0m;
         }
 
-        private void UpdateRowVisibility()
-        {
-            if (_projectId <= 0) return;
-            var result = _rowVis.GetVisibleRows(_projectId);
-            result.VisibleRows.Sort();
-            result.HiddenRows.Sort();
-            lblVisibleRows.Text = $"Visible rows: {string.Join(", ", result.VisibleRows)}";
-            lblHiddenRows.Text = $"Hidden rows: {string.Join(", ", result.HiddenRows)}";
-        }
+       
 
         private static decimal ParseDecimal(string text, decimal fallback = 0m)
             => decimal.TryParse(text, out decimal value) ? value : fallback;
@@ -505,15 +482,15 @@ namespace QuotingTool.Forms
             lblTitle.Font = BoldFont(13F);
 
             // ── Fonts ─────────────────────────────────────────────────────────
-            lblMillFinishMarginValue.Font  = BoldFont();
-            lblFinishingMarginValue.Font   = BoldFont();
-            lblThresholdMarginValue.Font   = BoldFont();
-            lblTotalKgValue.Font           = BoldFont();
-            lblTotalFinishingM2Value.Font  = BoldFont();
-            lblTotalPiecesValue.Font       = BoldFont();
-            lblApNote.Font                 = FontItalic75;
-            lblSummaryNote1.Font           = FontItalic75;
-            lblSummaryNote2.Font           = FontItalic75;
+            lblMillFinishMarginValue.Font = BoldFont();
+            lblFinishingMarginValue.Font = BoldFont();
+            lblThresholdMarginValue.Font = BoldFont();
+            lblTotalKgValue.Font = BoldFont();
+            lblTotalFinishingM2Value.Font = BoldFont();
+            lblTotalPiecesValue.Font = BoldFont();
+            lblApNote.Font = FontItalic75;
+            lblSummaryNote1.Font = FontItalic75;
+            lblSummaryNote2.Font = FontItalic75;
 
             // ── DataGridView header font ──────────────────────────────────────
             // Note: gridSummary is data-bound (columns are auto-generated from the
@@ -573,5 +550,7 @@ namespace QuotingTool.Forms
             public decimal MarginDollar { get; set; }
             public decimal MarginPct { get; set; }
         }
+
+       
     }
 }

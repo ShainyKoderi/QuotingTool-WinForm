@@ -12,124 +12,154 @@ namespace QuotingTool.Forms
 
         private void InitializeComponent()
         {
-            this.lblTitle        = new System.Windows.Forms.Label();
-            this.lblRevDate      = new System.Windows.Forms.Label();
-            this.dtpRevisionDate = new System.Windows.Forms.DateTimePicker();
-            this.lblLMERate      = new System.Windows.Forms.Label();
-            this.txtLMERate      = new System.Windows.Forms.TextBox();
-            this.lblBillet       = new System.Windows.Forms.Label();
-            this.txtBilletPremium = new System.Windows.Forms.TextBox();
-            this.btnOpen         = new System.Windows.Forms.Button();
-            this.btnClose        = new System.Windows.Forms.Button();
-            this.btnUnlock       = new System.Windows.Forms.Button();
-            this.lblStatus       = new System.Windows.Forms.Label();
-            this.grpMatrix       = new System.Windows.Forms.GroupBox();
-            this.gridPricingMatrix = new System.Windows.Forms.DataGridView();
-            this.pnlTop          = new System.Windows.Forms.Panel();
-
-            ((System.ComponentModel.ISupportInitialize)this.gridPricingMatrix).BeginInit();
-            this.grpMatrix.SuspendLayout();
-            this.pnlTop.SuspendLayout();
-            this.SuspendLayout();
-
-            // Title
-            this.lblTitle.AutoSize = false;
-            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
-            this.lblTitle.Location = new System.Drawing.Point(10, 8);
-            this.lblTitle.Size = new System.Drawing.Size(400, 30);
-            this.lblTitle.Text = "6. Monthly Update";
-
-            // Revision Date
-            this.lblRevDate.AutoSize = true;
-            this.lblRevDate.Location = new System.Drawing.Point(10, 55);
-            this.lblRevDate.Text = "Revision Date:";
-
-            this.dtpRevisionDate.Location = new System.Drawing.Point(160, 52);
-            this.dtpRevisionDate.Name = "dtpRevisionDate";
-            this.dtpRevisionDate.Size = new System.Drawing.Size(200, 23);
-            this.dtpRevisionDate.Format = System.Windows.Forms.DateTimePickerFormat.Short;
-
-            // LME Rate
-            this.lblLMERate.AutoSize = true;
-            this.lblLMERate.Location = new System.Drawing.Point(10, 90);
-            this.lblLMERate.Text = "LME Rate:";
-
-            this.txtLMERate.Location = new System.Drawing.Point(160, 87);
-            this.txtLMERate.Name = "txtLMERate";
-            this.txtLMERate.Size = new System.Drawing.Size(150, 23);
-
-            // Billet Premium
-            this.lblBillet.AutoSize = true;
-            this.lblBillet.Location = new System.Drawing.Point(10, 125);
-            this.lblBillet.Text = "Billet Premium:";
-
-            this.txtBilletPremium.Location = new System.Drawing.Point(160, 122);
-            this.txtBilletPremium.Name = "txtBilletPremium";
-            this.txtBilletPremium.Size = new System.Drawing.Size(150, 23);
-
-            // Buttons
-            this.btnUnlock.Location = new System.Drawing.Point(430, 165);
-            this.btnUnlock.Name = "btnUnlock";
-            this.btnUnlock.Size = new System.Drawing.Size(200, 30);
-            this.btnUnlock.Text = "Unlock Admin Settings";
-            this.btnUnlock.Click += new System.EventHandler(this.btnUnlock_Click);
-
-            this.btnOpen.Location = new System.Drawing.Point(10, 165);
-            this.btnOpen.Name = "btnOpen";
-            this.btnOpen.Size = new System.Drawing.Size(200, 30);
-            this.btnOpen.Text = "Open (Unlock Maintenance)";
-            this.btnOpen.Click += new System.EventHandler(this.btnOpen_Click);
-
-            this.btnClose.Location = new System.Drawing.Point(220, 165);
-            this.btnClose.Name = "btnClose";
-            this.btnClose.Size = new System.Drawing.Size(200, 30);
-            this.btnClose.Text = "Close (Lock & Save)";
-            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
-
-            // Status label
-            this.lblStatus.AutoSize = false;
-            this.lblStatus.Location = new System.Drawing.Point(10, 205);
-            this.lblStatus.Size = new System.Drawing.Size(750, 20);
-            this.lblStatus.Text = "Status: ready";
-            this.lblStatus.ForeColor = System.Drawing.Color.DarkBlue;
-
+            lblTitle = new Label();
+            lblRevDate = new Label();
+            dtpRevisionDate = new DateTimePicker();
+            lblLMERate = new Label();
+            txtLMERate = new TextBox();
+            lblBillet = new Label();
+            txtBilletPremium = new TextBox();
+            btnClose = new Button();
+            lblStatus = new Label();
+            grpMatrix = new GroupBox();
+            gridPricingMatrix = new DataGridView();
+            pnlTop = new Panel();
+            grpMatrix.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)gridPricingMatrix).BeginInit();
+            pnlTop.SuspendLayout();
+            SuspendLayout();
+            // 
+            // lblTitle
+            // 
+            lblTitle.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
+            lblTitle.Location = new Point(10, 8);
+            lblTitle.Name = "lblTitle";
+            lblTitle.Size = new Size(400, 30);
+            lblTitle.TabIndex = 0;
+            lblTitle.Text = " Monthly Update";
+            // 
+            // lblRevDate
+            // 
+            lblRevDate.AutoSize = true;
+            lblRevDate.Location = new Point(10, 55);
+            lblRevDate.Name = "lblRevDate";
+            lblRevDate.Size = new Size(81, 15);
+            lblRevDate.TabIndex = 1;
+            lblRevDate.Text = "Revision Date:";
+            // 
+            // dtpRevisionDate
+            // 
+            dtpRevisionDate.Format = DateTimePickerFormat.Short;
+            dtpRevisionDate.Location = new Point(160, 52);
+            dtpRevisionDate.Name = "dtpRevisionDate";
+            dtpRevisionDate.Size = new Size(200, 23);
+            dtpRevisionDate.TabIndex = 2;
+            // 
+            // lblLMERate
+            // 
+            lblLMERate.AutoSize = true;
+            lblLMERate.Location = new Point(10, 90);
+            lblLMERate.Name = "lblLMERate";
+            lblLMERate.Size = new Size(59, 15);
+            lblLMERate.TabIndex = 3;
+            lblLMERate.Text = "LME Rate:";
+            // 
+            // txtLMERate
+            // 
+            txtLMERate.Location = new Point(160, 87);
+            txtLMERate.Name = "txtLMERate";
+            txtLMERate.Size = new Size(150, 23);
+            txtLMERate.TabIndex = 4;
+            // 
+            // lblBillet
+            // 
+            lblBillet.AutoSize = true;
+            lblBillet.Location = new Point(10, 125);
+            lblBillet.Name = "lblBillet";
+            lblBillet.Size = new Size(88, 15);
+            lblBillet.TabIndex = 5;
+            lblBillet.Text = "Billet Premium:";
+            // 
+            // txtBilletPremium
+            // 
+            txtBilletPremium.Location = new Point(160, 122);
+            txtBilletPremium.Name = "txtBilletPremium";
+            txtBilletPremium.Size = new Size(150, 23);
+            txtBilletPremium.TabIndex = 6;
+            // 
+            // btnClose
+            // 
+            btnClose.BackColor = SystemColors.Highlight;
+            btnClose.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnClose.ForeColor = Color.White;
+            btnClose.Location = new Point(490, 45);
+            btnClose.Name = "btnClose";
+            btnClose.Size = new Size(90, 30);
+            btnClose.TabIndex = 8;
+            btnClose.Text = "Save";
+            btnClose.UseVisualStyleBackColor = false;
+            btnClose.Click += btnClose_Click;
+            // 
+            // lblStatus
+            // 
+            lblStatus.ForeColor = Color.DarkBlue;
+            lblStatus.Location = new Point(12, 148);
+            lblStatus.Name = "lblStatus";
+            lblStatus.Size = new Size(750, 20);
+            lblStatus.TabIndex = 10;
+            lblStatus.Text = "Status: ready";
+            // 
+            // grpMatrix
+            // 
+            grpMatrix.Controls.Add(gridPricingMatrix);
+            grpMatrix.Dock = DockStyle.Fill;
+            grpMatrix.Location = new Point(0, 173);
+            grpMatrix.Name = "grpMatrix";
+            grpMatrix.Size = new Size(1000, 527);
+            grpMatrix.TabIndex = 0;
+            grpMatrix.TabStop = false;
+            grpMatrix.Text = "Pricing Matrix (editable)";
+            // 
+            // gridPricingMatrix
+            // 
+            gridPricingMatrix.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            gridPricingMatrix.Dock = DockStyle.Fill;
+            gridPricingMatrix.Location = new Point(3, 19);
+            gridPricingMatrix.Name = "gridPricingMatrix";
+            gridPricingMatrix.Size = new Size(994, 505);
+            gridPricingMatrix.TabIndex = 0;
+            // 
             // pnlTop
-            this.pnlTop.Controls.AddRange(new System.Windows.Forms.Control[] {
-                this.lblTitle, this.lblRevDate, this.dtpRevisionDate,
-                this.lblLMERate, this.txtLMERate,
-                this.lblBillet, this.txtBilletPremium,
-                this.btnOpen, this.btnClose, this.btnUnlock, this.lblStatus
-            });
-            this.pnlTop.Dock = System.Windows.Forms.DockStyle.Top;
-            this.pnlTop.Height = 240;
-            this.pnlTop.Name = "pnlTop";
-
-            // Pricing Matrix groupbox
-            this.grpMatrix.Text = "Pricing Matrix (editable)";
-            this.grpMatrix.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.grpMatrix.Name = "grpMatrix";
-
-            this.gridPricingMatrix.AllowUserToAddRows = true;
-            this.gridPricingMatrix.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.gridPricingMatrix.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.gridPricingMatrix.Name = "gridPricingMatrix";
-
-            this.grpMatrix.Controls.Add(this.gridPricingMatrix);
-
-            // Form
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1000, 700);
-            this.Controls.Add(this.grpMatrix);
-            this.Controls.Add(this.pnlTop);
-            this.Name = "MonthlyUpdateForm";
-            this.Text = "Monthly Update";
-
-            ((System.ComponentModel.ISupportInitialize)this.gridPricingMatrix).EndInit();
-            this.grpMatrix.ResumeLayout(false);
-            this.pnlTop.ResumeLayout(false);
-            this.pnlTop.PerformLayout();
-            this.ResumeLayout(false);
+            // 
+            pnlTop.Controls.Add(lblTitle);
+            pnlTop.Controls.Add(lblRevDate);
+            pnlTop.Controls.Add(dtpRevisionDate);
+            pnlTop.Controls.Add(lblLMERate);
+            pnlTop.Controls.Add(txtLMERate);
+            pnlTop.Controls.Add(lblBillet);
+            pnlTop.Controls.Add(txtBilletPremium);
+            pnlTop.Controls.Add(btnClose);
+            pnlTop.Controls.Add(lblStatus);
+            pnlTop.Dock = DockStyle.Top;
+            pnlTop.Location = new Point(0, 0);
+            pnlTop.Name = "pnlTop";
+            pnlTop.Size = new Size(1000, 173);
+            pnlTop.TabIndex = 1;
+            // 
+            // MonthlyUpdateForm
+            // 
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(1000, 700);
+            Controls.Add(grpMatrix);
+            Controls.Add(pnlTop);
+            Name = "MonthlyUpdateForm";
+            Text = "Monthly Update";
+            grpMatrix.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)gridPricingMatrix).EndInit();
+            pnlTop.ResumeLayout(false);
+            pnlTop.PerformLayout();
+            ResumeLayout(false);
         }
 
         private System.Windows.Forms.Label lblTitle;
@@ -139,9 +169,7 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.TextBox txtLMERate;
         private System.Windows.Forms.Label lblBillet;
         private System.Windows.Forms.TextBox txtBilletPremium;
-        private System.Windows.Forms.Button btnOpen;
         private System.Windows.Forms.Button btnClose;
-        private System.Windows.Forms.Button btnUnlock;
         private System.Windows.Forms.Label lblStatus;
         private System.Windows.Forms.GroupBox grpMatrix;
         private System.Windows.Forms.DataGridView gridPricingMatrix;

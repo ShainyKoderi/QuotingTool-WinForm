@@ -35,13 +35,11 @@ namespace QuotingTool.Forms
             _projectId = projectId;
             if (UserSession.IsAdministrator)
             {
-                SetMaintenanceVisibility(true);
-                btnUnlock.Visible = false;
+                SetMaintenanceVisibility(true);               
             }
             else
             {
-                SetMaintenanceVisibility(false);
-                btnUnlock.Visible = true;
+                SetMaintenanceVisibility(false);              
             }
             RefreshPricingMatrix();
 
@@ -65,10 +63,10 @@ namespace QuotingTool.Forms
         {
             if (!EnsureUnlocked()) return;
             if (_projectId <= 0) { MessageBox.Show("No project open."); return; }
-            var sheets = _monthlyUpdate.OpenMonthlyUpdate(_projectId);
-            lblStatus.Text = $"Unlocked: {string.Join(", ", sheets)}";
-            MessageBox.Show($"Maintenance sheets unlocked:\n  • {string.Join("\n  • ", sheets)}",
-                "Monthly Update Opened", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            //var sheets = _monthlyUpdate.OpenMonthlyUpdate(_projectId);
+            //lblStatus.Text = $"Unlocked: {string.Join(", ", sheets)}";
+            //MessageBox.Show($"Maintenance sheets unlocked:\n  • {string.Join("\n  • ", sheets)}",
+            //    "Monthly Update Opened", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnClose_Click(object sender, EventArgs e)
@@ -90,16 +88,16 @@ namespace QuotingTool.Forms
             }
 
             _monthlyUpdate.CloseMonthlyUpdate(_projectId, dtpRevisionDate.Value.Date, lme, billet);
-            lblStatus.Text = $"Locked. Rates saved: LME={lme:F4}, Billet={billet:F4}, Date={dtpRevisionDate.Value:d}";
-            MessageBox.Show("Monthly update complete. Sheets locked and rates saved.",
+            lblStatus.Text = $" Rates saved: LME={lme:F4}, Billet={billet:F4}, Date={dtpRevisionDate.Value:d}";
+            MessageBox.Show("Monthly update complete. Rates saved.",
                 "Monthly Update Closed", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private void btnUnlock_Click(object sender, EventArgs e)
-        {
-            if (!PromptForPassword())
-                MessageBox.Show("Incorrect password.", "Monthly Update", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        }
+        //private void btnUnlock_Click(object sender, EventArgs e)
+        //{
+        //    if (!PromptForPassword())
+        //        MessageBox.Show("Incorrect password.", "Monthly Update", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        //}
 
         private bool EnsureUnlocked() => _isUnlocked || PromptForPassword();
 
@@ -151,7 +149,7 @@ namespace QuotingTool.Forms
             lblLMERate.Visible = isUnlocked;
             lblBillet.Visible = isUnlocked;
             grpMatrix.Visible = isUnlocked;
-            btnOpen.Enabled = isUnlocked;
+            //btnOpen.Enabled = isUnlocked;
             btnClose.Enabled = isUnlocked;
             if (!isUnlocked)
                 lblStatus.Text = "Status: admin settings hidden until unlocked";

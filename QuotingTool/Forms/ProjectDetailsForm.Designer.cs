@@ -116,7 +116,7 @@ namespace QuotingTool.Forms
             lblTitle.Name = "lblTitle";
             lblTitle.Size = new Size(205, 28);
             lblTitle.TabIndex = 0;
-            lblTitle.Text = "1. Project Details";
+            lblTitle.Text = "Project Details";
             // 
             // lblCustomer
             // 

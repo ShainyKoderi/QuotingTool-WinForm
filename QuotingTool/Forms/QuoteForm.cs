@@ -577,12 +577,12 @@ namespace QuotingTool.Forms
             _bindingGrid = true;
             var row = gridQuote.Rows[e.RowIndex];
             SetCellValue(row, "Description", line.Description);
-            SetCellValue(row, "Alloy",        line.Alloy);
-            SetCellValue(row, "Temper",       line.Temper);
-            SetCellValue(row, "IpGrade",      line.IpGrade);
+            SetCellValue(row, "Alloy", line.Alloy);
+            SetCellValue(row, "Temper", line.Temper);
+            SetCellValue(row, "IpGrade", line.IpGrade);
             SetCellValue(row, "SapColourCode", line.SapColourCode);
-            SetCellValue(row, "Price",        line.Price);
-            SetCellValue(row, "TotalPrice",   line.TotalPrice);
+            SetCellValue(row, "Price", line.Price);
+            SetCellValue(row, "TotalPrice", line.TotalPrice);
             _bindingGrid = false;
 
             // Repaint so read-only cells (Alloy, Temper, $ Each, $ Total) show the
@@ -768,7 +768,7 @@ namespace QuotingTool.Forms
             {
                 Filter = fileFilter,
                 //Title = isCre8 ? "Import CRE8 Extrusion PO" : "Import quote lines"
-                Title =  "Import quote lines"
+                Title = "Import quote lines"
             };
 
             if (ofd.ShowDialog(this) != DialogResult.OK)
@@ -786,10 +786,10 @@ namespace QuotingTool.Forms
                 //}
                 //else
                 //{
-                  imported = ofd.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)
-                        ? _bom.ImportBomFromCsv(_projectId, ofd.FileName)
-                        : _bom.ImportBomFromWorkbook(_projectId, ofd.FileName);
-               //}
+                imported = ofd.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)
+                      ? _bom.ImportBomFromCsv(_projectId, ofd.FileName)
+                      : _bom.ImportBomFromWorkbook(_projectId, ofd.FileName);
+                //}
 
                 int distributed = _bom.DistributeBomToQuote(_projectId);
 
@@ -797,7 +797,7 @@ namespace QuotingTool.Forms
                 RefreshGrid();
 
                 // ── Post-import dialog 1: Finish Summary ─────────────────────────────
-                var uniqueFinishes   = _bom.GetUniqueFinishes(_projectId);
+                var uniqueFinishes = _bom.GetUniqueFinishes(_projectId);
                 var mostCommonFinish = _bom.GetMostCommonFinish(_projectId);
 
                 using (var summaryDlg = new ImportFinishSummaryDialog(mostCommonFinish, uniqueFinishes))
@@ -821,11 +821,11 @@ namespace QuotingTool.Forms
 
                             if (setFinishDlg.ShowDialog(this) == DialogResult.OK)
                             {
-                                project.FinishType       = setFinishDlg.FinishType;
+                                project.FinishType = setFinishDlg.FinishType;
                                 project.FinishApplicator = setFinishDlg.FinishApplicator;
-                                project.FinishGroup      = setFinishDlg.FinishGroup;
-                                project.FinishName       = setFinishDlg.FinishName;
-                                project.FinishSapCode    = setFinishDlg.FinishSapCode;
+                                project.FinishGroup = setFinishDlg.FinishGroup;
+                                project.FinishName = setFinishDlg.FinishName;
+                                project.FinishSapCode = setFinishDlg.FinishSapCode;
                                 _db.UpdateProject(project);
                                 // RefreshGrid calls LoadProjectSettings internally so the updated finish SAP code is active
                                 RefreshGrid();
@@ -973,5 +973,7 @@ namespace QuotingTool.Forms
 
             return value;
         }
+
+       
     }
 }

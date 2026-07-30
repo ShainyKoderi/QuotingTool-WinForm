@@ -18,19 +18,19 @@ namespace QuotingTool.Helpers
         /// Returns true if the named sheet is currently locked for the project.
         /// Defaults to locked if no record exists.
         /// </summary>
-        public bool IsLocked(int projectId, string sheetName)
-            => _db.IsSheetLocked(projectId, sheetName);
+        //public bool IsLocked(int projectId, string sheetName)
+        //    => _db.IsSheetLocked(projectId, sheetName);
 
         /// <summary>
         /// Marks the named sheet as locked.
         /// </summary>
-        public void Lock(int projectId, string sheetName)
-            => _db.SetSheetLock(projectId, sheetName, true);
+        //public void Lock(int projectId, string sheetName)
+        //    => _db.SetSheetLock(projectId, sheetName, true);
 
         /// <summary>
         /// Marks the named sheet as unlocked.
         /// </summary>
-        public void Unlock(int projectId, string sheetName)
-            => _db.SetSheetLock(projectId, sheetName, false);
+        //public void Unlock(int projectId, string sheetName)
+        //    => _db.SetSheetLock(projectId, sheetName, false);
     }
 }

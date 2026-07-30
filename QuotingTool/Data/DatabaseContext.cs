@@ -260,7 +260,7 @@ namespace QuotingTool.Data
             conn.Execute("DELETE FROM QuoteFooters WHERE ProjectId=@id", new { id });
             conn.Execute("DELETE FROM PrintSettings WHERE ProjectId=@id", new { id });
             conn.Execute("DELETE FROM EditPricing WHERE ProjectId=@id", new { id });
-            conn.Execute("DELETE FROM SheetLocks WHERE ProjectId=@id", new { id });
+            //conn.Execute("DELETE FROM SheetLocks WHERE ProjectId=@id", new { id });
             conn.Execute("DELETE FROM Projects WHERE Id=@id", new { id });
         }
 
@@ -725,30 +725,30 @@ namespace QuotingTool.Data
 
         // ── SheetLocks ───────────────────────────────────────────────────────
 
-        public bool IsSheetLocked(int projectId, string sheetName)
-        {
-            using var conn = GetConnection();
-            var result = conn.QueryFirstOrDefault<bool?>(
-                "SELECT IsLocked FROM SheetLocks WHERE ProjectId=@projectId AND SheetName=@sheetName",
-                new { projectId, sheetName });
-            return result ?? true; // default: locked
-        }
+        //public bool IsSheetLocked(int projectId, string sheetName)
+        //{
+        //    using var conn = GetConnection();
+        //    var result = conn.QueryFirstOrDefault<bool?>(
+        //        "SELECT IsLocked FROM SheetLocks WHERE ProjectId=@projectId AND SheetName=@sheetName",
+        //        new { projectId, sheetName });
+        //    return result ?? true; // default: locked
+        //}
 
-        public void SetSheetLock(int projectId, string sheetName, bool isLocked)
-        {
-            using var conn = GetConnection();
-            var exists = conn.ExecuteScalar<int>(
-                "SELECT COUNT(1) FROM SheetLocks WHERE ProjectId=@projectId AND SheetName=@sheetName",
-                new { projectId, sheetName });
-            if (exists > 0)
-                conn.Execute(
-                    "UPDATE SheetLocks SET IsLocked=@isLocked, UpdatedAt=GETDATE() WHERE ProjectId=@projectId AND SheetName=@sheetName",
-                    new { projectId, sheetName, isLocked });
-            else
-                conn.Execute(
-                    "INSERT INTO SheetLocks (ProjectId,SheetName,IsLocked) VALUES (@projectId,@sheetName,@isLocked)",
-                    new { projectId, sheetName, isLocked });
-        }
+        //public void SetSheetLock(int projectId, string sheetName, bool isLocked)
+        //{
+        //    using var conn = GetConnection();
+        //    var exists = conn.ExecuteScalar<int>(
+        //        "SELECT COUNT(1) FROM SheetLocks WHERE ProjectId=@projectId AND SheetName=@sheetName",
+        //        new { projectId, sheetName });
+        //    if (exists > 0)
+        //        conn.Execute(
+        //            "UPDATE SheetLocks SET IsLocked=@isLocked, UpdatedAt=GETDATE() WHERE ProjectId=@projectId AND SheetName=@sheetName",
+        //            new { projectId, sheetName, isLocked });
+        //    else
+        //        conn.Execute(
+        //            "INSERT INTO SheetLocks (ProjectId,SheetName,IsLocked) VALUES (@projectId,@sheetName,@isLocked)",
+        //            new { projectId, sheetName, isLocked });
+        //}
 
         // ── ColourGroups ─────────────────────────────────────────────────────
 

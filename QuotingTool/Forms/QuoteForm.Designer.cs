@@ -43,7 +43,7 @@ namespace QuotingTool.Forms
             lblTitle.Name = "lblTitle";
             lblTitle.Size = new Size(300, 30);
             lblTitle.TabIndex = 0;
-            lblTitle.Text = "2. Quote";
+            lblTitle.Text = "Quote";
             // 
             // lblPageSelector
             // 
@@ -176,7 +176,7 @@ namespace QuotingTool.Forms
             gridQuote.Dock = DockStyle.Fill;
             gridQuote.Location = new Point(0, 120);
             gridQuote.Name = "gridQuote";
-            gridQuote.Size = new Size(1369, 580);
+            gridQuote.Size = new Size(754, 580);
             gridQuote.TabIndex = 0;
             gridQuote.CellValueChanged += gridQuote_CellValueChanged;
             gridQuote.CurrentCellDirtyStateChanged += gridQuote_CurrentCellDirtyStateChanged;
@@ -202,7 +202,7 @@ namespace QuotingTool.Forms
             pnlToolbar.Dock = DockStyle.Top;
             pnlToolbar.Location = new Point(0, 0);
             pnlToolbar.Name = "pnlToolbar";
-            pnlToolbar.Size = new Size(1550, 120);
+            pnlToolbar.Size = new Size(935, 120);
             pnlToolbar.TabIndex = 2;
             // 
             // pnlRight
@@ -210,7 +210,7 @@ namespace QuotingTool.Forms
             pnlRight.Controls.Add(lblPriceBreakdown);
             pnlRight.Controls.Add(lblBreakdownTitle);
             pnlRight.Dock = DockStyle.Right;
-            pnlRight.Location = new Point(1369, 120);
+            pnlRight.Location = new Point(754, 120);
             pnlRight.Name = "pnlRight";
             pnlRight.Padding = new Padding(12);
             pnlRight.Size = new Size(181, 580);
@@ -239,7 +239,7 @@ namespace QuotingTool.Forms
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1550, 700);
+            ClientSize = new Size(935, 700);
             Controls.Add(gridQuote);
             Controls.Add(pnlRight);
             Controls.Add(pnlToolbar);

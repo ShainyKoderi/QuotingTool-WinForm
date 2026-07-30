@@ -169,14 +169,14 @@ CREATE TABLE MasterFormulas (
 );
 
 -- SheetLocks table (used by ProtectionHelper)
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'SheetLocks')
-CREATE TABLE SheetLocks (
-    Id INT IDENTITY PRIMARY KEY,
-    ProjectId INT FOREIGN KEY REFERENCES Projects(Id),
-    SheetName NVARCHAR(100) NOT NULL,
-    IsLocked BIT DEFAULT 1,
-    UpdatedAt DATETIME DEFAULT GETDATE()
-);
+--IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'SheetLocks')
+--CREATE TABLE SheetLocks (
+--    Id INT IDENTITY PRIMARY KEY,
+--    ProjectId INT FOREIGN KEY REFERENCES Projects(Id),
+--    SheetName NVARCHAR(100) NOT NULL,
+--    IsLocked BIT DEFAULT 1,
+--    UpdatedAt DATETIME DEFAULT GETDATE()
+--);
 
 -- ============================================================
 -- Reference / Lookup tables populated from .xlsm data
