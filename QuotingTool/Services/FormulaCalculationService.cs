@@ -274,10 +274,52 @@ namespace QuotingTool.Services
             return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.MarginTyp);
         }
 
+        public decimal LookupThermalBreakMinMargin(decimal totalKg)
+        {
+            var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
+            return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.MarginMin);
+        }
+
+        public decimal LookupThermalBreakMaxMargin(decimal totalKg)
+        {
+            var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
+            return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.MarginMax);
+        }
+
         public decimal LookupThermalBreakTypicalListPrice(decimal totalKg)
         {
             var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
             return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.ListTyp);
+        }
+
+        public decimal LookupThermalBreakMinListPrice(decimal totalKg)
+        {
+            var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
+            return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.ListMin);
+        }
+
+        public decimal LookupThermalBreakMaxListPrice(decimal totalKg)
+        {
+            var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
+            return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.ListMax);
+        }
+
+        /// <summary>
+        /// Looks up Thermal Break Typical/Min/Max guidance for the given calc type.
+        /// When tb_calc_type="Margin", returns MarginTyp/Min/Max.
+        /// When tb_calc_type="List less Discount", returns ListTyp/Min/Max.
+        /// </summary>
+        public (decimal Typical, decimal Min, decimal Max) LookupThermalBreakGuidance(
+            decimal totalKg, string tbCalcType)
+        {
+            bool isMargin = string.Equals(tbCalcType, "Margin", StringComparison.OrdinalIgnoreCase);
+            return isMargin
+                ? (LookupThermalBreakTypicalMargin(totalKg),
+                   LookupThermalBreakMinMargin(totalKg),
+                   LookupThermalBreakMaxMargin(totalKg))
+                : (LookupThermalBreakTypicalListPrice(totalKg),
+                   LookupThermalBreakMinListPrice(totalKg),
+                   LookupThermalBreakMaxListPrice(totalKg));
         }
 
         /// <summary>
