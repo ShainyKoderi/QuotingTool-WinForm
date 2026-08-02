@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using QuotingTool.Data;
 
@@ -6,9 +7,9 @@ namespace QuotingTool.Services
 {
     public class QuoteSummaryService
     {
-        // Approximate cost ratio retained from the quoted workbook behaviour:
-        // using 87% of sell as cost produces an estimated 13% mill-finish margin.
-        private const decimal MillFinishCostRatio = 0.87m;
+        // Fallback cost ratio used only when no kg/cost data is available
+        // (e.g. sections not yet seeded in ExtrusionMaster).
+        private const decimal MillFinishCostRatioFallback = 0.87m;
 
         private readonly DatabaseContext _db;
         public QuoteSummaryService(DatabaseContext db) => _db = db;
@@ -17,22 +18,70 @@ namespace QuotingTool.Services
         {
             var lines = _db.GetQuoteLines(projectId).ToList();
             var ep = _db.GetEditPricing(projectId) ?? new EditPricing();
+            var project = _db.GetProject(projectId) ?? new Project();
             var sundryTotal = _db.GetSundryTotal(projectId);
 
-            decimal millFinishTotal = lines.Sum(l => l.TotalPrice);
-            decimal millFinishCost = millFinishTotal * MillFinishCostRatio;
-            decimal millFinishMarginDollar = millFinishTotal - millFinishCost;
-            decimal millFinishMarginPct = millFinishTotal > 0 ? millFinishMarginDollar / millFinishTotal * 100m : 0m;
+            // Metal cost per kg: use PricingConstants (Pricing Matrix B5 = LME+Billet+Spread).
+            // Fall back to project-specific LME rate when it has been explicitly set (> 0).
+            var constants = _db.GetLatestPricingConstants()
+                ?? new PricingConstants { MetalCostPerKg = 8.73m, InternalSpread = 3.12m };
+            decimal metalCostPerKg = (project.LMERate > 0m || project.BilletPremium > 0m)
+                ? FormulaCalculationService.CalculateMetalCostPerKg(
+                    project.LMERate, project.BilletPremium, constants.InternalSpread)
+                : constants.MetalCostPerKg;
 
-            decimal finishingTotal = ep.FinishingPrice * ep.TotalFinishingM2;
-            decimal finishingCost = ep.FinishingCostPricePerM2 * ep.TotalFinishingM2;
+            // Compute total kg from per-line kg/m values (mirrors 3.Edit Pricing B26 = SUM AA).
+            // This avoids stale TotalKg on first load before ep has been persisted.
+            var extrusionLookup = _db.GetExtrusionMasterList()
+                .ToDictionary(m => m.Section, m => m, StringComparer.OrdinalIgnoreCase);
+            decimal totalKg = 0m;
+            foreach (var l in lines)
+            {
+                if (string.IsNullOrWhiteSpace(l.ExtrusionCode)) continue;
+                if (extrusionLookup.TryGetValue(l.ExtrusionCode.Trim(), out var em) && em.MassPerM > 0m)
+                    totalKg += l.Quantity * l.LengthM * em.MassPerM;
+            }
+            // Fall back to persisted TotalKg if section master data is unavailable.
+            if (totalKg <= 0m) totalKg = ep.TotalKg;
+
+            // Mill Finish sell total = sum of all quote line sell prices.
+            decimal millFinishTotal = lines.Sum(l => l.TotalPrice);
+
+            // Mill Finish cost = total kg × metal cost per kg (Excel: SUM(AA) × Pricing Matrix B5).
+            decimal millFinishCost;
+            if (totalKg > 0m && metalCostPerKg > 0m)
+            {
+                millFinishCost = totalKg * metalCostPerKg;
+                // Cost must not exceed sell (safety guard for unusual manual price entries).
+                millFinishCost = Math.Min(millFinishCost, millFinishTotal);
+            }
+            else
+            {
+                millFinishCost = millFinishTotal * MillFinishCostRatioFallback;
+            }
+
+            decimal millFinishMarginDollar = millFinishTotal - millFinishCost;
+            decimal millFinishMarginPct = millFinishTotal > 0m
+                ? millFinishMarginDollar / millFinishTotal * 100m : 0m;
+
+            // Finishing applies only when the project uses a powder/anodised finish
+            // AND there is measurable finishing area.  Mill Finish projects have zero
+            // finishing cost/sell (matching Excel rows 61-66 semantics).
+            bool hasFinishing = !string.Equals(project.FinishType, "Mill Finish",
+                                    StringComparison.OrdinalIgnoreCase)
+                                && ep.TotalFinishingM2 > 0m
+                                && ep.FinishingPrice > 0m;
+
+            decimal finishingTotal = hasFinishing ? ep.FinishingPrice * ep.TotalFinishingM2 : 0m;
+            decimal finishingCost  = hasFinishing ? ep.FinishingCostPricePerM2 * ep.TotalFinishingM2 : 0m;
             decimal finishingMarginDollar = finishingTotal - finishingCost;
-            decimal finishingMarginPct = finishingTotal > 0 ? finishingMarginDollar / finishingTotal * 100m : 0m;
+            decimal finishingMarginPct = finishingTotal > 0m
+                ? finishingMarginDollar / finishingTotal * 100m : 0m;
 
             decimal grandTotal = millFinishTotal + finishingTotal + sundryTotal;
             decimal grandCost = millFinishCost + finishingCost;
             decimal grandMarginDollar = grandTotal - grandCost;
-            decimal grandMarginPct = grandTotal > 0 ? grandMarginDollar / grandTotal * 100m : 0m;
+            decimal grandMarginPct = grandTotal > 0m ? grandMarginDollar / grandTotal * 100m : 0m;
 
             var summary = new QuotingTool.Data.QuoteSummary
             {

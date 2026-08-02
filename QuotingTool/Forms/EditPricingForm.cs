@@ -330,7 +330,24 @@ namespace QuotingTool.Forms
             ep.TotalKg = totalKg > 0m ? totalKg
                 : ep.MetalPrice > 0m ? totalLineValue / ep.MetalPrice
                 : lines.Sum(l => l.Quantity * l.LengthM);
-            ep.TotalFinishingM2 = lines.Sum(l => l.Quantity * l.LengthM);
+
+            // Total Finishing m² (AP basis) — mirrors Excel col AD = AB * H / 1000 * G
+            // where AB = ApMm (AP per metre in mm units from DATA col E).
+            // Excludes lines with IgnoreFinish = "Yes" (mill finish override).
+            decimal totalFinishingM2Ap = 0m;
+            foreach (var l in lines)
+            {
+                if (string.Equals(l.IgnoreFinish, "Yes", StringComparison.OrdinalIgnoreCase)) continue;
+                var apMm = GetApMm(l.ExtrusionCode);
+                if (apMm > 0m)
+                    totalFinishingM2Ap += l.Quantity * l.LengthM * apMm / 1000m;
+            }
+            // Fall back to total linear metres when no AP data is available.
+            ep.TotalFinishingM2 = totalFinishingM2Ap > 0m
+                ? totalFinishingM2Ap
+                : lines.Where(l => !string.Equals(l.IgnoreFinish, "Yes", StringComparison.OrdinalIgnoreCase))
+                       .Sum(l => l.Quantity * l.LengthM);
+
             ep.TotalPieces = (int)Math.Round(lines.Sum(l => l.Quantity), MidpointRounding.AwayFromZero);
 
             // ── Margin calculations ───────────────────────────────────────────
@@ -338,10 +355,25 @@ namespace QuotingTool.Forms
             ep.IP2MarginPct = CalculateMarginPct(ep.MetalPrice + ep.IP2UpchargePerKg, ep.MetalPrice);
             ep.IP3MarginPct = CalculateMarginPct(ep.IP3PanoramicFixedKgRate, ep.MetalPrice);
             var pricingConstants = _formulaSvc.GetPricingConstants();
-            var metalCostPerKg = FormulaCalculationService.CalculateMetalCostPerKg(project.LMERate, project.BilletPremium, pricingConstants.InternalSpread);
+
+            // Metal cost per kg (Pricing Matrix B5 = LME + Billet + Spread = 8.73 $/kg).
+            // Use PricingConstants as the authoritative source; fall back to project-specific
+            // LME rate only when it has been explicitly set.
+            var metalCostPerKg = (project.LMERate > 0m || project.BilletPremium > 0m)
+                ? FormulaCalculationService.CalculateMetalCostPerKg(
+                    project.LMERate, project.BilletPremium, pricingConstants.InternalSpread)
+                : pricingConstants.MetalCostPerKg;
+
             ep.MillFinishMarginPct = FormulaCalculationService.CalculateMillFinishMarginPct(ep.MetalPrice, metalCostPerKg) * 100m;
             ep.FinishingMarginPct = FormulaCalculationService.CalculateFinishingMarginPct(ep.FinishingPrice, ep.FinishingCostPricePerM2, ep.Price_B42, ep.CostType) * 100m;
             ep.ThermalBreakMarginPct = FormulaCalculationService.CalculateThresholdMarginPct(ep.Price_B58, ep.AnodisedThresholdCostPerM2) * 100m;
+
+            // B51: Mill BULK Finish Margin % = (B50 − B49) / B50
+            var bulkMarginPct = FormulaCalculationService.CalculateBulkFinishingMarginPct(
+                ep.Price_B50, ep.Price_B49, ep.Price_B48, ep.CostType, ep.CostTypeOverride);
+            // B55: Mill NON-Bulk Finish Margin % = (B54 − B53) / B54
+            var nonBulkMarginPct = FormulaCalculationService.CalculateBulkFinishingMarginPct(
+                ep.Price_B54, ep.Price_B53, ep.Price_B52, ep.CostType, ep.CostTypeOverride);
 
             // ── Update read-only labels ───────────────────────────────────────
             lblTotalKgValue.Text = ep.TotalKg.ToString("N2");
@@ -354,15 +386,64 @@ namespace QuotingTool.Forms
             lblFinishingMarginValue.Text = $"{ep.FinishingMarginPct:N2}%";
             lblThresholdMarginValue.Text = $"{ep.ThermalBreakMarginPct:N2}%";
 
-            // ── Metal price guidance (from Pricing Matrix breakpoint table) ───
-            // Populate the min/max guidance labels next to the MetalPrice input so
-            // the user can see the expected price range for the project's total kg.
-            // Mirrors the Excel Pricing Matrix Table_Metal_BP reference.
+            // ── Metal price guidance (from Pricing Matrix Table_Metal_BP) ───────
+            // Populate the Typical/Min/Max guidance labels for mill finish $/kg.
             decimal suggestedMin = _formulaSvc.LookupMetalMinPrice(ep.TotalKg);
             decimal suggestedMax = _formulaSvc.LookupMetalMaxPrice(ep.TotalKg);
             decimal suggestedTypical = _formulaSvc.LookupMetalTypicalPrice(ep.TotalKg);
-            lblMetalPriceMin.Text = suggestedMin > 0m ? $"Min: ${suggestedMin:F2}" : "—";
-            lblMetalPriceMax.Text = suggestedMax > 0m ? $"Max: ${suggestedMax:F2}" : "—";
+            lblMetalPriceTyp.Text = suggestedTypical > 0m ? $"${suggestedTypical:F2}" : "—";
+            lblMetalPriceMin.Text = suggestedMin > 0m ? $"${suggestedMin:F2}" : "—";
+            lblMetalPriceMax.Text = suggestedMax > 0m ? $"${suggestedMax:F2}" : "—";
+
+            // Typical/Min/Max margin % at the breakpoint typical/min/max sell prices.
+            var mfMarginTyp = suggestedTypical > 0m
+                ? FormulaCalculationService.CalculateMillFinishMarginPct(suggestedTypical, metalCostPerKg) * 100m : 0m;
+            var mfMarginMin = suggestedMin > 0m
+                ? FormulaCalculationService.CalculateMillFinishMarginPct(suggestedMin, metalCostPerKg) * 100m : 0m;
+            var mfMarginMax = suggestedMax > 0m
+                ? FormulaCalculationService.CalculateMillFinishMarginPct(suggestedMax, metalCostPerKg) * 100m : 0m;
+            label1.Text = suggestedTypical > 0m ? $"{mfMarginTyp:F1}%" : "—";
+            label2.Text = suggestedMin > 0m ? $"{mfMarginMin:F1}%" : "—";
+            label3.Text = suggestedMax > 0m ? $"{mfMarginMax:F1}%" : "—";
+
+            // ── Thermal Break guidance (from Pricing Matrix Table_TB_BP) ──────
+            var (tbTypical, tbMin, tbMax) = _formulaSvc.LookupThermalBreakGuidance(
+                ep.TotalKg, ep.ThermalBreakCalcType);
+            label6.Text = tbTypical > 0m ? $"{tbTypical:P1}" : "—";
+            label4.Text = tbMin > 0m ? $"{tbMin:P1}" : "—";
+            label5.Text = tbMax > 0m ? $"{tbMax:P1}" : "—";
+
+            // ── Standard Finishing guidance (from FINISH BREAKPOINTS) ─────────
+            bool isAP = cmbPowderPricedAs.SelectedIndex <= 0; // index 0 = "Anodised Perimeter (AP)"
+            var (finTypical, finMin, finMax) = _formulaSvc.LookupFinishBreakpointMargin(
+                ep.TotalFinishingM2, isAP);
+            label13.Text = finTypical > 0m ? $"{finTypical:P1}" : "—";
+            label14.Text = finMin > 0m ? $"{finMin:P1}" : "—";
+            label15.Text = finMax > 0m ? $"{finMax:P1}" : "—";
+
+            // Bulk Rates finish guidance — same breakpoint lookup for bulk/non-bulk pricing rows.
+            label19.Text = finTypical > 0m ? $"{finTypical:P1}" : "—";
+            label20.Text = finMin > 0m ? $"{finMin:P1}" : "—";
+            label21.Text = finMax > 0m ? $"{finMax:P1}" : "—";
+
+            // ── Bulk / Non-Bulk margin % (B51 and B55) ────────────────────────
+            label24.Text = ep.Price_B50 > 0m ? $"{bulkMarginPct * 100m:F2}%" : "—";
+            label25.Text = ep.Price_B54 > 0m ? $"{nonBulkMarginPct * 100m:F2}%" : "—";
+
+            // Typical/Min/Max guidance labels for Bulk/Non-Bulk sell rows (label7-12)
+            // and for Bulk/Non-Bulk sell price rows (label26-28, label16-18).
+            label7.Text = finTypical > 0m ? $"{finTypical:P1}" : "—";
+            label8.Text = finMin > 0m ? $"{finMin:P1}" : "—";
+            label9.Text = finMax > 0m ? $"{finMax:P1}" : "—";
+            label10.Text = finTypical > 0m ? $"{finTypical:P1}" : "—";
+            label11.Text = finMin > 0m ? $"{finMin:P1}" : "—";
+            label12.Text = finMax > 0m ? $"{finMax:P1}" : "—";
+            label26.Text = finTypical > 0m ? $"{finTypical:P1}" : "—";
+            label27.Text = finMin > 0m ? $"{finMin:P1}" : "—";
+            label28.Text = finMax > 0m ? $"{finMax:P1}" : "—";
+            label16.Text = finTypical > 0m ? $"{finTypical:P1}" : "—";
+            label17.Text = finMin > 0m ? $"{finMin:P1}" : "—";
+            label18.Text = finMax > 0m ? $"{finMax:P1}" : "—";
 
             if (saveChanges)
             {
@@ -419,7 +500,17 @@ namespace QuotingTool.Forms
             return 0m;
         }
 
-       
+        /// <summary>
+        /// Returns the AP (Anodised Perimeter) value in mm/m for the given section code.
+        /// Used to compute Total Finishing m² (AP basis) matching Excel col AD = AB * H / 1000 * G.
+        /// </summary>
+        private decimal GetApMm(string? sectionCode)
+        {
+            if (string.IsNullOrWhiteSpace(sectionCode)) return 0m;
+            return _extrusionByCode.TryGetValue(sectionCode.Trim(), out var extrusion)
+                ? extrusion.ApMm
+                : 0m;
+        }
 
         private static decimal ParseDecimal(string text, decimal fallback = 0m)
             => decimal.TryParse(text, out decimal value) ? value : fallback;
