@@ -146,6 +146,8 @@ namespace QuotingTool.Data
         public decimal MassKgPerM { get; set; }
         public int Ap { get; set; }
         public int Pp { get; set; }
+        public decimal UnitCost { get; set; }
+        public decimal UnitSell { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 

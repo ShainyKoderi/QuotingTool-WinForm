@@ -74,6 +74,47 @@ namespace QuotingTool.Services
             decimal finishingMarginPct = finishingTotal > 0m
                 ? finishingMarginDollar / finishingTotal * 100m : 0m;
 
+            var sundryMaster = _db.GetSundryItems()
+                .Where(i => !string.IsNullOrWhiteSpace(i.SectionCode))
+                .ToDictionary(i => i.SectionCode.Trim(), i => i, StringComparer.OrdinalIgnoreCase);
+            var subsillTiers = _db.GetSubsillTierPrices().ToDictionary(t => t.Tier);
+
+            decimal sundrySellTotal = 0m;
+            decimal sundryCostTotal = 0m;
+            decimal slottingSellTotal = 0m;
+            decimal slottingCostTotal = 0m;
+
+            foreach (var line in lines)
+            {
+                var sectionCode = line.ExtrusionCode?.Trim();
+                if (!string.IsNullOrWhiteSpace(sectionCode) &&
+                    sundryMaster.TryGetValue(sectionCode, out var sundry))
+                {
+                    sundrySellTotal += sundry.UnitSell * line.Quantity;
+                    sundryCostTotal += sundry.UnitCost * line.Quantity;
+                    continue;
+                }
+
+                if (line.SubsillFlag && line.LengthM > 0m)
+                {
+                    slottingSellTotal += line.SubsillSurcharge * line.Quantity;
+
+                    if (!string.IsNullOrWhiteSpace(sectionCode) &&
+                        extrusionLookup.TryGetValue(sectionCode, out var master) &&
+                        master.SubsillTier > 0 &&
+                        subsillTiers.TryGetValue(master.SubsillTier, out var tier))
+                    {
+                        slottingCostTotal += tier.CostPerMetre * line.LengthM * line.Quantity;
+                    }
+                }
+            }
+
+            decimal slottingSundrySellTotal = sundrySellTotal + slottingSellTotal;
+            decimal slottingSundryCostTotal = sundryCostTotal + slottingCostTotal;
+            decimal slottingSundryMarginDollar = slottingSundrySellTotal - slottingSundryCostTotal;
+            decimal slottingSundryMarginPct = slottingSundrySellTotal > 0m
+                ? slottingSundryMarginDollar / slottingSundrySellTotal * 100m : 0m;
+
             decimal grandTotal = millFinishTotal + finishingTotal + sundryTotal;
             decimal grandCost = millFinishCost + finishingCost;
             decimal grandMarginDollar = grandTotal - grandCost;
@@ -86,6 +127,8 @@ namespace QuotingTool.Services
                 MillFinishMarginDollar = millFinishMarginDollar,
                 MillFinishMarginPct = millFinishMarginPct,
                 SlottingSundryTotal = sundryTotal,
+                SlottingSundryMarginDollar = slottingSundryMarginDollar,
+                SlottingSundryMarginPct = slottingSundryMarginPct,
                 FinishingTotal = finishingTotal,
                 FinishingMarginDollar = finishingMarginDollar,
                 FinishingMarginPct = finishingMarginPct,

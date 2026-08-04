@@ -413,11 +413,25 @@ namespace QuotingTool.Forms
             label3.Text = suggestedMax > 0m ? $"{mfMarginMax:F1}%" : "—";
 
             // ── Thermal Break guidance (from Pricing Matrix Table_TB_BP) ──────
-            var (tbTypical, tbMin, tbMax) = _formulaSvc.LookupThermalBreakGuidance(
-                ep.TotalKg, ep.ThermalBreakCalcType);
-            label6.Text = tbTypical > 0m ? $"{tbTypical:P1}" : "—";
-            label4.Text = tbMin > 0m ? $"{tbMin:P1}" : "—";
-            label5.Text = tbMax > 0m ? $"{tbMax:P1}" : "—";
+            bool hasThermalBreakContent = _db.GetQuoteLines(_projectId)
+                .Any(line => !string.IsNullOrWhiteSpace(line.ExtrusionCode)
+                    && _extrusionByCode.TryGetValue(line.ExtrusionCode.Trim(), out var extrusion)
+                    && !string.Equals(extrusion.ThermalBreakType, "No", StringComparison.OrdinalIgnoreCase)
+                    && GetMassPerM(line.ExtrusionCode) * line.LengthM * line.Quantity > 0m);
+            if (hasThermalBreakContent)
+            {
+                var (tbTypical, tbMin, tbMax) = _formulaSvc.LookupThermalBreakGuidance(
+                    ep.TotalKg, ep.ThermalBreakCalcType);
+                label6.Text = tbTypical > 0m ? $"{tbTypical:P1}" : "—";
+                label4.Text = tbMin > 0m ? $"{tbMin:P1}" : "—";
+                label5.Text = tbMax > 0m ? $"{tbMax:P1}" : "—";
+            }
+            else
+            {
+                label6.Text = "—";
+                label4.Text = "—";
+                label5.Text = "—";
+            }
 
             // ── Standard Finishing guidance (Pricing Matrix G44:I45) ──────────
             // Excel shows sell $/m² guidance = Cost / (1 − BreakpointMargin) and the
@@ -488,12 +502,13 @@ namespace QuotingTool.Forms
             decimal thermalBreakCost = summary.ThermalBreakMetalTotal - summary.ThermalBreakMarginDollar;
             decimal finishingCost = summary.FinishingTotal - summary.FinishingMarginDollar;
             decimal sundryTotalValue = summary.SlottingSundryTotal;
+            decimal sundryCost = summary.SlottingSundryTotal - summary.SlottingSundryMarginDollar;
 
             gridSummary.DataSource = new List<SummaryRow>
             {
                 new() { Category = "Mill Finish",         TotalCost = millFinishCost,    TotalSellValue = summary.MillFinishTotal,        MarginDollar = summary.MillFinishMarginDollar,    MarginPct = summary.MillFinishMarginPct },
                 new() { Category = "Thermal Break Metal", TotalCost = thermalBreakCost,  TotalSellValue = summary.ThermalBreakMetalTotal, MarginDollar = summary.ThermalBreakMarginDollar,  MarginPct = summary.ThermalBreakMarginPct },
-                new() { Category = "Slotting/Sundry",     TotalCost = sundryTotalValue,  TotalSellValue = sundryTotalValue,               MarginDollar = summary.SlottingSundryMarginDollar, MarginPct = summary.SlottingSundryMarginPct },
+                new() { Category = "Slotting/Sundry",     TotalCost = sundryCost,        TotalSellValue = sundryTotalValue,               MarginDollar = summary.SlottingSundryMarginDollar, MarginPct = summary.SlottingSundryMarginPct },
                 new() { Category = "Finishing",           TotalCost = finishingCost,     TotalSellValue = summary.FinishingTotal,         MarginDollar = summary.FinishingMarginDollar,     MarginPct = summary.FinishingMarginPct },
                 new() { Category = "Total",               TotalCost = summary.GrandTotal - summary.GrandMarginDollar, TotalSellValue = summary.GrandTotal, MarginDollar = summary.GrandMarginDollar, MarginPct = summary.GrandMarginPct }
             };
