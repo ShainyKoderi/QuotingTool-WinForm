@@ -174,6 +174,7 @@ namespace QuotingTool.Data
                 }
             }
             EnsureSundryMasterSeed(conn);
+            EnsureReferenceDataUpToDate(conn);
         }
 
         private static void EnsureSundryMasterSeed(SqlConnection conn)
@@ -183,14 +184,47 @@ namespace QuotingTool.Data
                 var sectionCode = $"SUNDRY-{i}";
                 conn.Execute(
                     @"IF NOT EXISTS (SELECT 1 FROM SundryItems WHERE SectionCode=@sectionCode)
-                      INSERT INTO SundryItems (SectionCode, Description, MassKgPerM, Ap, Pp)
-                      VALUES (@sectionCode, @description, 0, 0, 0)",
+                      INSERT INTO SundryItems (SectionCode, Description, MassKgPerM, Ap, Pp, UnitCost, UnitSell)
+                      VALUES (@sectionCode, @description, 0, 0, 0, 0, 0)",
                     new
                     {
                         sectionCode,
                         description = $"Sundry description - {i}"
                     });
             }
+        }
+
+        private static void EnsureReferenceDataUpToDate(SqlConnection conn)
+        {
+            conn.Execute(@"
+MERGE MetalBreakpoints AS target
+USING (VALUES
+    (CAST(1 AS DECIMAL(18,2)),     CAST(3.50 AS DECIMAL(18,4)), CAST(12.23 AS DECIMAL(18,4)), CAST(11.88 AS DECIMAL(18,4)), CAST(12.73 AS DECIMAL(18,4)), CAST(0.35 AS DECIMAL(18,4)), CAST(0.50 AS DECIMAL(18,4))),
+    (CAST(2000 AS DECIMAL(18,2)),  CAST(1.42 AS DECIMAL(18,4)), CAST(10.15 AS DECIMAL(18,4)), CAST(9.80 AS DECIMAL(18,4)),  CAST(10.65 AS DECIMAL(18,4)), CAST(0.35 AS DECIMAL(18,4)), CAST(0.50 AS DECIMAL(18,4))),
+    (CAST(3000 AS DECIMAL(18,2)),  CAST(1.37 AS DECIMAL(18,4)), CAST(10.10 AS DECIMAL(18,4)), CAST(9.75 AS DECIMAL(18,4)),  CAST(10.60 AS DECIMAL(18,4)), CAST(0.35 AS DECIMAL(18,4)), CAST(0.50 AS DECIMAL(18,4))),
+    (CAST(5000 AS DECIMAL(18,2)),  CAST(1.32 AS DECIMAL(18,4)), CAST(10.05 AS DECIMAL(18,4)), CAST(9.70 AS DECIMAL(18,4)),  CAST(10.55 AS DECIMAL(18,4)), CAST(0.35 AS DECIMAL(18,4)), CAST(0.50 AS DECIMAL(18,4))),
+    (CAST(7000 AS DECIMAL(18,2)),  CAST(1.12 AS DECIMAL(18,4)), CAST(9.85 AS DECIMAL(18,4)),  CAST(9.70 AS DECIMAL(18,4)),  CAST(10.35 AS DECIMAL(18,4)), CAST(0.15 AS DECIMAL(18,4)), CAST(0.50 AS DECIMAL(18,4))),
+    (CAST(10000 AS DECIMAL(18,2)), CAST(1.02 AS DECIMAL(18,4)), CAST(9.75 AS DECIMAL(18,4)),  CAST(9.60 AS DECIMAL(18,4)),  CAST(10.25 AS DECIMAL(18,4)), CAST(0.15 AS DECIMAL(18,4)), CAST(0.50 AS DECIMAL(18,4)))
+) AS source (BreakpointKg, Spread, TypicalPrice, MinPrice, MaxPrice, MinFactor, MaxFactor)
+ON target.BreakpointKg = source.BreakpointKg
+WHEN MATCHED AND (
+    target.Spread <> source.Spread OR
+    target.TypicalPrice <> source.TypicalPrice OR
+    target.MinPrice <> source.MinPrice OR
+    target.MaxPrice <> source.MaxPrice OR
+    target.MinFactor <> source.MinFactor OR
+    target.MaxFactor <> source.MaxFactor
+)
+THEN UPDATE SET
+    Spread = source.Spread,
+    TypicalPrice = source.TypicalPrice,
+    MinPrice = source.MinPrice,
+    MaxPrice = source.MaxPrice,
+    MinFactor = source.MinFactor,
+    MaxFactor = source.MaxFactor
+WHEN NOT MATCHED THEN
+    INSERT (BreakpointKg, Spread, TypicalPrice, MinPrice, MaxPrice, MinFactor, MaxFactor)
+    VALUES (source.BreakpointKg, source.Spread, source.TypicalPrice, source.MinPrice, source.MaxPrice, source.MinFactor, source.MaxFactor);");
         }
 
         // ── Projects ─────────────────────────────────────────────────────────
@@ -499,8 +533,8 @@ namespace QuotingTool.Data
         {
             using var conn = GetConnection();
             conn.Execute(
-                @"INSERT INTO SundryItems (SectionCode,Description,MassKgPerM,Ap,Pp)
-                  VALUES (@SectionCode,@Description,@MassKgPerM,@Ap,@Pp)",
+                @"INSERT INTO SundryItems (SectionCode,Description,MassKgPerM,Ap,Pp,UnitCost,UnitSell)
+                  VALUES (@SectionCode,@Description,@MassKgPerM,@Ap,@Pp,@UnitCost,@UnitSell)",
                 item);
         }
 
@@ -509,7 +543,7 @@ namespace QuotingTool.Data
             using var conn = GetConnection();
             conn.Execute(
                 @"UPDATE SundryItems SET SectionCode=@SectionCode, Description=@Description,
-                  MassKgPerM=@MassKgPerM, Ap=@Ap, Pp=@Pp
+                  MassKgPerM=@MassKgPerM, Ap=@Ap, Pp=@Pp, UnitCost=@UnitCost, UnitSell=@UnitSell
                   WHERE Id=@Id",
                 item);
         }

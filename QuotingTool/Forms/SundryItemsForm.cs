@@ -62,6 +62,10 @@ namespace QuotingTool.Forms
                 gridSundryItems.Columns[nameof(SundryItem.Pp)].DefaultCellStyle.Format = "0";
             if (gridSundryItems.Columns.Contains(nameof(SundryItem.MassKgPerM)))
                 gridSundryItems.Columns[nameof(SundryItem.MassKgPerM)].DefaultCellStyle.Format = "0.0000";
+            if (gridSundryItems.Columns.Contains(nameof(SundryItem.UnitCost)))
+                gridSundryItems.Columns[nameof(SundryItem.UnitCost)].DefaultCellStyle.Format = "0.0000";
+            if (gridSundryItems.Columns.Contains(nameof(SundryItem.UnitSell)))
+                gridSundryItems.Columns[nameof(SundryItem.UnitSell)].DefaultCellStyle.Format = "0.0000";
         }
 
         private void btnEdit26Plus_Click(object sender, EventArgs e)
@@ -77,7 +81,9 @@ namespace QuotingTool.Forms
                 Description = $"Sundry description - {next}",
                 MassKgPerM = 0,
                 Ap = 0,
-                Pp = 0
+                Pp = 0,
+                UnitCost = 0,
+                UnitSell = 0
             });
 
             int rowIndex = _items.Count - 1;
@@ -101,6 +107,8 @@ namespace QuotingTool.Forms
             if (_items[e.RowIndex].Ap < 0) _items[e.RowIndex].Ap = 0;
             if (_items[e.RowIndex].Pp < 0) _items[e.RowIndex].Pp = 0;
             if (_items[e.RowIndex].MassKgPerM < 0) _items[e.RowIndex].MassKgPerM = 0;
+            if (_items[e.RowIndex].UnitCost < 0) _items[e.RowIndex].UnitCost = 0;
+            if (_items[e.RowIndex].UnitSell < 0) _items[e.RowIndex].UnitSell = 0;
         }
 
         private void btnCloseSave_Click(object sender, EventArgs e)
