@@ -264,6 +264,65 @@ namespace QuotingTool.Services
         }
 
         /// <summary>
+        /// Metal Typical/Min/Max sell $/kg computed live from the current metal cost,
+        /// exactly as the Pricing Matrix does (rows 8-13):
+        ///   C8 (Typical) = $B$5 + Spread
+        ///   D8 (Min)     = C8 − Min Factor
+        ///   E8 (Max)     = C8 + Max Factor
+        /// This keeps the guidance consistent with the current LME/spread rates rather
+        /// than the static prices stored when the breakpoint table was seeded.
+        /// Returns (0,0,0) when no breakpoint data exists.
+        /// </summary>
+        public (decimal Typical, decimal Min, decimal Max) LookupMetalGuidance(
+            decimal totalKg, decimal metalCostPerKg)
+        {
+            var breakpoints = _db.GetMetalBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
+            MetalBreakpoint? matched = null;
+            foreach (var bp in breakpoints)
+            {
+                if (bp.BreakpointKg <= totalKg) matched = bp;
+                else break;
+            }
+            if (matched == null) return (0m, 0m, 0m);
+
+            var typical = metalCostPerKg + matched.Spread;
+            return (typical, typical - matched.MinFactor, typical + matched.MaxFactor);
+        }
+
+        /// <summary>
+        /// IP1/IP2 upcharge margin % (3.Edit Pricing G34/H34):
+        ///   =IFERROR((Upcharge + SellPrice − 'Pricing Matrix'!$B$5) / (Upcharge + SellPrice), 0)
+        /// The upcharge is added on top of the mill finish sell price, so the margin
+        /// is computed on the combined $/kg.
+        /// </summary>
+        public static decimal CalculateIpUpchargeMarginPct(
+            decimal upchargePerKg, decimal sellPricePerKg, decimal metalCostPerKg)
+        {
+            var combined = upchargePerKg + sellPricePerKg;
+            return combined > 0m ? (combined - metalCostPerKg) / combined : 0m;
+        }
+
+        /// <summary>
+        /// IP3 (Panoramic fixed rate) margin % (3.Edit Pricing I34):
+        ///   =IFERROR((I33 − 'Pricing Matrix'!$B$5) / I33, 0)
+        /// The IP3 rate is a standalone $/kg sell rate (not an upcharge).
+        /// </summary>
+        public static decimal CalculateIp3MarginPct(decimal ip3RatePerKg, decimal metalCostPerKg)
+            => ip3RatePerKg > 0m ? (ip3RatePerKg - metalCostPerKg) / ip3RatePerKg : 0m;
+
+        /// <summary>
+        /// Finishing sell price guidance $/m² (Pricing Matrix G44/H44/I44):
+        ///   = Cost / (1 − BreakpointMargin)
+        /// Returns 0 when the cost is unavailable (0) or POA (99) — Excel shows blank.
+        /// </summary>
+        public static decimal CalculateFinishSellGuidance(decimal costPerM2, decimal breakpointMargin)
+        {
+            if (costPerM2 <= 0m || costPerM2 == PricePOASentinel || breakpointMargin >= 1m)
+                return 0m;
+            return costPerM2 / (1m - breakpointMargin);
+        }
+
+        /// <summary>
         /// Thermal Break margin lookup by total kg via Table_TB_BP (Pricing Matrix rows 15-21).
         /// Original Excel: =IFERROR(VLOOKUP($B$27, Table_TB_BP[], IF(tb_calc_type="Margin",2,5)), "")
         /// Where col 2 = MarginTyp, col 5 = ListTyp
