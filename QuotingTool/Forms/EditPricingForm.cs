@@ -160,7 +160,8 @@ namespace QuotingTool.Forms
             // ── Thermal Break ──────────────────────────────────────────────────
             int tbIdx = cmbTBCalcType.FindStringExact(ep.ThermalBreakCalcType);
             cmbTBCalcType.SelectedIndex = tbIdx >= 0 ? tbIdx : 0;
-            txtTBMargin.Text = ep.ThermalBreakMargin.ToString("F4");
+            // Stored as a fraction (0.5) but displayed as a percentage (50.0) like Excel B37.
+            txtTBMargin.Text = (ep.ThermalBreakMargin * 100m).ToString("F1");
 
             // ── Powder / Finishing pricing ─────────────────────────────────────
             int ctIndex = Array.IndexOf(CostTypeValues, ep.CostType);
@@ -292,7 +293,10 @@ namespace QuotingTool.Forms
             ep.Price_B57 = ParseDecimal(txtB57.Text);
             ep.Price_B58 = ParseDecimal(txtB58.Text);
             ep.ThermalBreakCalcType = cmbTBCalcType.SelectedItem?.ToString() ?? "Margin";
-            ep.ThermalBreakMargin = ParseDecimal(txtTBMargin.Text);
+            // TB margin is entered as a percentage (e.g. 50.0); values ≤ 1 are treated as
+            // an already-fractional entry for backwards compatibility.
+            var tbEntered = ParseDecimal(txtTBMargin.Text);
+            ep.ThermalBreakMargin = tbEntered > 1m ? tbEntered / 100m : tbEntered;
             ep.IP1UpchargePerKg = ParseDecimal(txtIP1Upcharge.Text, DefaultIP1Upcharge);
             ep.IP2UpchargePerKg = ParseDecimal(txtIP2Upcharge.Text, DefaultIP2Upcharge);
             ep.IP3PanoramicFixedKgRate = ParseDecimal(txtIP3Rate.Text, DefaultIP3Rate);
@@ -351,18 +355,20 @@ namespace QuotingTool.Forms
             ep.TotalPieces = (int)Math.Round(lines.Sum(l => l.Quantity), MidpointRounding.AwayFromZero);
 
             // ── Margin calculations ───────────────────────────────────────────
-            ep.IP1MarginPct = CalculateMarginPct(ep.MetalPrice + ep.IP1UpchargePerKg, ep.MetalPrice);
-            ep.IP2MarginPct = CalculateMarginPct(ep.MetalPrice + ep.IP2UpchargePerKg, ep.MetalPrice);
-            ep.IP3MarginPct = CalculateMarginPct(ep.IP3PanoramicFixedKgRate, ep.MetalPrice);
             var pricingConstants = _formulaSvc.GetPricingConstants();
 
-            // Metal cost per kg (Pricing Matrix B5 = LME + Billet + Spread = 8.73 $/kg).
-            // Use PricingConstants as the authoritative source; fall back to project-specific
-            // LME rate only when it has been explicitly set.
-            var metalCostPerKg = (project.LMERate > 0m || project.BilletPremium > 0m)
-                ? FormulaCalculationService.CalculateMetalCostPerKg(
-                    project.LMERate, project.BilletPremium, pricingConstants.InternalSpread)
-                : pricingConstants.MetalCostPerKg;
+            // Metal cost per kg (Pricing Matrix B5 = LME + Billet + Spread).
+            // Excel uses the single global monthly rate for all Edit Pricing margins.
+            var metalCostPerKg = pricingConstants.MetalCostPerKg;
+
+            // IP1/IP2 margins (Excel G34/H34): margin on the combined (sell + upcharge) $/kg.
+            ep.IP1MarginPct = FormulaCalculationService.CalculateIpUpchargeMarginPct(
+                ep.IP1UpchargePerKg, ep.MetalPrice, metalCostPerKg) * 100m;
+            ep.IP2MarginPct = FormulaCalculationService.CalculateIpUpchargeMarginPct(
+                ep.IP2UpchargePerKg, ep.MetalPrice, metalCostPerKg) * 100m;
+            // IP3 margin (Excel I34): standalone fixed $/kg rate vs metal cost.
+            ep.IP3MarginPct = FormulaCalculationService.CalculateIp3MarginPct(
+                ep.IP3PanoramicFixedKgRate, metalCostPerKg) * 100m;
 
             ep.MillFinishMarginPct = FormulaCalculationService.CalculateMillFinishMarginPct(ep.MetalPrice, metalCostPerKg) * 100m;
             ep.FinishingMarginPct = FormulaCalculationService.CalculateFinishingMarginPct(ep.FinishingPrice, ep.FinishingCostPricePerM2, ep.Price_B42, ep.CostType) * 100m;
@@ -386,11 +392,11 @@ namespace QuotingTool.Forms
             lblFinishingMarginValue.Text = $"{ep.FinishingMarginPct:N2}%";
             lblThresholdMarginValue.Text = $"{ep.ThermalBreakMarginPct:N2}%";
 
-            // ── Metal price guidance (from Pricing Matrix Table_Metal_BP) ───────
-            // Populate the Typical/Min/Max guidance labels for mill finish $/kg.
-            decimal suggestedMin = _formulaSvc.LookupMetalMinPrice(ep.TotalKg);
-            decimal suggestedMax = _formulaSvc.LookupMetalMaxPrice(ep.TotalKg);
-            decimal suggestedTypical = _formulaSvc.LookupMetalTypicalPrice(ep.TotalKg);
+            // ── Metal price guidance (Pricing Matrix rows 8-13) ────────────────
+            // Excel C/D/E: Typical = MetalCost + Spread, Min = Typical − MinFactor,
+            // Max = Typical + MaxFactor — computed live from the current metal cost.
+            var (suggestedTypical, suggestedMin, suggestedMax) =
+                _formulaSvc.LookupMetalGuidance(ep.TotalKg, metalCostPerKg);
             lblMetalPriceTyp.Text = suggestedTypical > 0m ? $"${suggestedTypical:F2}" : "—";
             lblMetalPriceMin.Text = suggestedMin > 0m ? $"${suggestedMin:F2}" : "—";
             lblMetalPriceMax.Text = suggestedMax > 0m ? $"${suggestedMax:F2}" : "—";
@@ -413,37 +419,56 @@ namespace QuotingTool.Forms
             label4.Text = tbMin > 0m ? $"{tbMin:P1}" : "—";
             label5.Text = tbMax > 0m ? $"{tbMax:P1}" : "—";
 
-            // ── Standard Finishing guidance (from FINISH BREAKPOINTS) ─────────
+            // ── Standard Finishing guidance (Pricing Matrix G44:I45) ──────────
+            // Excel shows sell $/m² guidance = Cost / (1 − BreakpointMargin) and the
+            // breakpoint margin %.  Both are blank when the cost is unavailable/POA (99).
             bool isAP = cmbPowderPricedAs.SelectedIndex <= 0; // index 0 = "Anodised Perimeter (AP)"
             var (finTypical, finMin, finMax) = _formulaSvc.LookupFinishBreakpointMargin(
                 ep.TotalFinishingM2, isAP);
-            label13.Text = finTypical > 0m ? $"{finTypical:P1}" : "—";
-            label14.Text = finMin > 0m ? $"{finMin:P1}" : "—";
-            label15.Text = finMax > 0m ? $"{finMax:P1}" : "—";
 
-            // Bulk Rates finish guidance — same breakpoint lookup for bulk/non-bulk pricing rows.
-            label19.Text = finTypical > 0m ? $"{finTypical:P1}" : "—";
-            label20.Text = finMin > 0m ? $"{finMin:P1}" : "—";
-            label21.Text = finMax > 0m ? $"{finMax:P1}" : "—";
+            var stdCost = ep.FinishingCostPricePerM2;
+            var stdSellTyp = FormulaCalculationService.CalculateFinishSellGuidance(stdCost, finTypical);
+            var stdSellMin = FormulaCalculationService.CalculateFinishSellGuidance(stdCost, finMin);
+            var stdSellMax = FormulaCalculationService.CalculateFinishSellGuidance(stdCost, finMax);
+            label13.Text = stdSellTyp > 0m ? $"${stdSellTyp:F2}" : "—";
+            label14.Text = stdSellMin > 0m ? $"${stdSellMin:F2}" : "—";
+            label15.Text = stdSellMax > 0m ? $"${stdSellMax:F2}" : "—";
+
+            // Margin % guidance row (Pricing Matrix G45:I45) — blank when cost is POA.
+            bool stdCostValid = stdCost > 0m && stdCost != FormulaCalculationService.PricePOASentinel;
+            label19.Text = stdCostValid ? $"{finTypical:P1}" : "—";
+            label20.Text = stdCostValid ? $"{finMin:P1}" : "—";
+            label21.Text = stdCostValid ? $"{finMax:P1}" : "—";
 
             // ── Bulk / Non-Bulk margin % (B51 and B55) ────────────────────────
             label24.Text = ep.Price_B50 > 0m ? $"{bulkMarginPct * 100m:F2}%" : "—";
             label25.Text = ep.Price_B54 > 0m ? $"{nonBulkMarginPct * 100m:F2}%" : "—";
 
-            // Typical/Min/Max guidance labels for Bulk/Non-Bulk sell rows (label7-12)
-            // and for Bulk/Non-Bulk sell price rows (label26-28, label16-18).
-            label7.Text = finTypical > 0m ? $"{finTypical:P1}" : "—";
-            label8.Text = finMin > 0m ? $"{finMin:P1}" : "—";
-            label9.Text = finMax > 0m ? $"{finMax:P1}" : "—";
-            label10.Text = finTypical > 0m ? $"{finTypical:P1}" : "—";
-            label11.Text = finMin > 0m ? $"{finMin:P1}" : "—";
-            label12.Text = finMax > 0m ? $"{finMax:P1}" : "—";
-            label26.Text = finTypical > 0m ? $"{finTypical:P1}" : "—";
-            label27.Text = finMin > 0m ? $"{finMin:P1}" : "—";
-            label28.Text = finMax > 0m ? $"{finMax:P1}" : "—";
-            label16.Text = finTypical > 0m ? $"{finTypical:P1}" : "—";
-            label17.Text = finMin > 0m ? $"{finMin:P1}" : "—";
-            label18.Text = finMax > 0m ? $"{finMax:P1}" : "—";
+            // Bulk sell $ guidance (Pricing Matrix G46:I46) and margin % (G48:I48).
+            var bulkCost = ep.Price_B49;
+            var bulkSellTyp = FormulaCalculationService.CalculateFinishSellGuidance(bulkCost, finTypical);
+            var bulkSellMin = FormulaCalculationService.CalculateFinishSellGuidance(bulkCost, finMin);
+            var bulkSellMax = FormulaCalculationService.CalculateFinishSellGuidance(bulkCost, finMax);
+            bool bulkCostValid = bulkCost > 0m && bulkCost != FormulaCalculationService.PricePOASentinel;
+            label26.Text = bulkSellTyp > 0m ? $"${bulkSellTyp:F2}" : "—";
+            label27.Text = bulkSellMin > 0m ? $"${bulkSellMin:F2}" : "—";
+            label28.Text = bulkSellMax > 0m ? $"${bulkSellMax:F2}" : "—";
+            label7.Text = bulkCostValid ? $"{finTypical:P1}" : "—";
+            label8.Text = bulkCostValid ? $"{finMin:P1}" : "—";
+            label9.Text = bulkCostValid ? $"{finMax:P1}" : "—";
+
+            // Non-bulk sell $ guidance (Pricing Matrix G47:I47) and margin % (G48:I48).
+            var nbCost = ep.Price_B53;
+            var nbSellTyp = FormulaCalculationService.CalculateFinishSellGuidance(nbCost, finTypical);
+            var nbSellMin = FormulaCalculationService.CalculateFinishSellGuidance(nbCost, finMin);
+            var nbSellMax = FormulaCalculationService.CalculateFinishSellGuidance(nbCost, finMax);
+            bool nbCostValid = nbCost > 0m && nbCost != FormulaCalculationService.PricePOASentinel;
+            label16.Text = nbSellTyp > 0m ? $"${nbSellTyp:F2}" : "—";
+            label17.Text = nbSellMin > 0m ? $"${nbSellMin:F2}" : "—";
+            label18.Text = nbSellMax > 0m ? $"${nbSellMax:F2}" : "—";
+            label10.Text = nbCostValid ? $"{finTypical:P1}" : "—";
+            label11.Text = nbCostValid ? $"{finMin:P1}" : "—";
+            label12.Text = nbCostValid ? $"{finMax:P1}" : "—";
 
             if (saveChanges)
             {
@@ -480,9 +505,13 @@ namespace QuotingTool.Forms
                 totalRow.DefaultCellStyle.Font = FontBold9;
             }
 
+            // Number formats matching the Excel Totals table (currency + percent).
+            FormatSummaryColumns();
+
             // Apply bold font to the (now auto-generated) Category column.
             StyleCategoryColumn();
-            UpdateCalculationTooltips(ep, metalCostPerKg, suggestedTypical, suggestedMin, suggestedMax);
+            UpdateCalculationTooltips(ep, metalCostPerKg, suggestedTypical, suggestedMin, suggestedMax,
+                finTypical, finMin, finMax);
 
 
         }
@@ -526,11 +555,14 @@ namespace QuotingTool.Forms
         private static decimal CalculateMarginPct(decimal sell, decimal cost)
             => sell > 0m ? (sell - cost) / sell * 100m : 0m;
 
-        private void UpdateCalculationTooltips(EditPricing ep, decimal metalCostPerKg, decimal suggestedTypical, decimal suggestedMin, decimal suggestedMax)
+        private void UpdateCalculationTooltips(EditPricing ep, decimal metalCostPerKg,
+            decimal suggestedTypical, decimal suggestedMin, decimal suggestedMax,
+            decimal finTypical, decimal finMin, decimal finMax)
         {
             var metalTooltip =
                 $"Mill Finish Sell Price $/kg (B33){Environment.NewLine}" +
-                $"Set from Table_Metal_BP by total kg (typical {suggestedTypical:F2}, min {suggestedMin:F2}, max {suggestedMax:F2}).{Environment.NewLine}" +
+                $"Guidance from Table_Metal_BP: Typical = MetalCost + Spread{Environment.NewLine}" +
+                $"(typical {suggestedTypical:F2}, min {suggestedMin:F2}, max {suggestedMax:F2}).{Environment.NewLine}" +
                 $"Current input: {ep.MetalPrice:F4}";
             _formulaToolTip.SetToolTip(lblMetalPrice, metalTooltip);
             _formulaToolTip.SetToolTip(txtMetalPrice, metalTooltip);
@@ -541,12 +573,48 @@ namespace QuotingTool.Forms
             _formulaToolTip.SetToolTip(lblMillFinishMargin, millMarginTooltip);
             _formulaToolTip.SetToolTip(lblMillFinishMarginValue, millMarginTooltip);
 
+            var ip1Tooltip =
+                $"IP1 Margin % (G34) = (IP1 + Sell − Metal Cost) / (IP1 + Sell){Environment.NewLine}" +
+                $"= ({ep.IP1UpchargePerKg:F2} + {ep.MetalPrice:F4} − {metalCostPerKg:F4}) / " +
+                $"({ep.IP1UpchargePerKg:F2} + {ep.MetalPrice:F4}) = {ep.IP1MarginPct:F2}%";
+            _formulaToolTip.SetToolTip(txtIP1Upcharge, ip1Tooltip);
+            _formulaToolTip.SetToolTip(lblIP1MarginValue, ip1Tooltip);
+
+            var ip2Tooltip =
+                $"IP2 Margin % (H34) = (IP2 + Sell − Metal Cost) / (IP2 + Sell){Environment.NewLine}" +
+                $"= ({ep.IP2UpchargePerKg:F2} + {ep.MetalPrice:F4} − {metalCostPerKg:F4}) / " +
+                $"({ep.IP2UpchargePerKg:F2} + {ep.MetalPrice:F4}) = {ep.IP2MarginPct:F2}%";
+            _formulaToolTip.SetToolTip(txtIP2Upcharge, ip2Tooltip);
+            _formulaToolTip.SetToolTip(lblIP2MarginValue, ip2Tooltip);
+
+            var ip3Tooltip =
+                $"IP3 Margin % (I34) = (IP3 Rate − Metal Cost) / IP3 Rate{Environment.NewLine}" +
+                $"= ({ep.IP3PanoramicFixedKgRate:F2} − {metalCostPerKg:F4}) / {ep.IP3PanoramicFixedKgRate:F2}" +
+                $" = {ep.IP3MarginPct:F2}%";
+            _formulaToolTip.SetToolTip(txtIP3Rate, ip3Tooltip);
+            _formulaToolTip.SetToolTip(lblIP3MarginValue, ip3Tooltip);
+
+            var tbTooltip =
+                $"Thermal Break Enter Margin % (B37){Environment.NewLine}" +
+                $"Entered as a percentage (e.g. 50 = 50%).{Environment.NewLine}" +
+                $"Guidance Typical/Min/Max from Table_TB_BP by Total kg.";
+            _formulaToolTip.SetToolTip(lblTBMargin, tbTooltip);
+            _formulaToolTip.SetToolTip(txtTBMargin, tbTooltip);
+
             var finishingMarginTooltip =
                 $"Margin % (B45) = IF(CostType=0, (B44−B43)/B44, (B44−B42)/B44){Environment.NewLine}" +
                 $"Current: CostType={ep.CostType}, Sell={ep.FinishingPrice:F4}, Cost={ep.FinishingCostPricePerM2:F4}, POA={ep.Price_B42:F4}{Environment.NewLine}" +
                 $"Result: {ep.FinishingMarginPct:F2}%";
             _formulaToolTip.SetToolTip(lblFinishingMargin, finishingMarginTooltip);
             _formulaToolTip.SetToolTip(lblFinishingMarginValue, finishingMarginTooltip);
+
+            var finishSellTooltip =
+                $"Finishing Sell Price $/m² (B44){Environment.NewLine}" +
+                $"Guidance (G44:I44) = Cost / (1 − BreakpointMargin){Environment.NewLine}" +
+                $"Breakpoint margins by Total m²: typical {finTypical:P1}, min {finMin:P1}, max {finMax:P1}.{Environment.NewLine}" +
+                $"Blank when cost is POA (99) or unavailable.";
+            _formulaToolTip.SetToolTip(txtB44, finishSellTooltip);
+            _formulaToolTip.SetToolTip(txtFinishingPrice, finishSellTooltip);
 
             var thresholdMarginTooltip =
                 $"Margin % (B59) = (B58 − B57) / B58{Environment.NewLine}" +
@@ -558,9 +626,37 @@ namespace QuotingTool.Forms
             _formulaToolTip.SetToolTip(lblB49, bulkCostTooltip);
             _formulaToolTip.SetToolTip(txtB49, bulkCostTooltip);
 
+            var bulkSellTooltip =
+                $"Mill BULK Sell Price $/m² (B50){Environment.NewLine}" +
+                $"Margin % (B51) = (B50 − B49) / B50. Guidance = Cost / (1 − BreakpointMargin).";
+            _formulaToolTip.SetToolTip(lblB50, bulkSellTooltip);
+            _formulaToolTip.SetToolTip(txtB50, bulkSellTooltip);
+
             var nonBulkCostTooltip = "Finishing NON-Bulk Cost Price $/m² (B53), sourced from Pricing Matrix E47.";
             _formulaToolTip.SetToolTip(lblB53, nonBulkCostTooltip);
             _formulaToolTip.SetToolTip(txtB53, nonBulkCostTooltip);
+
+            var nonBulkSellTooltip =
+                $"Mill NON-Bulk Sell Price $/m² (B54){Environment.NewLine}" +
+                $"Margin % (B55) = (B54 − B53) / B54. Guidance = Cost / (1 − BreakpointMargin).";
+            _formulaToolTip.SetToolTip(lblB54, nonBulkSellTooltip);
+            _formulaToolTip.SetToolTip(txtB54, nonBulkSellTooltip);
+        }
+
+        /// <summary>
+        /// Applies Excel-like number formats to the summary grid:
+        /// currency (N2) for $ columns and percent (0.00%) for margin %.
+        /// </summary>
+        private void FormatSummaryColumns()
+        {
+            foreach (var colName in new[]
+                     { nameof(SummaryRow.TotalCost), nameof(SummaryRow.TotalSellValue), nameof(SummaryRow.MarginDollar) })
+            {
+                var col = gridSummary.Columns[colName];
+                if (col != null) col.DefaultCellStyle.Format = "N2";
+            }
+            var pctCol = gridSummary.Columns[nameof(SummaryRow.MarginPct)];
+            if (pctCol != null) pctCol.DefaultCellStyle.Format = "0.00\\%";
         }
 
         /// <summary>

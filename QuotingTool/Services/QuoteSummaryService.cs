@@ -22,13 +22,11 @@ namespace QuotingTool.Services
             var sundryTotal = _db.GetSundryTotal(projectId);
 
             // Metal cost per kg: use PricingConstants (Pricing Matrix B5 = LME+Billet+Spread).
-            // Fall back to project-specific LME rate when it has been explicitly set (> 0).
+            // Excel uses the single global monthly rate ('Pricing Matrix'!$B$5) for all
+            // margin calculations, so mirror that exactly here.
             var constants = _db.GetLatestPricingConstants()
                 ?? new PricingConstants { MetalCostPerKg = 8.73m, InternalSpread = 3.12m };
-            decimal metalCostPerKg = (project.LMERate > 0m || project.BilletPremium > 0m)
-                ? FormulaCalculationService.CalculateMetalCostPerKg(
-                    project.LMERate, project.BilletPremium, constants.InternalSpread)
-                : constants.MetalCostPerKg;
+            decimal metalCostPerKg = constants.MetalCostPerKg;
 
             // Compute total kg from per-line kg/m values (mirrors 3.Edit Pricing B26 = SUM AA).
             // This avoids stale TotalKg on first load before ep has been persisted.
@@ -52,8 +50,6 @@ namespace QuotingTool.Services
             if (totalKg > 0m && metalCostPerKg > 0m)
             {
                 millFinishCost = totalKg * metalCostPerKg;
-                // Cost must not exceed sell (safety guard for unusual manual price entries).
-                millFinishCost = Math.Min(millFinishCost, millFinishTotal);
             }
             else
             {
