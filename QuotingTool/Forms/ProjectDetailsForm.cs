@@ -60,11 +60,12 @@ namespace QuotingTool.Forms
             UpdateFinishSapCode(autoOnly: true);
         }
 
-        public void SaveProject()
+        public void SaveProject(bool showConfirmation = true)
         {
             if (_projectId <= 0) return;
 
             var project = _db.GetProject(_projectId) ?? new Project { Id = _projectId };
+            bool wasMillFinishAltSet = project.GenerateMillFinishAlternative || project.GenerateMfAlt;
             project.CustomerName = txtCustomerName.Text.Trim();
             project.ProjectName = txtProjectName.Text.Trim();
             project.RevisionDate = dtpRevisionDate.Value.Date;
@@ -97,7 +98,28 @@ namespace QuotingTool.Forms
             project.QuoteValidity = string.IsNullOrWhiteSpace(txtQuoteValidity.Text) ? "30 days" : txtQuoteValidity.Text.Trim();
 
             _db.UpdateProject(project);
-            MessageBox.Show("Project details saved.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (showConfirmation)
+            {
+                MessageBox.Show("Project details saved.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // 1.d – Generate Mill Finish Alternative creates a duplicate of the quote
+                // with everything set to Mill Finish.
+                if (project.GenerateMillFinishAlternative && !wasMillFinishAltSet)
+                {
+                    var answer = MessageBox.Show(
+                        "Generate Mill Finish Alternative is set to Yes.\n\n" +
+                        "Create a duplicate of this quote now with everything set to Mill Finish?",
+                        "Mill Finish Alternative", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (answer == DialogResult.Yes)
+                    {
+                        int newId = _db.DuplicateProjectAsMillFinish(_projectId);
+                        MessageBox.Show(
+                            $"Mill Finish alternative created (quote ID {newId}).\n" +
+                            "Use File → Open Project to open it.",
+                            "Mill Finish Alternative", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
         }
 
         private void btnSave_Click(object sender, EventArgs e) => SaveProject();

@@ -77,11 +77,20 @@ namespace QuotingTool.Data
                 schemaPath = Path.Combine(AppContext.BaseDirectory, "SqlSchema.sql");
 
             if (!File.Exists(schemaPath))
+            {
+                // Schema script not deployed alongside the executable – still make sure the
+                // SundryItems columns exist so older databases don't throw
+                // "Invalid column name 'UnitCost' / 'UnitSell'" at runtime.
+                using var fallbackConn = GetConnection();
+                fallbackConn.Open();
+                EnsureSundryItemColumns(fallbackConn);
                 return;
+            }
 
             var sql = File.ReadAllText(schemaPath);
             using var conn = GetConnection();
             conn.Open();
+            EnsureSundryItemColumns(conn);
             // Split by GO statements if present
             foreach (var batch in sql.Split(new[] { "\nGO\n", "\nGO\r\n" }, StringSplitOptions.RemoveEmptyEntries))
             {
@@ -175,6 +184,16 @@ namespace QuotingTool.Data
             }
             EnsureSundryMasterSeed(conn);
             EnsureReferenceDataUpToDate(conn);
+        }
+
+        private static void EnsureSundryItemColumns(SqlConnection conn)
+        {
+            conn.Execute(@"
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name='SundryItems')
+BEGIN
+    IF COL_LENGTH('SundryItems','UnitCost') IS NULL ALTER TABLE SundryItems ADD UnitCost DECIMAL(18,4) DEFAULT 0;
+    IF COL_LENGTH('SundryItems','UnitSell') IS NULL ALTER TABLE SundryItems ADD UnitSell DECIMAL(18,4) DEFAULT 0;
+END");
         }
 
         private static void EnsureSundryMasterSeed(SqlConnection conn)
@@ -282,6 +301,72 @@ WHEN NOT MATCHED THEN
                   GenerateMfAlt=@GenerateMfAlt, GenerateMillFinishAlternative=@GenerateMillFinishAlternative,
                   DeliveryCharge=@DeliveryCharge, CustomerSapDiscount=@CustomerSapDiscount,
                   UpdatedAt=@UpdatedAt WHERE Id=@Id", p);
+        }
+
+        /// <summary>
+        /// Creates a full duplicate of a project (project details, edit pricing and quote lines)
+        /// with the finish forced to Mill Finish. Used by the "Generate Mill Finish Alternative"
+        /// option so a Mill Finish version of the quote can be produced alongside the original.
+        /// </summary>
+        public int DuplicateProjectAsMillFinish(int sourceProjectId)
+        {
+            var source = GetProject(sourceProjectId)
+                ?? throw new InvalidOperationException($"Project {sourceProjectId} was not found.");
+
+            var copy = new Project
+            {
+                CustomerName = source.CustomerName,
+                ProjectName = $"{source.ProjectName} (Mill Finish)",
+                RevisionDate = source.RevisionDate,
+                LMERate = source.LMERate,
+                BilletPremium = source.BilletPremium,
+                Region = source.Region,
+                QuotedBy = source.QuotedBy,
+                AccountManager = source.AccountManager,
+                Attention = source.Attention,
+                AttentionTo = source.AttentionTo,
+                QuoteValidity = source.QuoteValidity,
+                MarketSegment = source.MarketSegment,
+                ProductSegment = source.ProductSegment,
+                ProjectNotes = source.ProjectNotes,
+                AddLocAlLogos = source.AddLocAlLogos,
+                LocalLogo = source.LocalLogo,
+                FinishType = "Mill Finish",
+                FinishApplicator = string.Empty,
+                FinishGroup = string.Empty,
+                FinishName = string.Empty,
+                FinishCustomName = string.Empty,
+                FinishSapCode = "NON",
+                ThresholdChoice = source.ThresholdChoice,
+                GenerateMillFinishAlternative = false,
+                GenerateMfAlt = false,
+                DeliveryCharge = source.DeliveryCharge,
+                CustomerSapDiscount = source.CustomerSapDiscount
+            };
+
+            int newId = CreateProject(copy);
+
+            var pricing = GetEditPricing(sourceProjectId);
+            if (pricing != null)
+            {
+                pricing.Id = 0;
+                pricing.ProjectId = newId;
+                UpsertEditPricing(pricing);
+            }
+            else
+            {
+                UpsertEditPricing(new EditPricing { ProjectId = newId });
+            }
+
+            foreach (var line in GetQuoteLines(sourceProjectId))
+            {
+                line.Id = 0;
+                line.ProjectId = newId;
+                line.SapColourCode = "NON";
+                UpsertQuoteLine(line);
+            }
+
+            return newId;
         }
 
         public void DeleteProject(int id)

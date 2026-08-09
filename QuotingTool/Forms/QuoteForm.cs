@@ -47,6 +47,9 @@ namespace QuotingTool.Forms
         private string _projectFinishSapCode = "NON";
         private string _thresholdChoice = "No";
         private string _projectFinishType = "Mill Finish";
+        private decimal _millFinishMarginPct;
+        private decimal _finishingMarginPct;
+        private decimal _finishingCostPricePerM2;
         private bool _autoUpdatingPages;
 
         public QuoteForm(DatabaseContext db)
@@ -130,9 +133,10 @@ namespace QuotingTool.Forms
                 // metal price is valid and the price has actually changed.  This keeps
                 // the Edit Pricing summary and any other DB consumers in sync without
                 // requiring the user to manually click "Save" on the Quote tab first.
-                if (_metalPricePerKg > 0 && line.Price != storedPrice)
+                if (_metalPricePerKg > 0 && line.Price != storedPrice && IsMeaningfulLine(line))
                     _db.UpsertQuoteLine(line);
             }
+            EnsureTrailingBlankRow();
             gridQuote.DataSource = _lines;
             _bindingGrid = false;
             UpdateAutomaticPageSetup();
@@ -164,7 +168,11 @@ namespace QuotingTool.Forms
             {
                 if (_sundryMasterByCode.TryGetValue(sectionCode, out var sundry))
                 {
-                    line.Description = sundry.Description ?? string.Empty;
+                    // Sundry descriptions may be overwritten by the user (e.g. replace
+                    // "Sundry description - 1" with "Airfreight"), so only default the
+                    // description from the master when the line has none of its own.
+                    if (string.IsNullOrWhiteSpace(line.Description))
+                        line.Description = sundry.Description ?? string.Empty;
                     if (string.IsNullOrWhiteSpace(line.Alloy))
                         line.Alloy = "6060";
                     if (string.IsNullOrWhiteSpace(line.Temper))
@@ -347,6 +355,14 @@ namespace QuotingTool.Forms
                     gridQuote.Columns["Price"].ToolTipText = "$ Each = MF Each + IP Each + SF Sell Each + Slotting/Sundry";
                 if (gridQuote.Columns.Contains("TotalPrice"))
                     gridQuote.Columns["TotalPrice"].ToolTipText = "$ Total = $ Each × Qty";
+
+                // Visually differentiate information-only columns from editable ones.
+                foreach (DataGridViewColumn column in gridQuote.Columns)
+                {
+                    column.DefaultCellStyle.BackColor = column.ReadOnly
+                        ? System.Drawing.Color.FromArgb(240, 240, 240)
+                        : System.Drawing.Color.White;
+                }
             };
         }
 
@@ -444,10 +460,8 @@ namespace QuotingTool.Forms
             RefreshGrid();
         }
 
-        private void btnAddRow_Click(object sender, EventArgs e)
+        private QuoteLine? CreateBlankLine()
         {
-            if (_projectId <= 0) return;
-
             int maxSlotIndex = _lines
                 .Where(l => l.PageBlock > 0 && l.RowInBlock > 0)
                 .Select(l => ((l.PageBlock - 1) * MaxRowsPerPage) + (l.RowInBlock - 1))
@@ -456,19 +470,44 @@ namespace QuotingTool.Forms
 
             int nextIndex = maxSlotIndex + 1;
             if (nextIndex >= MaxQuoteLines)
-            {
-                MessageBox.Show("Maximum of 240 quote lines (6 pages) reached.", "Add Row",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+                return null;
 
-            var line = new QuoteLine
+            return new QuoteLine
             {
                 ProjectId = _projectId,
                 PageBlock = (nextIndex / MaxRowsPerPage) + 1,
                 RowInBlock = (nextIndex % MaxRowsPerPage) + 1,
                 LineNumber = _lines.Select(l => l.LineNumber).DefaultIfEmpty(0).Max() + 1
             };
+        }
+
+        /// <summary>
+        /// Keeps one empty entry row at the bottom of the grid at all times so new
+        /// lines can be typed straight in without clicking "Add Row" for each one.
+        /// </summary>
+        private void EnsureTrailingBlankRow()
+        {
+            if (_projectId <= 0)
+                return;
+            if (_lines.Count > 0 && !IsMeaningfulLine(_lines[^1]))
+                return;
+
+            var blank = CreateBlankLine();
+            if (blank != null)
+                _lines.Add(blank);
+        }
+
+        private void btnAddRow_Click(object sender, EventArgs e)
+        {
+            if (_projectId <= 0) return;
+
+            var line = CreateBlankLine();
+            if (line == null)
+            {
+                MessageBox.Show("Maximum of 240 quote lines (6 pages) reached.", "Add Row",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
             _lines.Add(line);
 
@@ -517,11 +556,29 @@ namespace QuotingTool.Forms
             UpdatePriceBreakdown();
         }
 
-        private void btnSave_Click(object sender, EventArgs e)
+        private void btnDeleteAll_Click(object sender, EventArgs e)
+        {
+            if (_projectId <= 0) return;
+            if (!_lines.Any(IsMeaningfulLine)) return;
+
+            var answer = MessageBox.Show(
+                "Delete ALL quote lines for this project?\n\nThis cannot be undone.",
+                "Delete All", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (answer != DialogResult.Yes)
+                return;
+
+            _db.DeleteQuoteLines(_projectId);
+            RefreshGrid();
+        }
+
+        private void btnSave_Click(object sender, EventArgs e) => SaveQuote(showConfirmation: true);
+
+        public void SaveQuote(bool showConfirmation)
         {
             if (_projectId <= 0)
             {
-                MessageBox.Show("No project open.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                if (showConfirmation)
+                    MessageBox.Show("No project open.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -529,9 +586,11 @@ namespace QuotingTool.Forms
                 gridQuote.CommitEdit(DataGridViewDataErrorContexts.Commit);
             gridQuote.EndEdit();
 
-            var lines = _lines.ToList();
+            // Only persist meaningful lines – the always-present blank entry row at the
+            // bottom of the grid must not create empty database rows.
+            var lines = _lines.Where(IsMeaningfulLine).ToList();
             var validationErrors = CollectValidationErrors(lines);
-            if (validationErrors.Count > 0)
+            if (validationErrors.Count > 0 && showConfirmation)
             {
                 MessageBox.Show(string.Join(Environment.NewLine, validationErrors), "Validation",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -548,8 +607,11 @@ namespace QuotingTool.Forms
             }
 
             UpdateAutomaticPageSetup();
-            MessageBox.Show("Quote saved.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            RefreshGrid();
+            if (showConfirmation)
+            {
+                MessageBox.Show("Quote saved.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                RefreshGrid();
+            }
         }
 
         private void gridQuote_CurrentCellDirtyStateChanged(object sender, EventArgs e)
@@ -592,7 +654,9 @@ namespace QuotingTool.Forms
             row.ErrorText = ValidateLine(line);
             UpdateAutomaticPageSetup();
             UpdatePriceBreakdown();
-            _db.UpsertQuoteLine(line);
+            if (IsMeaningfulLine(line))
+                _db.UpsertQuoteLine(line);
+            EnsureTrailingBlankRow();
         }
 
         private void SetCellValue(DataGridViewRow row, string columnName, object? value)
@@ -611,6 +675,11 @@ namespace QuotingTool.Forms
                 _ip1RatePerKg = pricing.IP1UpchargePerKg > 0 ? pricing.IP1UpchargePerKg : 1.00m;
                 _ip2RatePerKg = pricing.IP2UpchargePerKg > 0 ? pricing.IP2UpchargePerKg : 2.00m;
                 _ip3RatePerKg = pricing.IP3PanoramicFixedKgRate > 0 ? pricing.IP3PanoramicFixedKgRate : 25.85m;
+                _millFinishMarginPct = pricing.MillFinishMarginPct;
+                _finishingMarginPct = pricing.FinishingMarginPct;
+                _finishingCostPricePerM2 = pricing.FinishingCostPricePerM2 > 0
+                    ? pricing.FinishingCostPricePerM2
+                    : pricing.FinishingPrice;
             }
 
             var project = _db.GetProject(_projectId);
@@ -706,7 +775,11 @@ namespace QuotingTool.Forms
                 $"Override: {overrideText}{Environment.NewLine}" +
                 $"Final $ each: {line.Price:0.0000}{Environment.NewLine}" +
                 $"Line total: {line.TotalPrice:0.0000}{Environment.NewLine}" +
-                $"SAP code: {line.SapColourCode}";
+                $"SAP code: {line.SapColourCode}{Environment.NewLine}" +
+                $"{Environment.NewLine}Margins{Environment.NewLine}" +
+                $"Mill finish margin: {_millFinishMarginPct:0.##}%{Environment.NewLine}" +
+                $"Finishing margin: {_finishingMarginPct:0.##}%{Environment.NewLine}" +
+                $"Finishing cost: {_finishingCostPricePerM2:0.00}/m² vs sell {_finishingSellPricePerM2:0.00}/m²";
         }
 
         private static string NormalizeThresholdChoice(string thresholdChoice)
@@ -876,7 +949,9 @@ namespace QuotingTool.Forms
                 return;
             }
 
-            using var options = new QuotePdfOptionsDialog();
+            var project = _db.GetProject(_projectId);
+            var logoLabel = project == null ? string.Empty : QuotePdfService.GetLocalLogoLabel(project);
+            using var options = new QuotePdfOptionsDialog(hasLocalLogo: !string.IsNullOrWhiteSpace(logoLabel));
             if (options.ShowDialog(this) != DialogResult.OK)
                 return;
 
@@ -890,9 +965,50 @@ namespace QuotingTool.Forms
             if (sfd.ShowDialog(this) != DialogResult.OK)
                 return;
 
-            _quotePdf.ExportQuotePdf(_projectId, sfd.FileName, options.IncludeQuoteLetter, options.Unpriced);
+            var millFinishLines = options.AddMillFinishVersion ? BuildMillFinishLines() : null;
+            _quotePdf.ExportQuotePdf(_projectId, sfd.FileName, options.IncludeQuoteLetter, options.Unpriced,
+                options.IncludeLocalLogo, millFinishLines);
             MessageBox.Show($"PDF saved to:\n{sfd.FileName}", "Export PDF",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        /// <summary>
+        /// Builds a Mill Finish alternative of the current quote lines: same sections,
+        /// quantities and lengths but with the finishing (SF) component removed from
+        /// the price and the SAP colour code set to NON.
+        /// </summary>
+        private List<QuoteLine> BuildMillFinishLines()
+        {
+            var result = new List<QuoteLine>();
+            foreach (var line in _lines.Where(IsMeaningfulLine))
+            {
+                var millFinishEach = CalculateMillFinishEach(line);
+                var ipEach = CalculateIpEach(line);
+                var price = line.ManualPriceOverride
+                            ?? FormulaCalculationService.CalculatePriceEach(
+                                millFinishEach,
+                                ipEach: ipEach,
+                                sfSellEach: 0m,
+                                slottingSundryEach: line.SubsillSurcharge);
+                result.Add(new QuoteLine
+                {
+                    ProjectId = line.ProjectId,
+                    PageBlock = line.PageBlock,
+                    RowInBlock = line.RowInBlock,
+                    LineNumber = line.LineNumber,
+                    ExtrusionCode = line.ExtrusionCode,
+                    Description = line.Description,
+                    Alloy = line.Alloy,
+                    Temper = line.Temper,
+                    Quantity = line.Quantity,
+                    LengthM = line.LengthM,
+                    Price = price,
+                    TotalPrice = FormulaCalculationService.CalculateSellTotal(price, line.Quantity),
+                    SapColourCode = "NON",
+                    IgnoreFinish = "Yes"
+                });
+            }
+            return result;
         }
 
         private void gridQuote_KeyDown(object sender, KeyEventArgs e)

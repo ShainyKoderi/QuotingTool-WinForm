@@ -64,6 +64,7 @@ namespace QuotingTool.Forms
             }
 
             lblBrand.Text = QuotePdfService.GetRegionalHeader(_project.Region);
+            lblCompanyInfo.Text = QuotePdfService.GetRegionalContactInfo(_project.Region);
             lblToValue.Text = _project.CustomerName;
             lblAttentionValue.Text = string.IsNullOrWhiteSpace(_project.AttentionTo) ? _project.Attention : _project.AttentionTo;
             lblDateValue.Text = (_project.RevisionDate ?? DateTime.Today).ToString("dd MMMM yyyy");
