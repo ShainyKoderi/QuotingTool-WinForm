@@ -590,11 +590,17 @@ namespace QuotingTool.Forms
             // bottom of the grid must not create empty database rows.
             var lines = _lines.Where(IsMeaningfulLine).ToList();
             var validationErrors = CollectValidationErrors(lines);
-            if (validationErrors.Count > 0 && showConfirmation)
+            if (validationErrors.Count > 0)
             {
-                MessageBox.Show(string.Join(Environment.NewLine, validationErrors), "Validation",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                if (showConfirmation)
+                {
+                    MessageBox.Show(string.Join(Environment.NewLine, validationErrors), "Validation",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Silent auto-save (tab switch): persist only the valid lines.
+                lines = lines.Where(l => string.IsNullOrWhiteSpace(ValidateLine(l))).ToList();
             }
 
             foreach (var line in lines)

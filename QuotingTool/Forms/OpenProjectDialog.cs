@@ -66,8 +66,7 @@ namespace QuotingTool.Forms
             {
                 Text = "Open",
                 Location = new System.Drawing.Point(300, 356),
-                Size = new System.Drawing.Size(80, 28),
-                DialogResult = DialogResult.OK
+                Size = new System.Drawing.Size(80, 28)
             };
             btnOk.Click += (_, __) => OpenSelected();
 
@@ -109,8 +108,9 @@ namespace QuotingTool.Forms
         private void OpenSelected()
         {
             int idx = lstProjects.SelectedIndex;
-            if (idx >= 0 && idx < _filtered.Count)
-                SelectedProjectId = _filtered[idx].Id;
+            if (idx < 0 || idx >= _filtered.Count)
+                return;
+            SelectedProjectId = _filtered[idx].Id;
             DialogResult = DialogResult.OK;
             Close();
         }
