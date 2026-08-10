@@ -40,9 +40,25 @@ namespace QuotingTool.Forms
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            tabControl.Deselecting += TabControl_Deselecting;
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
             LoadLastProject();
             Text = $"QuotingTool – {UserSession.CurrentUser?.DisplayName ?? "Guest"}";
+        }
+
+        private void TabControl_Deselecting(object? sender, TabControlCancelEventArgs e)
+        {
+            if (CurrentProjectId <= 0) return;
+            var leaving = e.TabPage;
+            if (leaving == null || leaving.Controls.Count == 0) return;
+
+            // Auto-save the tab being left so the user never has to click Save
+            // before switching tabs.
+            var form = leaving.Controls[0];
+            if (form is ProjectDetailsForm pdf)
+                pdf.SaveProject(showConfirmation: false);
+            else if (form is QuoteForm qf)
+                qf.SaveQuote(showConfirmation: false);
         }
 
         private void TabControl_SelectedIndexChanged(object? sender, EventArgs e)
@@ -119,7 +135,10 @@ namespace QuotingTool.Forms
 
         private void btnNewProject_Click(object sender, EventArgs e)
         {
-            using var dialog = new NewQuoteDialog();
+            string? defaultRegion = CurrentProjectId > 0
+                ? _db.GetProject(CurrentProjectId)?.Region
+                : null;
+            using var dialog = new NewQuoteDialog(defaultRegion);
             if (dialog.ShowDialog(this) != DialogResult.OK)
                 return;
 

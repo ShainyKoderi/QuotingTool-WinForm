@@ -26,6 +26,7 @@ namespace QuotingTool.Forms
             btnSave = new Button();
             btnAddRow = new Button();
             btnDeleteSelected = new Button();
+            btnDeleteAll = new Button();
             gridQuote = new DataGridView();
             pnlToolbar = new Panel();
             pnlRight = new Panel();
@@ -168,6 +169,15 @@ namespace QuotingTool.Forms
             btnDeleteSelected.Text = "Delete Row";
             btnDeleteSelected.Click += btnDeleteSelected_Click;
             // 
+            // btnDeleteAll
+            // 
+            btnDeleteAll.Location = new Point(427, 8);
+            btnDeleteAll.Name = "btnDeleteAll";
+            btnDeleteAll.Size = new Size(95, 28);
+            btnDeleteAll.TabIndex = 14;
+            btnDeleteAll.Text = "Delete All";
+            btnDeleteAll.Click += btnDeleteAll_Click;
+            // 
             // gridQuote
             // 
             gridQuote.AllowUserToAddRows = false;
@@ -199,6 +209,7 @@ namespace QuotingTool.Forms
             pnlToolbar.Controls.Add(btnSave);
             pnlToolbar.Controls.Add(btnAddRow);
             pnlToolbar.Controls.Add(btnDeleteSelected);
+            pnlToolbar.Controls.Add(btnDeleteAll);
             pnlToolbar.Dock = DockStyle.Top;
             pnlToolbar.Location = new Point(0, 0);
             pnlToolbar.Name = "pnlToolbar";
@@ -266,6 +277,7 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnAddRow;
         private System.Windows.Forms.Button btnDeleteSelected;
+        private System.Windows.Forms.Button btnDeleteAll;
         private System.Windows.Forms.DataGridView gridQuote;
         private System.Windows.Forms.Panel pnlToolbar;
         private System.Windows.Forms.Panel pnlRight;

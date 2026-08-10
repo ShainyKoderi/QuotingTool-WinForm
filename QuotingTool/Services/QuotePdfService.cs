@@ -14,7 +14,8 @@ namespace QuotingTool.Services
 
         public QuotePdfService(DatabaseContext db) => _db = db;
 
-        public void ExportQuotePdf(int projectId, string filePath, bool includeQuoteLetter, bool unpriced)
+        public void ExportQuotePdf(int projectId, string filePath, bool includeQuoteLetter, bool unpriced,
+            bool includeLocalLogo = true, IReadOnlyList<QuoteLine>? millFinishLines = null)
         {
             var project = _db.GetProject(projectId)
                 ?? throw new InvalidOperationException($"Project {projectId} was not found.");
@@ -27,7 +28,7 @@ namespace QuotingTool.Services
             var finish = GetFinishDisplay(project);
             var quotedBy = GetQuotedByDisplay(project);
             var header = GetRegionalHeader(project.Region);
-            var logo = GetLocalLogoLabel(project);
+            var logo = includeLocalLogo ? GetLocalLogoLabel(project) : string.Empty;
 
             Document.Create(document =>
             {
@@ -35,6 +36,10 @@ namespace QuotingTool.Services
                     document.Page(page => ComposeLetterPage(page, project, total, finish, quotedBy, header, logo));
 
                 document.Page(page => ComposeQuotePage(page, project, lines, finish, quotedBy, header, unpriced));
+
+                if (millFinishLines != null && millFinishLines.Count > 0)
+                    document.Page(page => ComposeQuotePage(page, project, millFinishLines, "Mill Finish", quotedBy, header, unpriced,
+                        titleSuffix: " - MILL FINISH ALTERNATIVE"));
             }).GeneratePdf(filePath);
         }
 
@@ -54,7 +59,11 @@ namespace QuotingTool.Services
             page.Content().Column(column =>
             {
                 column.Spacing(10);
-                column.Item().Text(header).Bold().FontSize(20).FontColor(Colors.Teal.Darken2);
+                column.Item().Row(row =>
+                {
+                    row.RelativeItem().Text(header).Bold().FontSize(20).FontColor(Colors.Teal.Darken2);
+                    row.ConstantItem(220).AlignRight().Text(GetRegionalContactInfo(project.Region)).FontSize(8);
+                });
                 if (!string.IsNullOrWhiteSpace(logo))
                     column.Item().Text(logo).Bold().FontColor(Colors.Green.Darken2);
 
@@ -91,7 +100,7 @@ namespace QuotingTool.Services
             });
         }
 
-        private static void ComposeQuotePage(PageDescriptor page, Project project, IReadOnlyList<QuoteLine> lines, string finish, string quotedBy, string header, bool unpriced)
+        private static void ComposeQuotePage(PageDescriptor page, Project project, IReadOnlyList<QuoteLine> lines, string finish, string quotedBy, string header, bool unpriced, string titleSuffix = "")
         {
             page.Size(PageSizes.A4.Landscape());
             page.Margin(24);
@@ -107,7 +116,7 @@ namespace QuotingTool.Services
             page.Content().Column(column =>
             {
                 column.Spacing(8);
-                column.Item().Text(unpriced ? "QUOTATION - UNPRICED" : "QUOTATION").Bold().FontSize(18);
+                column.Item().Text((unpriced ? "QUOTATION - UNPRICED" : "QUOTATION") + titleSuffix).Bold().FontSize(18);
                 column.Item().Text(header).Bold();
                 column.Item().Text($"Customer: {project.CustomerName}");
                 column.Item().Text($"Project: {project.ProjectName}");
@@ -173,6 +182,17 @@ namespace QuotingTool.Services
 
         public static string GetRegionalHeader(string region)
             => string.IsNullOrWhiteSpace(region) ? "CAPRAL ALUMINIUM" : $"CAPRAL ALUMINIUM - {region.ToUpperInvariant()}";
+
+        /// <summary>
+        /// Contact details block (shown top-right on the quote letter). Applies the
+        /// same state/region as the header so the letter is addressed from the
+        /// correct regional office.
+        /// </summary>
+        public static string GetRegionalContactInfo(string region)
+        {
+            var office = string.IsNullOrWhiteSpace(region) ? "Capral Limited" : $"Capral Limited – {region.ToUpperInvariant()}";
+            return $"{office}\nABN 78 004 213 692\nBuilding System Group and Distribution\nT: 1300 366 517  F: 1300 133 975\nwww.capral.com.au";
+        }
 
         public static string GetFinishDisplay(Project project)
             => string.IsNullOrWhiteSpace(project.FinishName) ? project.FinishType : project.FinishName;

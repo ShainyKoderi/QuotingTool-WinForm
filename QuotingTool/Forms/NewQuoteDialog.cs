@@ -15,7 +15,7 @@ namespace QuotingTool.Forms
         public string SelectedRegion => _cmbRegion.Text.Trim();
         public DateTime QuoteDate => _dtpQuoteDate.Value.Date;
 
-        public NewQuoteDialog()
+        public NewQuoteDialog(string? defaultRegion = null)
         {
             Text = "Start New Quote";
             FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -35,6 +35,14 @@ namespace QuotingTool.Forms
             _cmbRegion = new ComboBox { Left = 150, Top = 88, Width = 220, DropDownStyle = ComboBoxStyle.DropDownList };
             _cmbRegion.Items.AddRange(new object[] { "NQ", "NSW", "NT", "SA", "SEQ", "TAS", "VIC", "WA" });
             _cmbRegion.SelectedIndex = 0;
+            // Prefill the region from the logged-in user's last project so it does
+            // not have to be re-selected on every new quote.
+            if (!string.IsNullOrWhiteSpace(defaultRegion))
+            {
+                int idx = _cmbRegion.FindStringExact(defaultRegion.Trim());
+                if (idx >= 0)
+                    _cmbRegion.SelectedIndex = idx;
+            }
             _dtpQuoteDate = new DateTimePicker { Left = 150, Top = 123, Width = 220, Format = DateTimePickerFormat.Short, Value = DateTime.Today };
 
             var btnOk = new Button { Text = "Create", Left = 210, Top = 160, Width = 75, DialogResult = DialogResult.OK };
