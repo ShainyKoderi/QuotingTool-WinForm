@@ -247,7 +247,7 @@ USING (VALUES
     ('NT',  'Capral Limited – Northern Territory','5 Totem Road',       '',               'Coconut Grove',      'NT',  '0810', '1300 366 517', '1300 133 975', 'www.capral.com.au'),
     ('SA',  'Capral Limited – South Australia',   '38 Cormack Road',    '',               'Wingfield',          'SA',  '5013', '1300 366 517', '1300 133 975', 'www.capral.com.au'),
     ('SEQ', 'Capral Limited – South East Queensland','110 Cobalt Street','',              'Carole Park',        'QLD', '4300', '1300 366 517', '1300 133 975', 'www.capral.com.au'),
-    ('TAS', 'Capral Limited – Tasmania',          '9 Toll Drive',       '',               'Altona North',       'TAS', '7000', '1300 366 517', '1300 133 975', 'www.capral.com.au'),
+    ('TAS', 'Capral Limited – Tasmania',          '69 Gormanston Road', '',               'Moonah',             'TAS', '7009', '1300 366 517', '1300 133 975', 'www.capral.com.au'),
     ('VIC', 'Capral Limited – Victoria',          '70–80 South Park Drive','',            'Campbellfield',      'VIC', '3061', '1300 366 517', '1300 133 975', 'www.capral.com.au'),
     ('WA',  'Capral Limited – Western Australia', '4 Sudlow Road',      '',               'Bibra Lake',         'WA',  '6163', '1300 366 517', '1300 133 975', 'www.capral.com.au')
 ) AS source (RegionCode, OfficeName, AddressLine1, AddressLine2, Suburb, State, Postcode, Phone, Fax, Website)

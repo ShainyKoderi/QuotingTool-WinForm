@@ -216,7 +216,7 @@ namespace QuotingTool.Services
         }
 
         // Static overload kept for callers that do not have a DatabaseContext instance.
-        public static string GetRegionalContactInfoStatic(string region)
+        public static string GetDefaultRegionalContactInfo(string region)
         {
             var office = string.IsNullOrWhiteSpace(region) ? "Capral Limited" : $"Capral Limited – {region.ToUpperInvariant()}";
             return $"{office}\nABN 78 004 213 692\nBuilding System Group and Distribution\nT: 1300 366 517  F: 1300 133 975\nwww.capral.com.au";
