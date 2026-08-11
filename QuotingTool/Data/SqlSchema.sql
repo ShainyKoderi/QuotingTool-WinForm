@@ -454,3 +454,19 @@ CREATE TABLE DataEdgeMaterials (
     MatRefDescription NVARCHAR(300),     -- col B: Mat.Ref.Description
     SapMatNo NVARCHAR(50)                -- col C: SAP.Mat.No
 );
+
+-- RegionAddresses table – contact / address details per region code (a/b)
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='RegionAddresses')
+CREATE TABLE RegionAddresses (
+    Id INT IDENTITY PRIMARY KEY,
+    RegionCode NVARCHAR(20) NOT NULL UNIQUE,
+    OfficeName NVARCHAR(200) NOT NULL DEFAULT '',
+    AddressLine1 NVARCHAR(200) NOT NULL DEFAULT '',
+    AddressLine2 NVARCHAR(200) NOT NULL DEFAULT '',
+    Suburb NVARCHAR(100) NOT NULL DEFAULT '',
+    State NVARCHAR(50) NOT NULL DEFAULT '',
+    Postcode NVARCHAR(10) NOT NULL DEFAULT '',
+    Phone NVARCHAR(50) NOT NULL DEFAULT '1300 366 517',
+    Fax NVARCHAR(50) NOT NULL DEFAULT '1300 133 975',
+    Website NVARCHAR(100) NOT NULL DEFAULT 'www.capral.com.au'
+);

@@ -15,6 +15,8 @@ namespace QuotingTool.Forms
             gridSundryItems = new DataGridView();
             pnlButtons = new Panel();
             btnEdit26Plus = new Button();
+            btnDeleteRow = new Button();
+            btnDeleteAll = new Button();
             btnCloseSave = new Button();
             ((System.ComponentModel.ISupportInitialize)gridSundryItems).BeginInit();
             pnlButtons.SuspendLayout();
@@ -35,6 +37,8 @@ namespace QuotingTool.Forms
             // pnlButtons
             // 
             pnlButtons.Controls.Add(btnEdit26Plus);
+            pnlButtons.Controls.Add(btnDeleteRow);
+            pnlButtons.Controls.Add(btnDeleteAll);
             pnlButtons.Controls.Add(btnCloseSave);
             pnlButtons.Dock = DockStyle.Top;
             pnlButtons.Location = new Point(0, 0);
@@ -46,21 +50,39 @@ namespace QuotingTool.Forms
             // 
             btnEdit26Plus.Location = new Point(12, 12);
             btnEdit26Plus.Name = "btnEdit26Plus";
-            btnEdit26Plus.Size = new Size(130, 28);
+            btnEdit26Plus.Size = new Size(120, 28);
             btnEdit26Plus.TabIndex = 0;
-            btnEdit26Plus.Text = "Add Items +";
+            btnEdit26Plus.Text = "Add Item +";
             btnEdit26Plus.Click += btnEdit26Plus_Click;
+            // 
+            // btnDeleteRow – g. Delete selected row
+            // 
+            btnDeleteRow.Location = new Point(138, 12);
+            btnDeleteRow.Name = "btnDeleteRow";
+            btnDeleteRow.Size = new Size(110, 28);
+            btnDeleteRow.TabIndex = 1;
+            btnDeleteRow.Text = "Delete Row";
+            btnDeleteRow.Click += btnDeleteRow_Click;
+            // 
+            // btnDeleteAll – g. Delete all rows
+            // 
+            btnDeleteAll.Location = new Point(254, 12);
+            btnDeleteAll.Name = "btnDeleteAll";
+            btnDeleteAll.Size = new Size(110, 28);
+            btnDeleteAll.TabIndex = 2;
+            btnDeleteAll.Text = "Delete All";
+            btnDeleteAll.Click += btnDeleteAll_Click;
             // 
             // btnCloseSave
             // 
             btnCloseSave.BackColor = Color.FromArgb(0, 120, 215);
             btnCloseSave.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             btnCloseSave.ForeColor = Color.White;
-            btnCloseSave.Location = new Point(148, 9);
+            btnCloseSave.Location = new Point(370, 9);
             btnCloseSave.Name = "btnCloseSave";
             btnCloseSave.Size = new Size(120, 34);
-            btnCloseSave.TabIndex = 1;
-            btnCloseSave.Text = "Close";
+            btnCloseSave.TabIndex = 3;
+            btnCloseSave.Text = "Save & Close";
             btnCloseSave.UseVisualStyleBackColor = false;
             btnCloseSave.Click += btnCloseSave_Click;
             // 
@@ -81,6 +103,8 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.DataGridView gridSundryItems;
         private System.Windows.Forms.Panel pnlButtons;
         private System.Windows.Forms.Button btnEdit26Plus;
+        private System.Windows.Forms.Button btnDeleteRow;
+        private System.Windows.Forms.Button btnDeleteAll;
         private System.Windows.Forms.Button btnCloseSave;
     }
 }

@@ -371,8 +371,12 @@ namespace QuotingTool.Forms
                 ep.IP3PanoramicFixedKgRate, metalCostPerKg) * 100m;
 
             ep.MillFinishMarginPct = FormulaCalculationService.CalculateMillFinishMarginPct(ep.MetalPrice, metalCostPerKg) * 100m;
-            ep.FinishingMarginPct = FormulaCalculationService.CalculateFinishingMarginPct(ep.FinishingPrice, ep.FinishingCostPricePerM2, ep.Price_B42, ep.CostType) * 100m;
-            ep.ThermalBreakMarginPct = FormulaCalculationService.CalculateThresholdMarginPct(ep.Price_B58, ep.AnodisedThresholdCostPerM2) * 100m;
+            // h. Excel B45: =(B44-B43)/B44 (CostType=0) or =(B44-B42)/B44 (POA).
+            // B44 = sell price (Price_B44), B43 = cost price (FinishingPrice/FinishingCostPricePerM2).
+            // Previously this passed FinishingPrice as the sell price arg (wrong); it is actually the cost.
+            ep.FinishingMarginPct = FormulaCalculationService.CalculateFinishingMarginPct(ep.Price_B44, ep.FinishingPrice, ep.Price_B42, ep.CostType) * 100m;
+            // h. Excel B59: =(B58-B57)/B58 — B57 is the auto-calculated threshold cost (Price_B57).
+            ep.ThermalBreakMarginPct = FormulaCalculationService.CalculateThresholdMarginPct(ep.Price_B58, ep.Price_B57) * 100m;
 
             // B51: Mill BULK Finish Margin % = (B50 − B49) / B50
             var bulkMarginPct = FormulaCalculationService.CalculateBulkFinishingMarginPct(

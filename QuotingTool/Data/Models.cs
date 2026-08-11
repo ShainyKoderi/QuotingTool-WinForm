@@ -167,8 +167,26 @@ namespace QuotingTool.Data
         public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();
         public UserRole Role { get; set; } = UserRole.GeneralUser;
         public string Email { get; set; } = string.Empty;
+        public string Region { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; }
+    }
+
+    // Maps to "RegionAddresses" table – contact / address details per region code.
+    // Shown in the quote letter header block and PDF contact column.
+    public class RegionAddress
+    {
+        public int Id { get; set; }
+        public string RegionCode { get; set; } = string.Empty;     // e.g. "VIC", "NSW"
+        public string OfficeName { get; set; } = string.Empty;     // e.g. "Capral Limited – Victoria"
+        public string AddressLine1 { get; set; } = string.Empty;
+        public string AddressLine2 { get; set; } = string.Empty;
+        public string Suburb { get; set; } = string.Empty;
+        public string State { get; set; } = string.Empty;
+        public string Postcode { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Fax { get; set; } = string.Empty;
+        public string Website { get; set; } = "www.capral.com.au";
     }
 
     public class QuoteSummary

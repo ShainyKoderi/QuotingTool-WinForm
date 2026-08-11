@@ -50,7 +50,6 @@ namespace QuotingTool.Forms
         private decimal _millFinishMarginPct;
         private decimal _finishingMarginPct;
         private decimal _finishingCostPricePerM2;
-        private bool _autoUpdatingPages;
 
         public QuoteForm(DatabaseContext db)
         {
@@ -112,7 +111,6 @@ namespace QuotingTool.Forms
             _projectId = projectId;
             LoadProjectSettings();
             RefreshGrid();
-            UpdatePrintAreaLabel();
         }
 
         private void RefreshGrid()
@@ -129,17 +127,13 @@ namespace QuotingTool.Forms
                 ApplySectionLookup(line);
                 var storedPrice = line.Price;
                 RecalculatePrice(line);
-                // Persist the recalculated price back to the database whenever the
-                // metal price is valid and the price has actually changed.  This keeps
-                // the Edit Pricing summary and any other DB consumers in sync without
-                // requiring the user to manually click "Save" on the Quote tab first.
                 if (_metalPricePerKg > 0 && line.Price != storedPrice && IsMeaningfulLine(line))
                     _db.UpsertQuoteLine(line);
             }
             EnsureTrailingBlankRow();
             gridQuote.DataSource = _lines;
             _bindingGrid = false;
-            UpdateAutomaticPageSetup();
+            UpdatePageLayout();
             UpdateValidationStates();
             UpdatePriceBreakdown();
         }
@@ -271,6 +265,10 @@ namespace QuotingTool.Forms
         {
             if (string.Equals(_projectFinishType, MillFinishType, StringComparison.OrdinalIgnoreCase))
                 return 0m;
+            // d. IgnoreFinish="Yes" means this line is priced as Mill Finish regardless of the
+            // project's finish type (mirrors the Excel col L / **MILL FINISH** override logic).
+            if (string.Equals(line.IgnoreFinish, "Yes", StringComparison.OrdinalIgnoreCase))
+                return 0m;
             if (_finishingSellPricePerM2 <= 0 || line.LengthM <= 0 || string.IsNullOrWhiteSpace(line.ExtrusionCode))
                 return 0m;
 
@@ -296,12 +294,6 @@ namespace QuotingTool.Forms
             if (_sundryMasterByCode.TryGetValue(sectionCode, out var sundry))
                 return sundry.MassKgPerM;
             return 0m;
-        }
-
-        private void UpdatePrintAreaLabel()
-        {
-            if (_projectId <= 0) return;
-            lblPrintArea.Text = _pageSetup.GetPrintAreaDescription(_projectId);
         }
 
         private void ConfigureGridColumns()
@@ -393,12 +385,6 @@ namespace QuotingTool.Forms
             var style = gridQuote.Columns[propName].DefaultCellStyle;
             style.Format = format;
             style.Alignment = alignment;
-        }
-
-        private void cmbPageSelector_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (_autoUpdatingPages || !cmbPageSelector.Enabled)
-                return;
         }
 
         private void btnFixLengths_Click(object sender, EventArgs e)
@@ -540,7 +526,7 @@ namespace QuotingTool.Forms
                     // accept a current-cell/scroll change (e.g. mid-layout, no visible columns, etc.)
                 }
             }));
-            UpdateAutomaticPageSetup();
+            UpdatePageLayout();
         }
 
         private void btnDeleteSelected_Click(object sender, EventArgs e)
@@ -552,7 +538,7 @@ namespace QuotingTool.Forms
                 _db.DeleteQuoteLine(line.Id);
 
             _lines.Remove(line);
-            UpdateAutomaticPageSetup();
+            UpdatePageLayout();
             UpdatePriceBreakdown();
         }
 
@@ -612,7 +598,7 @@ namespace QuotingTool.Forms
                 _db.UpsertQuoteLine(line);
             }
 
-            UpdateAutomaticPageSetup();
+            UpdatePageLayout();
             if (showConfirmation)
             {
                 MessageBox.Show("Quote saved.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -658,7 +644,7 @@ namespace QuotingTool.Forms
             gridQuote.InvalidateRow(e.RowIndex);
 
             row.ErrorText = ValidateLine(line);
-            UpdateAutomaticPageSetup();
+            UpdatePageLayout();
             UpdatePriceBreakdown();
             if (IsMeaningfulLine(line))
                 _db.UpsertQuoteLine(line);
@@ -694,7 +680,7 @@ namespace QuotingTool.Forms
             _projectFinishType = string.IsNullOrWhiteSpace(project?.FinishType) ? MillFinishType : project.FinishType;
         }
 
-        private void UpdateAutomaticPageSetup()
+        private void UpdatePageLayout()
         {
             if (_projectId <= 0)
                 return;
@@ -702,10 +688,6 @@ namespace QuotingTool.Forms
             int activeLineCount = _lines.Count(IsMeaningfulLine);
             int pageCount = Math.Min(MaxQuotePages, Math.Max(1, (int)Math.Ceiling(activeLineCount / (decimal)MaxRowsPerPage)));
             _pageSetup.SetPageLayout(_projectId, pageCount);
-            _autoUpdatingPages = true;
-            cmbPageSelector.SelectedIndex = pageCount - 1;
-            _autoUpdatingPages = false;
-            UpdatePrintAreaLabel();
         }
 
         private void UpdateValidationStates()

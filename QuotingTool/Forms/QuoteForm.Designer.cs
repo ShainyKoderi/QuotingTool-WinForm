@@ -13,9 +13,6 @@ namespace QuotingTool.Forms
         private void InitializeComponent()
         {
             lblTitle = new Label();
-            lblPageSelector = new Label();
-            cmbPageSelector = new ComboBox();
-            lblPrintArea = new Label();
             btnFixLengths = new Button();
             btnResetPrices = new Button();
             btnImportQuoteLines = new Button();
@@ -45,35 +42,6 @@ namespace QuotingTool.Forms
             lblTitle.Size = new Size(300, 30);
             lblTitle.TabIndex = 0;
             lblTitle.Text = "Quote";
-            // 
-            // lblPageSelector
-            // 
-            lblPageSelector.AutoSize = true;
-            lblPageSelector.Location = new Point(10, 48);
-            lblPageSelector.Name = "lblPageSelector";
-            lblPageSelector.Size = new Size(76, 15);
-            lblPageSelector.TabIndex = 1;
-            lblPageSelector.Text = "Pages (auto):";
-            // 
-            // cmbPageSelector
-            // 
-            cmbPageSelector.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbPageSelector.Enabled = false;
-            cmbPageSelector.Items.AddRange(new object[] { "1 page", "2 pages", "3 pages", "4 pages", "5 pages", "6 pages" });
-            cmbPageSelector.Location = new Point(110, 45);
-            cmbPageSelector.Name = "cmbPageSelector";
-            cmbPageSelector.Size = new Size(120, 23);
-            cmbPageSelector.TabIndex = 2;
-            cmbPageSelector.SelectedIndexChanged += cmbPageSelector_SelectedIndexChanged;
-            // 
-            // lblPrintArea
-            // 
-            lblPrintArea.AutoSize = true;
-            lblPrintArea.Location = new Point(250, 48);
-            lblPrintArea.Name = "lblPrintArea";
-            lblPrintArea.Size = new Size(75, 15);
-            lblPrintArea.TabIndex = 3;
-            lblPrintArea.Text = "Print area: —";
             // 
             // btnFixLengths
             // 
@@ -196,9 +164,6 @@ namespace QuotingTool.Forms
             // pnlToolbar
             // 
             pnlToolbar.Controls.Add(lblTitle);
-            pnlToolbar.Controls.Add(lblPageSelector);
-            pnlToolbar.Controls.Add(cmbPageSelector);
-            pnlToolbar.Controls.Add(lblPrintArea);
             pnlToolbar.Controls.Add(btnFixLengths);
             pnlToolbar.Controls.Add(btnResetPrices);
             pnlToolbar.Controls.Add(btnImportQuoteLines);
@@ -264,9 +229,6 @@ namespace QuotingTool.Forms
         }
 
         private System.Windows.Forms.Label lblTitle;
-        private System.Windows.Forms.Label lblPageSelector;
-        private System.Windows.Forms.ComboBox cmbPageSelector;
-        private System.Windows.Forms.Label lblPrintArea;
         private System.Windows.Forms.Button btnFixLengths;
         private System.Windows.Forms.Button btnResetPrices;
         private System.Windows.Forms.Button btnImportQuoteLines;

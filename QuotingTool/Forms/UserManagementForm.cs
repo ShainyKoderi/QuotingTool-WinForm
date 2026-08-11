@@ -30,7 +30,14 @@ namespace QuotingTool.Forms
             };
             _grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(User.Username), HeaderText = "Username", Width = 160 });
             _grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(User.DisplayName), HeaderText = "Display Name", Width = 200 });
-            _grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(User.Email), HeaderText = "Email", Width = 220 });
+            _grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(User.Email), HeaderText = "Email", Width = 200 });
+            _grid.Columns.Add(new DataGridViewComboBoxColumn
+            {
+                DataPropertyName = nameof(User.Region),
+                HeaderText = "Region",
+                Width = 90,
+                DataSource = new string[] { "", "NQ", "NSW", "NT", "SA", "SEQ", "TAS", "VIC", "WA" }
+            });
             _grid.Columns.Add(new DataGridViewComboBoxColumn
             {
                 DataPropertyName = nameof(User.Role),
