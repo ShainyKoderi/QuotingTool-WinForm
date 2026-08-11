@@ -28,12 +28,13 @@ namespace QuotingTool.Services
             var finish = GetFinishDisplay(project);
             var quotedBy = GetQuotedByDisplay(project);
             var header = GetRegionalHeader(project.Region);
+            var contactInfo = GetRegionalContactInfo(project.Region);
             var logo = includeLocalLogo ? GetLocalLogoLabel(project) : string.Empty;
 
             Document.Create(document =>
             {
                 if (includeQuoteLetter)
-                    document.Page(page => ComposeLetterPage(page, project, total, finish, quotedBy, header, logo));
+                    document.Page(page => ComposeLetterPage(page, project, total, finish, quotedBy, header, contactInfo, logo));
 
                 document.Page(page => ComposeQuotePage(page, project, lines, finish, quotedBy, header, unpriced));
 
@@ -43,7 +44,7 @@ namespace QuotingTool.Services
             }).GeneratePdf(filePath);
         }
 
-        private static void ComposeLetterPage(PageDescriptor page, Project project, decimal total, string finish, string quotedBy, string header, string logo)
+        private static void ComposeLetterPage(PageDescriptor page, Project project, decimal total, string finish, string quotedBy, string header, string contactInfo, string logo)
         {
             page.Size(PageSizes.A4);
             page.Margin(32);
@@ -62,7 +63,7 @@ namespace QuotingTool.Services
                 column.Item().Row(row =>
                 {
                     row.RelativeItem().Text(header).Bold().FontSize(20).FontColor(Colors.Teal.Darken2);
-                    row.ConstantItem(220).AlignRight().Text(GetRegionalContactInfo(project.Region)).FontSize(8);
+                    row.ConstantItem(220).AlignRight().Text(contactInfo).FontSize(8);
                 });
                 if (!string.IsNullOrWhiteSpace(logo))
                     column.Item().Text(logo).Bold().FontColor(Colors.Green.Darken2);
@@ -181,14 +182,41 @@ namespace QuotingTool.Services
         }
 
         public static string GetRegionalHeader(string region)
-            => string.IsNullOrWhiteSpace(region) ? "CAPRAL ALUMINIUM" : $"CAPRAL ALUMINIUM - {region.ToUpperInvariant()}";
+            => string.IsNullOrWhiteSpace(region) ? "CAPRAL ALUMINIUM" : $"CAPRAL ALUMINIUM – {region.ToUpperInvariant()}";
 
         /// <summary>
-        /// Contact details block (shown top-right on the quote letter). Applies the
-        /// same state/region as the header so the letter is addressed from the
-        /// correct regional office.
+        /// Contact details block (shown top-right on the quote letter). Uses the RegionAddresses
+        /// table when available; falls back to a generic contact block if no record exists.
         /// </summary>
-        public static string GetRegionalContactInfo(string region)
+        public string GetRegionalContactInfo(string region)
+        {
+            if (!string.IsNullOrWhiteSpace(region))
+            {
+                var addr = _db.GetRegionAddress(region.Trim());
+                if (addr != null)
+                {
+                    var lines = new System.Text.StringBuilder();
+                    lines.AppendLine(addr.OfficeName);
+                    lines.AppendLine("ABN 78 004 213 692");
+                    if (!string.IsNullOrWhiteSpace(addr.AddressLine1))
+                        lines.AppendLine(addr.AddressLine1);
+                    if (!string.IsNullOrWhiteSpace(addr.AddressLine2))
+                        lines.AppendLine(addr.AddressLine2);
+                    var suburb = string.Join(" ", new[] { addr.Suburb, addr.State, addr.Postcode }
+                        .Where(s => !string.IsNullOrWhiteSpace(s)));
+                    if (!string.IsNullOrWhiteSpace(suburb))
+                        lines.AppendLine(suburb);
+                    lines.AppendLine($"T: {addr.Phone}  F: {addr.Fax}");
+                    lines.Append(addr.Website);
+                    return lines.ToString();
+                }
+            }
+            var office = string.IsNullOrWhiteSpace(region) ? "Capral Limited" : $"Capral Limited – {region.ToUpperInvariant()}";
+            return $"{office}\nABN 78 004 213 692\nBuilding System Group and Distribution\nT: 1300 366 517  F: 1300 133 975\nwww.capral.com.au";
+        }
+
+        // Static overload kept for callers that do not have a DatabaseContext instance.
+        public static string GetRegionalContactInfoStatic(string region)
         {
             var office = string.IsNullOrWhiteSpace(region) ? "Capral Limited" : $"Capral Limited – {region.ToUpperInvariant()}";
             return $"{office}\nABN 78 004 213 692\nBuilding System Group and Distribution\nT: 1300 366 517  F: 1300 133 975\nwww.capral.com.au";

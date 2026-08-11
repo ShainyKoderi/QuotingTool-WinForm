@@ -102,21 +102,29 @@ namespace QuotingTool.Forms
             {
                 MessageBox.Show("Project details saved.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                // 1.d – Generate Mill Finish Alternative creates a duplicate of the quote
-                // with everything set to Mill Finish.
+                // c. Generate Mill Finish Alternative creates a SEPARATE duplicate project with
+                // everything set to Mill Finish.  The original project's finish type and all
+                // price calculations remain completely unchanged – only the new duplicate uses
+                // Mill Finish settings.  We reload the form after duplication to confirm that
+                // the displayed fields still reflect the original (non-Mill-Finish) project.
                 if (project.GenerateMillFinishAlternative && !wasMillFinishAltSet)
                 {
                     var answer = MessageBox.Show(
                         "Generate Mill Finish Alternative is set to Yes.\n\n" +
-                        "Create a duplicate of this quote now with everything set to Mill Finish?",
+                        "Create a duplicate of this quote now with everything set to Mill Finish?\n\n" +
+                        "The original quote prices will not be affected.",
                         "Mill Finish Alternative", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                     if (answer == DialogResult.Yes)
                     {
                         int newId = _db.DuplicateProjectAsMillFinish(_projectId);
                         MessageBox.Show(
                             $"Mill Finish alternative created (quote ID {newId}).\n" +
-                            "Use File → Open Project to open it.",
+                            "Use File → Open Project to open it.\n\n" +
+                            "Your current quote prices have not changed.",
                             "Mill Finish Alternative", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        // Reload the original project to ensure the form reflects the unchanged
+                        // original finish type (not the Mill Finish used in the duplicate).
+                        LoadProject(_projectId);
                     }
                 }
             }

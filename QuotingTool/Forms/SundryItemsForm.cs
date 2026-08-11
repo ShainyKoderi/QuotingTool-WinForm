@@ -54,8 +54,9 @@ namespace QuotingTool.Forms
 
         private void ConfigureGrid()
         {
+            // f. Section code is now editable – users can rename e.g. "SUNDRY-1" to "Airfreight"
             if (gridSundryItems.Columns.Contains(nameof(SundryItem.SectionCode)))
-                gridSundryItems.Columns[nameof(SundryItem.SectionCode)].ReadOnly = true;
+                gridSundryItems.Columns[nameof(SundryItem.SectionCode)].ReadOnly = false;
             if (gridSundryItems.Columns.Contains(nameof(SundryItem.Ap)))
                 gridSundryItems.Columns[nameof(SundryItem.Ap)].DefaultCellStyle.Format = "0";
             if (gridSundryItems.Columns.Contains(nameof(SundryItem.Pp)))
@@ -93,6 +94,35 @@ namespace QuotingTool.Forms
                 gridSundryItems.Rows[rowIndex].Selected = true;
                 gridSundryItems.FirstDisplayedScrollingRowIndex = rowIndex;
             }
+        }
+
+        // g. Delete the currently selected row
+        private void btnDeleteRow_Click(object sender, EventArgs e)
+        {
+            if (gridSundryItems.CurrentRow?.DataBoundItem is not SundryItem item)
+                return;
+
+            if (item.Id > 0)
+                _service.DeleteItem(item.Id);
+
+            _items.Remove(item);
+        }
+
+        // g. Delete all rows
+        private void btnDeleteAll_Click(object sender, EventArgs e)
+        {
+            if (_items.Count == 0) return;
+
+            var answer = MessageBox.Show(
+                "Delete ALL sundry items?\n\nThis cannot be undone.",
+                "Delete All", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (answer != DialogResult.Yes)
+                return;
+
+            foreach (var item in _items.Where(i => i.Id > 0).ToList())
+                _service.DeleteItem(item.Id);
+
+            _items.Clear();
         }
 
         private void gridSundryItems_CurrentCellDirtyStateChanged(object sender, EventArgs e)

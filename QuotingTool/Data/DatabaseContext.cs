@@ -215,6 +215,47 @@ END");
 
         private static void EnsureReferenceDataUpToDate(SqlConnection conn)
         {
+            // Add Region column to Users if it does not yet exist (migration for existing DBs).
+            conn.Execute(@"
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name='Users')
+    IF COL_LENGTH('Users','Region') IS NULL
+        ALTER TABLE Users ADD Region NVARCHAR(50) NOT NULL DEFAULT '';");
+
+            // Add RegionAddresses table if it does not yet exist (migration for existing DBs).
+            conn.Execute(@"
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='RegionAddresses')
+CREATE TABLE RegionAddresses (
+    Id INT IDENTITY PRIMARY KEY,
+    RegionCode NVARCHAR(20) NOT NULL UNIQUE,
+    OfficeName NVARCHAR(200) NOT NULL DEFAULT '',
+    AddressLine1 NVARCHAR(200) NOT NULL DEFAULT '',
+    AddressLine2 NVARCHAR(200) NOT NULL DEFAULT '',
+    Suburb NVARCHAR(100) NOT NULL DEFAULT '',
+    State NVARCHAR(50) NOT NULL DEFAULT '',
+    Postcode NVARCHAR(10) NOT NULL DEFAULT '',
+    Phone NVARCHAR(50) NOT NULL DEFAULT '1300 366 517',
+    Fax NVARCHAR(50) NOT NULL DEFAULT '1300 133 975',
+    Website NVARCHAR(100) NOT NULL DEFAULT 'www.capral.com.au'
+);");
+
+            // Seed default region address details for Australian states (idempotent MERGE).
+            conn.Execute(@"
+MERGE RegionAddresses AS target
+USING (VALUES
+    ('NQ',  'Capral Limited – North Queensland',  '10 Telford Street',  '',               'Garbutt',            'QLD', '4814', '1300 366 517', '1300 133 975', 'www.capral.com.au'),
+    ('NSW', 'Capral Limited – New South Wales',   '10 Williamson Road', '',               'Ingleburn',          'NSW', '2565', '1300 366 517', '1300 133 975', 'www.capral.com.au'),
+    ('NT',  'Capral Limited – Northern Territory','5 Totem Road',       '',               'Coconut Grove',      'NT',  '0810', '1300 366 517', '1300 133 975', 'www.capral.com.au'),
+    ('SA',  'Capral Limited – South Australia',   '38 Cormack Road',    '',               'Wingfield',          'SA',  '5013', '1300 366 517', '1300 133 975', 'www.capral.com.au'),
+    ('SEQ', 'Capral Limited – South East Queensland','110 Cobalt Street','',              'Carole Park',        'QLD', '4300', '1300 366 517', '1300 133 975', 'www.capral.com.au'),
+    ('TAS', 'Capral Limited – Tasmania',          '9 Toll Drive',       '',               'Altona North',       'TAS', '7000', '1300 366 517', '1300 133 975', 'www.capral.com.au'),
+    ('VIC', 'Capral Limited – Victoria',          '70–80 South Park Drive','',            'Campbellfield',      'VIC', '3061', '1300 366 517', '1300 133 975', 'www.capral.com.au'),
+    ('WA',  'Capral Limited – Western Australia', '4 Sudlow Road',      '',               'Bibra Lake',         'WA',  '6163', '1300 366 517', '1300 133 975', 'www.capral.com.au')
+) AS source (RegionCode, OfficeName, AddressLine1, AddressLine2, Suburb, State, Postcode, Phone, Fax, Website)
+ON target.RegionCode = source.RegionCode
+WHEN NOT MATCHED THEN
+    INSERT (RegionCode, OfficeName, AddressLine1, AddressLine2, Suburb, State, Postcode, Phone, Fax, Website)
+    VALUES (source.RegionCode, source.OfficeName, source.AddressLine1, source.AddressLine2, source.Suburb, source.State, source.Postcode, source.Phone, source.Fax, source.Website);");
+
             conn.Execute(@"
 MERGE MetalBreakpoints AS target
 USING (VALUES
@@ -678,9 +719,9 @@ WHEN NOT MATCHED THEN
         {
             using var conn = GetConnection();
             return conn.ExecuteScalar<int>(
-                @"INSERT INTO Users (Username,DisplayName,PasswordHash,PasswordSalt,Role,Email,IsActive)
+                @"INSERT INTO Users (Username,DisplayName,PasswordHash,PasswordSalt,Role,Email,Region,IsActive)
                   OUTPUT INSERTED.Id
-                  VALUES (@Username,@DisplayName,@PasswordHash,@PasswordSalt,@Role,@Email,@IsActive)",
+                  VALUES (@Username,@DisplayName,@PasswordHash,@PasswordSalt,@Role,@Email,@Region,@IsActive)",
                 user);
         }
 
@@ -688,7 +729,7 @@ WHEN NOT MATCHED THEN
         {
             using var conn = GetConnection();
             conn.Execute(
-                @"UPDATE Users SET DisplayName=@DisplayName, Role=@Role, Email=@Email, IsActive=@IsActive
+                @"UPDATE Users SET DisplayName=@DisplayName, Role=@Role, Email=@Email, Region=@Region, IsActive=@IsActive
                   WHERE Id=@Id",
                 user);
         }
@@ -700,6 +741,39 @@ WHEN NOT MATCHED THEN
                 @"UPDATE Users SET PasswordHash=@passwordHash, PasswordSalt=@passwordSalt
                   WHERE Id=@userId",
                 new { userId, passwordHash, passwordSalt });
+        }
+
+        // ── RegionAddresses ───────────────────────────────────────────────────
+
+        public IEnumerable<RegionAddress> GetAllRegionAddresses()
+        {
+            using var conn = GetConnection();
+            return conn.Query<RegionAddress>("SELECT * FROM RegionAddresses ORDER BY RegionCode");
+        }
+
+        public RegionAddress? GetRegionAddress(string regionCode)
+        {
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<RegionAddress>(
+                "SELECT * FROM RegionAddresses WHERE RegionCode=@regionCode",
+                new { regionCode });
+        }
+
+        public void UpsertRegionAddress(RegionAddress ra)
+        {
+            using var conn = GetConnection();
+            var exists = conn.ExecuteScalar<int>(
+                "SELECT COUNT(1) FROM RegionAddresses WHERE RegionCode=@RegionCode", ra);
+            if (exists > 0)
+                conn.Execute(
+                    @"UPDATE RegionAddresses SET OfficeName=@OfficeName, AddressLine1=@AddressLine1,
+                      AddressLine2=@AddressLine2, Suburb=@Suburb, State=@State, Postcode=@Postcode,
+                      Phone=@Phone, Fax=@Fax, Website=@Website
+                      WHERE RegionCode=@RegionCode", ra);
+            else
+                conn.Execute(
+                    @"INSERT INTO RegionAddresses (RegionCode,OfficeName,AddressLine1,AddressLine2,Suburb,State,Postcode,Phone,Fax,Website)
+                      VALUES (@RegionCode,@OfficeName,@AddressLine1,@AddressLine2,@Suburb,@State,@Postcode,@Phone,@Fax,@Website)", ra);
         }
 
         // ── QuoteSummary ──────────────────────────────────────────────────────

@@ -137,7 +137,7 @@ namespace QuotingTool.Forms
         {
             string? defaultRegion = CurrentProjectId > 0
                 ? _db.GetProject(CurrentProjectId)?.Region
-                : null;
+                : UserSession.CurrentUser?.Region;
             using var dialog = new NewQuoteDialog(defaultRegion);
             if (dialog.ShowDialog(this) != DialogResult.OK)
                 return;
