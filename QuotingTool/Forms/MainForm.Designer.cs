@@ -31,6 +31,7 @@ namespace QuotingTool.Forms
             tabControl = new TabControl();
             projectDetailsTab = new TabPage();
             quoteTab = new TabPage();
+            millFinishQuoteTab = new TabPage();
             editPricingTab = new TabPage();
             quoteLetterTab = new TabPage();
             bomTab = new TabPage();
@@ -154,6 +155,7 @@ namespace QuotingTool.Forms
             // 
             tabControl.Controls.Add(projectDetailsTab);
             tabControl.Controls.Add(quoteTab);
+            tabControl.Controls.Add(millFinishQuoteTab);
             tabControl.Controls.Add(editPricingTab);
             tabControl.Controls.Add(quoteLetterTab);
             tabControl.Controls.Add(bomTab);
@@ -182,6 +184,15 @@ namespace QuotingTool.Forms
             quoteTab.Size = new Size(1192, 672);
             quoteTab.TabIndex = 1;
             quoteTab.Text = "Quote";
+            // 
+            // millFinishQuoteTab
+            // 
+            millFinishQuoteTab.Location = new Point(4, 24);
+            millFinishQuoteTab.Name = "millFinishQuoteTab";
+            millFinishQuoteTab.Padding = new Padding(3);
+            millFinishQuoteTab.Size = new Size(1192, 672);
+            millFinishQuoteTab.TabIndex = 10;
+            millFinishQuoteTab.Text = "Mill Finish Quote";
             // 
             // editPricingTab
             // 
@@ -285,6 +296,7 @@ namespace QuotingTool.Forms
         public System.Windows.Forms.TabControl tabControl;
         public System.Windows.Forms.TabPage projectDetailsTab;
         public System.Windows.Forms.TabPage quoteTab;
+        public System.Windows.Forms.TabPage millFinishQuoteTab;
         public System.Windows.Forms.TabPage editPricingTab;
         public System.Windows.Forms.TabPage quoteLetterTab;
         public System.Windows.Forms.TabPage bomTab;

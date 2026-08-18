@@ -322,64 +322,97 @@ namespace QuotingTool.Services
             return costPerM2 / (1m - breakpointMargin);
         }
 
-        /// <summary>
-        /// Thermal Break margin lookup by total kg via Table_TB_BP (Pricing Matrix rows 15-21).
-        /// Original Excel: =IFERROR(VLOOKUP($B$27, Table_TB_BP[], IF(tb_calc_type="Margin",2,5)), "")
-        /// Where col 2 = MarginTyp, col 5 = ListTyp
-        /// </summary>
-        public decimal LookupThermalBreakTypicalMargin(decimal totalKg)
-        {
-            var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
-            return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.MarginTyp);
-        }
+        ///// <summary>
+        ///// Thermal Break margin lookup by total kg via Table_TB_BP (Pricing Matrix rows 15-21).
+        ///// Original Excel: =IFERROR(VLOOKUP($B$27, Table_TB_BP[], IF(tb_calc_type="Margin",2,5)), "")
+        ///// Where col 2 = MarginTyp, col 5 = ListTyp
+        ///// </summary>
+        //public decimal LookupThermalBreakTypicalMargin(decimal totalKg)
+        //{
+        //    var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
+        //    return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.MarginTyp);
+        //}
 
-        public decimal LookupThermalBreakMinMargin(decimal totalKg)
-        {
-            var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
-            return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.MarginMin);
-        }
+        //public decimal LookupThermalBreakMinMargin(decimal totalKg)
+        //{
+        //    var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
+        //    return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.MarginMin);
+        //}
 
-        public decimal LookupThermalBreakMaxMargin(decimal totalKg)
-        {
-            var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
-            return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.MarginMax);
-        }
+        //public decimal LookupThermalBreakMaxMargin(decimal totalKg)
+        //{
+        //    var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
+        //    return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.MarginMax);
+        //}
 
-        public decimal LookupThermalBreakTypicalListPrice(decimal totalKg)
-        {
-            var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
-            return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.ListTyp);
-        }
+        //public decimal LookupThermalBreakTypicalListPrice(decimal totalKg)
+        //{
+        //    var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
+        //    return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.ListTyp);
+        //}
 
-        public decimal LookupThermalBreakMinListPrice(decimal totalKg)
-        {
-            var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
-            return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.ListMin);
-        }
+        //public decimal LookupThermalBreakMinListPrice(decimal totalKg)
+        //{
+        //    var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
+        //    return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.ListMin);
+        //}
 
-        public decimal LookupThermalBreakMaxListPrice(decimal totalKg)
-        {
-            var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
-            return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.ListMax);
-        }
+        //public decimal LookupThermalBreakMaxListPrice(decimal totalKg)
+        //{
+        //    var breakpoints = _db.GetThermalBreakBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
+        //    return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.ListMax);
+        //}
+
+        ///// <summary>
+        ///// Looks up Thermal Break Typical/Min/Max guidance for the given calc type.
+        ///// When tb_calc_type="Margin", returns MarginTyp/Min/Max.
+        ///// When tb_calc_type="List less Discount", returns ListTyp/Min/Max.
+        ///// </summary>
+        //public (decimal Typical, decimal Min, decimal Max) LookupThermalBreakGuidance(
+        //    decimal totalKg, string tbCalcType)
+        //{
+        //    bool isMargin = string.Equals(tbCalcType, "Margin", StringComparison.OrdinalIgnoreCase);
+        //    return isMargin
+        //        ? (LookupThermalBreakTypicalMargin(totalKg),
+        //           LookupThermalBreakMinMargin(totalKg),
+        //           LookupThermalBreakMaxMargin(totalKg))
+        //        : (LookupThermalBreakTypicalListPrice(totalKg),
+        //           LookupThermalBreakMinListPrice(totalKg),
+        //           LookupThermalBreakMaxListPrice(totalKg));
+        //}
 
         /// <summary>
         /// Looks up Thermal Break Typical/Min/Max guidance for the given calc type.
-        /// When tb_calc_type="Margin", returns MarginTyp/Min/Max.
-        /// When tb_calc_type="List less Discount", returns ListTyp/Min/Max.
+        /// Mirrors the Excel approximate-match VLOOKUP on Table_TB_BP (Pricing Matrix rows 15-21):
+        ///   C37 =IFERROR(VLOOKUP($B$27,Table_TB_BP,IF(tb_calc_type="Margin",2,5)),"")
+        ///   D37 =IFERROR(VLOOKUP($B$27,Table_TB_BP,IF(tb_calc_type="Margin",3,6)),"")
+        ///   E37 =IFERROR(VLOOKUP($B$27,Table_TB_BP,IF(tb_calc_type="Margin",4,7)),"")
+        /// Approximate match: largest MinKg ≤ totalKg (same as Excel omitting FALSE).
+        /// When tb_calc_type="Margin" → columns 2/3/4 (MarginTyp/Min/Max).
+        /// Otherwise              → columns 5/6/7 (ListTyp/Min/Max).
         /// </summary>
         public (decimal Typical, decimal Min, decimal Max) LookupThermalBreakGuidance(
             decimal totalKg, string tbCalcType)
         {
+            var breakpoints = _db.GetThermalBreakBreakpoints()
+                .OrderBy(b => b.BreakpointKg)
+                .ToList();
+
+            if (breakpoints.Count == 0)
+                return (0m, 0m, 0m);
+
+            // Approximate match: find the largest MinKg that is ≤ totalKg.
+            var row = breakpoints.LastOrDefault(b => b.BreakpointKg <= totalKg)
+                      ?? breakpoints.First();
+
             bool isMargin = string.Equals(tbCalcType, "Margin", StringComparison.OrdinalIgnoreCase);
+
             return isMargin
-                ? (LookupThermalBreakTypicalMargin(totalKg),
-                   LookupThermalBreakMinMargin(totalKg),
-                   LookupThermalBreakMaxMargin(totalKg))
-                : (LookupThermalBreakTypicalListPrice(totalKg),
-                   LookupThermalBreakMinListPrice(totalKg),
-                   LookupThermalBreakMaxListPrice(totalKg));
+                ? (row.MarginTyp, row.MarginMin, row.MarginMax)
+                : (row.ListTyp, row.ListMin, row.ListMax);
         }
+
+
 
         /// <summary>
         /// Sentinel value used throughout the Pricing Matrix to represent
@@ -421,9 +454,14 @@ namespace QuotingTool.Services
         /// Determines which breakpoint range category ('a','b','c','d') applies
         /// given total m2 and AP/PP type, then returns the typical margin from FinishBreakpoints.
         /// This maps to the Pricing Matrix rows 52-60 (FINISH BREAKPOINTS section).
+        /// Range selection:
+        ///   'a' = Bremer Mill (CostType 4/5)
+        ///   'b' = POA Colour  (CostType 1)
+        ///   'c' = Custom Supplier (CostType 2)
+        ///   'd' = Standard / Capral (CostType 0)  ← default for new quotes
         /// </summary>
         public (decimal Typical, decimal Min, decimal Max) LookupFinishBreakpointMargin(
-            decimal totalM2, bool isAP)
+            decimal totalM2, bool isAP, char rangeCategory = 'd')
         {
             var breakpoints = _db.GetFinishBreakpoints()
                 .OrderBy(b => isAP ? b.BreakpointAP : b.BreakpointPP)
@@ -440,10 +478,13 @@ namespace QuotingTool.Services
             }
             selected ??= breakpoints.First();
 
-            // Determine range category based on AP/PP and vendor type (simplified)
-            // Full logic requires knowing the breakpoint category (a/b/c/d) per vendor
-            // See FORMULA_NOTES.md for full complexity
-            return (selected.RangeA_Typical, selected.RangeA_Min, selected.RangeA_Max);
+            return (rangeCategory | 0x20) switch          // normalise to lower-case
+            {
+                'b' => (selected.RangeB_Typical, selected.RangeB_Min, selected.RangeB_Max),
+                'c' => (selected.RangeC_Typical, selected.RangeC_Min, selected.RangeC_Max),
+                'd' => (selected.RangeD_Typical, selected.RangeD_Min, selected.RangeD_Max),
+                _   => (selected.RangeA_Typical, selected.RangeA_Min, selected.RangeA_Max),
+            };
         }
 
         // ── Utility: VLOOKUP equivalent (match type = TRUE / less-or-equal) ──

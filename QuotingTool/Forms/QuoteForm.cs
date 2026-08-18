@@ -483,51 +483,51 @@ namespace QuotingTool.Forms
                 _lines.Add(blank);
         }
 
-        private void btnAddRow_Click(object sender, EventArgs e)
-        {
-            if (_projectId <= 0) return;
+        //private void btnAddRow_Click(object sender, EventArgs e)
+        //{
+        //    if (_projectId <= 0) return;
 
-            var line = CreateBlankLine();
-            if (line == null)
-            {
-                MessageBox.Show("Maximum of 240 quote lines (6 pages) reached.", "Add Row",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+        //    var line = CreateBlankLine();
+        //    if (line == null)
+        //    {
+        //        MessageBox.Show("Maximum of 240 quote lines (6 pages) reached.", "Add Row",
+        //            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        //        return;
+        //    }
 
-            _lines.Add(line);
+        //    _lines.Add(line);
 
-            BeginInvoke(new Action(() =>
-            {
-                if (gridQuote.Rows.Count == 0 || gridQuote.Columns.Count == 0) return;
-                if (gridQuote.Rows.Count != _lines.Count) return;
-                int rowIndex = gridQuote.Rows.Count - 1;
-                try
-                {
-                    DataGridViewColumn? firstVisibleColumn = null;
-                    foreach (DataGridViewColumn column in gridQuote.Columns)
-                    {
-                        if (column.Visible)
-                        {
-                            firstVisibleColumn = column;
-                            break;
-                        }
-                    }
+        //    BeginInvoke(new Action(() =>
+        //    {
+        //        if (gridQuote.Rows.Count == 0 || gridQuote.Columns.Count == 0) return;
+        //        if (gridQuote.Rows.Count != _lines.Count) return;
+        //        int rowIndex = gridQuote.Rows.Count - 1;
+        //        try
+        //        {
+        //            DataGridViewColumn? firstVisibleColumn = null;
+        //            foreach (DataGridViewColumn column in gridQuote.Columns)
+        //            {
+        //                if (column.Visible)
+        //                {
+        //                    firstVisibleColumn = column;
+        //                    break;
+        //                }
+        //            }
 
-                    if (firstVisibleColumn != null)
-                    {
-                        gridQuote.CurrentCell = gridQuote.Rows[rowIndex].Cells[firstVisibleColumn.Index];
-                        gridQuote.FirstDisplayedScrollingRowIndex = rowIndex;
-                    }
-                }
-                catch (InvalidOperationException)
-                {
-                    // Best-effort UX convenience only; ignore if the grid cannot
-                    // accept a current-cell/scroll change (e.g. mid-layout, no visible columns, etc.)
-                }
-            }));
-            UpdatePageLayout();
-        }
+        //            if (firstVisibleColumn != null)
+        //            {
+        //                gridQuote.CurrentCell = gridQuote.Rows[rowIndex].Cells[firstVisibleColumn.Index];
+        //                gridQuote.FirstDisplayedScrollingRowIndex = rowIndex;
+        //            }
+        //        }
+        //        catch (InvalidOperationException)
+        //        {
+        //            // Best-effort UX convenience only; ignore if the grid cannot
+        //            // accept a current-cell/scroll change (e.g. mid-layout, no visible columns, etc.)
+        //        }
+        //    }));
+        //    UpdatePageLayout();
+        //}
 
         private void btnDeleteSelected_Click(object sender, EventArgs e)
         {
@@ -557,7 +557,7 @@ namespace QuotingTool.Forms
             RefreshGrid();
         }
 
-        private void btnSave_Click(object sender, EventArgs e) => SaveQuote(showConfirmation: true);
+
 
         public void SaveQuote(bool showConfirmation)
         {
@@ -661,7 +661,9 @@ namespace QuotingTool.Forms
         {
             var pricing = _db.GetEditPricing(_projectId);
             _metalPricePerKg = pricing?.MetalPrice ?? 0m;
-            _finishingSellPricePerM2 = pricing?.Price_B44 ?? 0m;
+            //Changing the field to fix the SF each price - Shainy
+            //_finishingSellPricePerM2 = pricing?.Price_B44 ?? 0m;
+            _finishingSellPricePerM2 = pricing?.FinishingPrice ?? 0m;
             if (pricing != null)
             {
                 _ip1RatePerKg = pricing.IP1UpchargePerKg > 0 ? pricing.IP1UpchargePerKg : 1.00m;
@@ -1035,8 +1037,8 @@ namespace QuotingTool.Forms
 
             foreach (var rowText in rows)
             {
-                if (rowIndex >= _lines.Count)
-                    btnAddRow_Click(this, EventArgs.Empty);
+                //if (rowIndex >= _lines.Count)
+                //    btnAddRow_Click(this, EventArgs.Empty);
 
                 if (rowIndex >= _lines.Count)
                     break;

@@ -20,8 +20,6 @@ namespace QuotingTool.Forms
             btnExportPdf = new Button();
             btnCopyForSap = new Button();
             btnSundryItems = new Button();
-            btnSave = new Button();
-            btnAddRow = new Button();
             btnDeleteSelected = new Button();
             btnDeleteAll = new Button();
             gridQuote = new DataGridView();
@@ -39,13 +37,13 @@ namespace QuotingTool.Forms
             lblTitle.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
             lblTitle.Location = new Point(10, 8);
             lblTitle.Name = "lblTitle";
-            lblTitle.Size = new Size(300, 30);
+            lblTitle.Size = new Size(152, 30);
             lblTitle.TabIndex = 0;
             lblTitle.Text = "Quote";
             // 
             // btnFixLengths
             // 
-            btnFixLengths.Location = new Point(10, 80);
+            btnFixLengths.Location = new Point(12, 41);
             btnFixLengths.Name = "btnFixLengths";
             btnFixLengths.Size = new Size(150, 28);
             btnFixLengths.TabIndex = 4;
@@ -54,7 +52,7 @@ namespace QuotingTool.Forms
             // 
             // btnResetPrices
             // 
-            btnResetPrices.Location = new Point(170, 80);
+            btnResetPrices.Location = new Point(10, 75);
             btnResetPrices.Name = "btnResetPrices";
             btnResetPrices.Size = new Size(150, 28);
             btnResetPrices.TabIndex = 5;
@@ -63,7 +61,7 @@ namespace QuotingTool.Forms
             // 
             // btnImportQuoteLines
             // 
-            btnImportQuoteLines.Location = new Point(427, 41);
+            btnImportQuoteLines.Location = new Point(183, 41);
             btnImportQuoteLines.Name = "btnImportQuoteLines";
             btnImportQuoteLines.Size = new Size(120, 28);
             btnImportQuoteLines.TabIndex = 6;
@@ -72,7 +70,7 @@ namespace QuotingTool.Forms
             // 
             // btnExportQuote
             // 
-            btnExportQuote.Location = new Point(553, 41);
+            btnExportQuote.Location = new Point(183, 80);
             btnExportQuote.Name = "btnExportQuote";
             btnExportQuote.Size = new Size(120, 28);
             btnExportQuote.TabIndex = 7;
@@ -81,7 +79,7 @@ namespace QuotingTool.Forms
             // 
             // btnExportPdf
             // 
-            btnExportPdf.Location = new Point(679, 41);
+            btnExportPdf.Location = new Point(547, 41);
             btnExportPdf.Name = "btnExportPdf";
             btnExportPdf.Size = new Size(120, 28);
             btnExportPdf.TabIndex = 8;
@@ -90,7 +88,7 @@ namespace QuotingTool.Forms
             // 
             // btnCopyForSap
             // 
-            btnCopyForSap.Location = new Point(528, 80);
+            btnCopyForSap.Location = new Point(421, 41);
             btnCopyForSap.Name = "btnCopyForSap";
             btnCopyForSap.Size = new Size(120, 28);
             btnCopyForSap.TabIndex = 9;
@@ -99,38 +97,16 @@ namespace QuotingTool.Forms
             // 
             // btnSundryItems
             // 
-            btnSundryItems.Location = new Point(654, 80);
+            btnSundryItems.Location = new Point(421, 80);
             btnSundryItems.Name = "btnSundryItems";
             btnSundryItems.Size = new Size(120, 28);
             btnSundryItems.TabIndex = 10;
             btnSundryItems.Text = "Sundry Items";
             btnSundryItems.Click += btnSundryItems_Click;
             // 
-            // btnSave
-            // 
-            btnSave.BackColor = Color.FromArgb(0, 120, 215);
-            btnSave.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnSave.ForeColor = Color.White;
-            btnSave.Location = new Point(793, 77);
-            btnSave.Name = "btnSave";
-            btnSave.Size = new Size(120, 34);
-            btnSave.TabIndex = 11;
-            btnSave.Text = "Save";
-            btnSave.UseVisualStyleBackColor = false;
-            btnSave.Click += btnSave_Click;
-            // 
-            // btnAddRow
-            // 
-            btnAddRow.Location = new Point(326, 80);
-            btnAddRow.Name = "btnAddRow";
-            btnAddRow.Size = new Size(95, 28);
-            btnAddRow.TabIndex = 12;
-            btnAddRow.Text = "Add Row";
-            btnAddRow.Click += btnAddRow_Click;
-            // 
             // btnDeleteSelected
             // 
-            btnDeleteSelected.Location = new Point(427, 80);
+            btnDeleteSelected.Location = new Point(320, 77);
             btnDeleteSelected.Name = "btnDeleteSelected";
             btnDeleteSelected.Size = new Size(95, 28);
             btnDeleteSelected.TabIndex = 13;
@@ -139,7 +115,7 @@ namespace QuotingTool.Forms
             // 
             // btnDeleteAll
             // 
-            btnDeleteAll.Location = new Point(427, 8);
+            btnDeleteAll.Location = new Point(320, 41);
             btnDeleteAll.Name = "btnDeleteAll";
             btnDeleteAll.Size = new Size(95, 28);
             btnDeleteAll.TabIndex = 14;
@@ -171,8 +147,6 @@ namespace QuotingTool.Forms
             pnlToolbar.Controls.Add(btnExportPdf);
             pnlToolbar.Controls.Add(btnCopyForSap);
             pnlToolbar.Controls.Add(btnSundryItems);
-            pnlToolbar.Controls.Add(btnSave);
-            pnlToolbar.Controls.Add(btnAddRow);
             pnlToolbar.Controls.Add(btnDeleteSelected);
             pnlToolbar.Controls.Add(btnDeleteAll);
             pnlToolbar.Dock = DockStyle.Top;
@@ -223,7 +197,6 @@ namespace QuotingTool.Forms
             Text = "Quote";
             ((System.ComponentModel.ISupportInitialize)gridQuote).EndInit();
             pnlToolbar.ResumeLayout(false);
-            pnlToolbar.PerformLayout();
             pnlRight.ResumeLayout(false);
             ResumeLayout(false);
         }
@@ -236,8 +209,6 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.Button btnExportPdf;
         private System.Windows.Forms.Button btnCopyForSap;
         private System.Windows.Forms.Button btnSundryItems;
-        private System.Windows.Forms.Button btnSave;
-        private System.Windows.Forms.Button btnAddRow;
         private System.Windows.Forms.Button btnDeleteSelected;
         private System.Windows.Forms.Button btnDeleteAll;
         private System.Windows.Forms.DataGridView gridQuote;

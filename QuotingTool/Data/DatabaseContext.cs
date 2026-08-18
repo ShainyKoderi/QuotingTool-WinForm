@@ -222,6 +222,21 @@ IF EXISTS (SELECT 1 FROM sys.tables WHERE name='Users')
         ALTER TABLE Users ADD Region NVARCHAR(50) NOT NULL DEFAULT '';");
 
             // Add RegionAddresses table if it does not yet exist (migration for existing DBs).
+            // Ensure FinishType validation items exist (not in original SeedData.sql).
+            conn.Execute(@"
+IF NOT EXISTS (SELECT 1 FROM ValidationData WHERE Category = 'FinishType')
+INSERT INTO ValidationData (Category, Value, SortOrder) VALUES
+    ('FinishType', 'Mill Finish', 1),
+    ('FinishType', 'Powder',      2),
+    ('FinishType', 'Anodised',    3);");
+
+            // Ensure PCApplicator entries that were missing from SeedData.sql exist.
+            conn.Execute(@"
+IF NOT EXISTS (SELECT 1 FROM ValidationData WHERE Category = 'PCApplicator' AND Value = 'Capral/AAF QLD anodising')
+    INSERT INTO ValidationData (Category, Value, SortOrder) VALUES ('PCApplicator', 'Capral/AAF QLD anodising', 11);
+IF NOT EXISTS (SELECT 1 FROM ValidationData WHERE Category = 'PCApplicator' AND Value = 'WA Anodisers')
+    INSERT INTO ValidationData (Category, Value, SortOrder) VALUES ('PCApplicator', 'WA Anodisers', 12);");
+
             conn.Execute(@"
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='RegionAddresses')
 CREATE TABLE RegionAddresses (

@@ -28,12 +28,13 @@ namespace QuotingTool.Forms
         
             EmbedForm(new ProjectDetailsForm(_db), projectDetailsTab);
             EmbedForm(new QuoteForm(_db), quoteTab);
+            EmbedForm(new MillFinishQuoteForm(_db), millFinishQuoteTab);
             EmbedForm(new EditPricingForm(_db), editPricingTab);
             EmbedForm(new QuoteLetterForm(_db), quoteLetterTab);           
             EmbedForm(new BomImportForm(_db), bomTab);
             EmbedForm(new MonthlyUpdateForm(_db), monthlyUpdateTab);
 
-            _allTabs.AddRange(new[] { projectDetailsTab, quoteTab, editPricingTab, quoteLetterTab, bomTab, monthlyUpdateTab });
+            _allTabs.AddRange(new[] { projectDetailsTab, quoteTab, millFinishQuoteTab, editPricingTab, quoteLetterTab, bomTab, monthlyUpdateTab });
             ApplyRoleAccess();
 
         }
@@ -74,6 +75,8 @@ namespace QuotingTool.Forms
             var form = selected.Controls[0];
             if (form is QuoteForm qf)
                 qf.LoadProject(CurrentProjectId);
+            else if (form is MillFinishQuoteForm mfqf)
+                mfqf.LoadProject(CurrentProjectId);
             else if (form is EditPricingForm epf)
                 epf.LoadProject(CurrentProjectId);
             else if (form is ProjectDetailsForm pdf)
@@ -121,6 +124,20 @@ namespace QuotingTool.Forms
                 pdf.LoadProject(CurrentProjectId);
             if (quoteTab.Controls.Count > 0 && quoteTab.Controls[0] is QuoteForm qf)
                 qf.LoadProject(CurrentProjectId);
+            if (millFinishQuoteTab.Controls.Count > 0 && millFinishQuoteTab.Controls[0] is MillFinishQuoteForm mfqf)
+                mfqf.LoadProject(CurrentProjectId);
+            // Show/hide the Mill Finish Quote tab based on project setting.
+            var project = CurrentProjectId > 0 ? _db.GetProject(CurrentProjectId) : null;
+            bool showMillFinish = project != null && (project.GenerateMillFinishAlternative || project.GenerateMfAlt);
+            if (showMillFinish && !tabControl.TabPages.Contains(millFinishQuoteTab))
+            {
+                int quoteTabIndex = tabControl.TabPages.IndexOf(quoteTab);
+                tabControl.TabPages.Insert(quoteTabIndex + 1, millFinishQuoteTab);
+            }
+            else if (!showMillFinish && tabControl.TabPages.Contains(millFinishQuoteTab))
+            {
+                tabControl.TabPages.Remove(millFinishQuoteTab);
+            }
             if (editPricingTab.Controls.Count > 0 && editPricingTab.Controls[0] is EditPricingForm epf)
                 epf.LoadProject(CurrentProjectId);
             if (bomTab.Controls.Count > 0 && bomTab.Controls[0] is BomImportForm bif)
@@ -207,12 +224,19 @@ namespace QuotingTool.Forms
                 UserRole.SalesManager => _allTabs.Where(t => t != monthlyUpdateTab),
                 _ => _allTabs.Where(t => t == projectDetailsTab
                                          || t == quoteTab
+                                         || t == millFinishQuoteTab
                                          || t == quoteLetterTab                                        
                                          || t == bomTab)
             };
 
             foreach (var tab in allowedTabs)
                 tabControl.TabPages.Add(tab);
+
+            // The Mill Finish Quote tab is only shown when the project has
+            // GenerateMillFinishAlternative = Yes; remove it initially and let
+            // RefreshAllTabs add it back when appropriate.
+            if (tabControl.TabPages.Contains(millFinishQuoteTab))
+                tabControl.TabPages.Remove(millFinishQuoteTab);
         }
 
         private void menuHelpAbout_Click(object sender, EventArgs e)

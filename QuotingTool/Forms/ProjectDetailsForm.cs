@@ -15,7 +15,25 @@ namespace QuotingTool.Forms
         private List<ColourGroup> _colourGroups = new();
         private int _projectId;
         private bool _loadingProject;
+        private bool _refreshing;
 
+        // Applicator options matching Excel named ranges: Applicator_ano, Applicator (powder), finish_mill
+        private static readonly string[] _applicatorAnodised =
+            ["n/a", "Capral/AAF QLD anodising", "WA Anodisers", "Other - pls check pricing"];
+        private static readonly string[] _applicatorPowder =
+            ["n/a", "Capral P&P - Bremer (AP)", "Capral P&P - Campbellfield (AP)",
+             "Capral P&P - Canningvale (PP)", "Capral P&P - HWood Non-Bulk (AP)",
+             "Capral P&P - HWood Bulk (AP)", "Capral Mill (AP)",
+             "AAF powdercoat", "Powderline WA", "Other - pls check pricing"];
+        private static readonly string[] _applicatorMillFinish = ["n/a"];
+
+        // Finish Group options matching Excel named ranges
+        private static readonly string[] _finishGroupMillFinish   = ["n/a"];
+        private static readonly string[] _finishGroupAnodised     = ["20um Clear", "25um Clear", "Group POA"];
+        private static readonly string[] _finishGroupPowderCapral = ["Group 1", "Group 2", "Group 3", "Group 4", "Group 5", "Group POA"];
+        private static readonly string[] _finishGroupPowderOther  = ["Group 1", "Group 2", "Group 3", "Group POA"];
+
+        private int CurrentProjectId => _projectId;
         public ProjectDetailsForm(DatabaseContext db)
         {
             _db = db;
@@ -29,7 +47,6 @@ namespace QuotingTool.Forms
             var project = _db.GetProject(projectId);
             if (project == null) return;
 
-            RefreshFinishNameOptions();
             _loadingProject = true;
             txtCustomerName.Text = project.CustomerName;
             txtProjectName.Text = project.ProjectName;
@@ -45,9 +62,13 @@ namespace QuotingTool.Forms
             SetComboOrText(cmbMarketSegment, project.MarketSegment);
             SetComboOrText(cmbProductSegment, project.ProductSegment);
             txtProjectNotes.Text = project.ProjectNotes;
+            // Cascade: populate each dependent list before setting its value
             SetComboOrText(cmbFinishType, project.FinishType);
+            RefreshApplicatorOptions();
             SetComboOrText(cmbFinishApplicator, project.FinishApplicator);
+            RefreshFinishGroupOptions();
             SetComboOrText(cmbFinishGroup, project.FinishGroup);
+            RefreshFinishNameOptions();
             SetComboOrText(cmbFinishName, string.IsNullOrWhiteSpace(project.FinishName) ? string.Empty : project.FinishName);
             txtFinishCustomName.Text = project.FinishCustomName;
             txtFinishSapCode.Text = project.FinishSapCode;
@@ -130,7 +151,7 @@ namespace QuotingTool.Forms
             }
         }
 
-        private void btnSave_Click(object sender, EventArgs e) => SaveProject();
+      
 
         private static void SetComboOrText(ComboBox cmb, string value)
         {
@@ -147,18 +168,58 @@ namespace QuotingTool.Forms
         private void ConfigureLookups()
         {
             _colourGroups = _db.GetColourGroups().ToList();
+
+            // Load all simple dropdowns from the ValidationData table (single source of
+            // truth extracted from the Excel Validation sheet). Falls back to any items
+            // already in the combo (designer defaults) when the DB has no rows yet.
+            LoadComboFromDb(cmbRegion,                       "Region");
+            LoadComboFromDb(cmbMarketSegment,                 "MarketSegment");
+            LoadComboFromDb(cmbProductSegment,                "ProductSegment");
+            LoadComboFromDb(cmbLocalLogo,                     "LocAlLogoOptions");
+            LoadComboFromDb(cmbFinishType,                    "FinishType");
+            LoadComboFromDb(cmbGenerateMillFinishAlternative, "YesNo");
+
+            // Clear any designer-default items from the cascaded finish combos so they
+            // start blank.  They are repopulated dynamically by the Refresh* methods
+            // when a project is loaded (RefreshApplicatorOptions / RefreshFinishGroupOptions
+            // / RefreshFinishNameOptions).
+            cmbFinishApplicator.Items.Clear();
             cmbFinishGroup.Items.Clear();
-            cmbFinishGroup.Items.Add(string.Empty);
-            foreach (var group in _colourGroups
-                         .Select(c => c.GroupName)
-                         .Where(g => g.StartsWith("GROUP", StringComparison.OrdinalIgnoreCase) || string.Equals(g, "n/a", StringComparison.OrdinalIgnoreCase))
-                         .Distinct(StringComparer.OrdinalIgnoreCase)
-                         .OrderBy(g => g, StringComparer.OrdinalIgnoreCase))
+            cmbFinishName.Items.Clear();
+
+            // ThresholdChoice: the DB stores "No" but the UI label is "Project Colour".
+            // Build the items list with the translation applied.
+            var thresholdItems = _db.GetValidationItems("ThresholdChoice").ToList();
+            if (thresholdItems.Count > 0)
             {
-                cmbFinishGroup.Items.Add(group);
+                cmbThresholdChoice.Items.Clear();
+                // "No" → display as "Project Colour" (see ToThresholdDisplayValue)
+                cmbThresholdChoice.Items.Add(ProjectColourThresholdOption);
+                foreach (var item in thresholdItems
+                             .Where(v => !string.Equals(v.Value, "No", StringComparison.OrdinalIgnoreCase)))
+                    cmbThresholdChoice.Items.Add(item.Value);
             }
 
-            cmbFinishGroup.SelectedIndexChanged += (_, _) => RefreshFinishNameOptions();
+            // Finish Applicator and Finish Group are populated dynamically based on Finish Type
+            // (mirrors the Excel IF-formula cascade in B26/B28).
+            cmbFinishType.SelectedIndexChanged += (_, _) =>
+            {
+                if (_loadingProject || _refreshing) return;
+                RefreshApplicatorOptions();
+                RefreshFinishGroupOptions();
+                RefreshFinishNameOptions();
+            };
+            cmbFinishApplicator.SelectedIndexChanged += (_, _) =>
+            {
+                if (_loadingProject || _refreshing) return;
+                RefreshFinishGroupOptions();
+                RefreshFinishNameOptions();
+            };
+            cmbFinishGroup.SelectedIndexChanged += (_, _) =>
+            {
+                if (_loadingProject || _refreshing) return;
+                RefreshFinishNameOptions();
+            };
             cmbFinishName.SelectedIndexChanged += (_, _) =>
             {
                 UpdateFinishCustomState();
@@ -170,6 +231,85 @@ namespace QuotingTool.Forms
                 if (!_loadingProject && string.Equals(cmbFinishName.Text, CustomFinishOption, StringComparison.OrdinalIgnoreCase))
                     UpdateFinishSapCode(autoOnly: false);
             };
+        }
+
+        /// <summary>
+        /// Populates <paramref name="cmb"/> from the ValidationData table for the given
+        /// <paramref name="category"/>. No-ops when the DB returns no rows so the
+        /// designer-defined items remain as a fallback.
+        /// </summary>
+        private void LoadComboFromDb(ComboBox cmb, string category)
+        {
+            var items = _db.GetValidationItems(category).Select(v => v.Value).ToList();
+            if (items.Count == 0) return;
+            cmb.Items.Clear();
+            foreach (var item in items)
+                cmb.Items.Add(item);
+        }
+
+        /// <summary>
+        /// Repopulates <see cref="cmbFinishApplicator"/> based on the selected Finish Type,
+        /// mirroring the Excel formula =IF(B24="Anodised",Applicator_ano,IF(B24="Powder",Applicator,finish_mill)).
+        /// Preserves the current selection when it remains valid; resets to "n/a" otherwise.
+        /// </summary>
+        private void RefreshApplicatorOptions()
+        {
+            var current = cmbFinishApplicator.Text;
+            string[] options = cmbFinishType.Text.Trim() switch
+            {
+                "Anodised" => _applicatorAnodised,
+                "Powder"   => _applicatorPowder,
+                _          => _applicatorMillFinish  // Mill Finish (or blank)
+            };
+
+            _refreshing = true;
+            try
+            {
+                cmbFinishApplicator.Items.Clear();
+                foreach (var o in options)
+                    cmbFinishApplicator.Items.Add(o);
+                SetComboOrText(cmbFinishApplicator, current);
+                // If previously selected value is no longer valid, default to "n/a"
+                if (!_loadingProject &&
+                    !options.Any(o => string.Equals(o, cmbFinishApplicator.Text, StringComparison.OrdinalIgnoreCase)))
+                    SetComboOrText(cmbFinishApplicator, "n/a");
+            }
+            finally { _refreshing = false; }
+        }
+
+        /// <summary>
+        /// Repopulates <see cref="cmbFinishGroup"/> based on Finish Type and whether the
+        /// selected applicator is a Capral vendor, mirroring Excel B28:
+        /// Mill Finish→n/a | Anodised→20um Clear/25um Clear/Group POA |
+        /// Powder+Capral→Groups 1-5+POA | Powder+Other→Groups 1-3+POA.
+        /// </summary>
+        private void RefreshFinishGroupOptions()
+        {
+            var current = cmbFinishGroup.Text;
+            var finishType = cmbFinishType.Text.Trim();
+            bool isCapral = cmbFinishApplicator.Text.Trim()
+                .StartsWith("Capral", StringComparison.OrdinalIgnoreCase);
+
+            string[] options = finishType switch
+            {
+                "Anodised" => _finishGroupAnodised,
+                "Powder"   => isCapral ? _finishGroupPowderCapral : _finishGroupPowderOther,
+                _          => _finishGroupMillFinish  // Mill Finish (or blank)
+            };
+
+            _refreshing = true;
+            try
+            {
+                cmbFinishGroup.Items.Clear();
+                foreach (var o in options)
+                    cmbFinishGroup.Items.Add(o);
+                SetComboOrText(cmbFinishGroup, current);
+                // If previously selected value is no longer valid, default to first option
+                if (!_loadingProject &&
+                    !options.Any(o => string.Equals(o, cmbFinishGroup.Text, StringComparison.OrdinalIgnoreCase)))
+                    cmbFinishGroup.SelectedIndex = 0;
+            }
+            finally { _refreshing = false; }
         }
 
         private void RefreshFinishNameOptions()
@@ -251,5 +391,20 @@ namespace QuotingTool.Forms
             => string.Equals(storedValue, "No", StringComparison.OrdinalIgnoreCase)
                 ? ProjectColourThresholdOption
                 : storedValue;
+
+
+        private void cmbGenerateMillFinishAlternative_SelectedValueChanged(object sender, EventArgs e)
+        {
+            if (_loadingProject) return;
+
+            // Auto-save so the DB reflects the new Yes/No value, then refresh the
+            // MainForm tabs so the embedded Mill Finish Quote tab appears or disappears.
+            // The tab is already embedded in MainForm – we must NOT open a floating window.
+            SaveProject(showConfirmation: false);
+
+            var main = Application.OpenForms.OfType<MainForm>().FirstOrDefault();
+            main?.RefreshAllTabs();
+        }
+
     }
 }

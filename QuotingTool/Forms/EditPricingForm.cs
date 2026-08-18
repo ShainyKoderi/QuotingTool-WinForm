@@ -39,33 +39,6 @@ namespace QuotingTool.Forms
         };
         private static readonly int[] CostTypeValues = { 0, 1, 2, 4, 5 };
 
-        // Finish type options matching the Excel Validation sheet FinishType category.
-        private static readonly string[] FinishTypeOptions =
-            { "Mill Finish", "Powder Coat", "Anodise" };
-
-        // Standard colour/finish groups matching ColourGroups.GroupName values.
-        private static readonly string[] FinishGroupOptions =
-            { "", "GROUP 1", "GROUP 2", "GROUP 3", "GROUP 4", "GROUP 5", "GROUP POA" };
-
-        // Applicators from the PCApplicator validation category.
-        private static readonly string[] ApplicatorOptions =
-        {
-            "",
-            "Capral P&P - Campbellfield",
-            "Capral P&P - Bremer",
-            "AkzoNobel",
-            "Dulux",
-            "Tiger",
-            "Interpon",
-            "Orica",
-            "Other",
-            "AkzoNobel – POA",
-            "Dulux – POA",
-            "Tiger – POA",
-            "Interpon – POA",
-            "Orica – POA"
-        };
-
         // "Powder Priced as" options (AP = Anodised Perimeter, PP = Production Perimeter).
         private static readonly string[] PowderPricedAsOptions =
             { "Anodised Perimeter (AP)", "Production Perimeter (PP)" };
@@ -81,18 +54,15 @@ namespace QuotingTool.Forms
             InitializeComponent();
             BuildLayout();
 
-            // Finish Type combo: shown in grpFinishSection
-            cmbFinType.Items.AddRange(FinishTypeOptions);
+        // Finish fields are read-only displays: values come from Project Details.
+            txtFinType.ReadOnly          = true;
+            txtFinishGroup.ReadOnly      = true;
+            txtFinishName.ReadOnly       = true;
+            txtApplicatorGroup.ReadOnly  = true;
+            txtFinishApplicator.ReadOnly = true;
 
-            // Finish Group
-            cmbFinishGroup.Items.AddRange(FinishGroupOptions);
-
-            // Finish Name: free-text ComboBox; populate long desc from ColourGroups at runtime.
-            // See LoadProject() – items added after DB is available.
-
-            // Applicator dropdowns
-            cmbApplicatorGroup.Items.AddRange(FinishGroupOptions);
-            cmbFinishApplicator.Items.AddRange(ApplicatorOptions);
+            // B43 is auto-calculated via Pricing Matrix lookup — not user-editable.
+            txtFinishingCostPricePerM2.ReadOnly = true;
 
             // Powder priced as
             cmbPowderPricedAs.Items.AddRange(PowderPricedAsOptions);
@@ -104,10 +74,6 @@ namespace QuotingTool.Forms
             cmbTBCalcType.Items.AddRange(new object[] { "Margin", "List less Discount" });
 
             // Ensure valid initial selections
-            if (cmbFinType.SelectedIndex < 0) cmbFinType.SelectedIndex = 0;
-            if (cmbFinishGroup.SelectedIndex < 0) cmbFinishGroup.SelectedIndex = 0;
-            if (cmbApplicatorGroup.SelectedIndex < 0) cmbApplicatorGroup.SelectedIndex = 0;
-            if (cmbFinishApplicator.SelectedIndex < 0) cmbFinishApplicator.SelectedIndex = 0;
             if (cmbPowderPricedAs.SelectedIndex < 0) cmbPowderPricedAs.SelectedIndex = 0;
             if (cmbCostType.SelectedIndex < 0) cmbCostType.SelectedIndex = 0;
             if (cmbTBCalcType.SelectedIndex < 0) cmbTBCalcType.SelectedIndex = 0;
@@ -134,20 +100,13 @@ namespace QuotingTool.Forms
             txtPricingNotes.Text = ep.PricingNotes;
 
             // ── Finish section ───────────────────────────────────────────────
-            // Populate Finish Name ComboBox from DB on first load (or refresh).
-            if (cmbFinishName.Items.Count == 0)
-            {
-                cmbFinishName.Items.Add(string.Empty);
-                foreach (var cg in _db.GetColourGroups())
-                    if (!string.IsNullOrWhiteSpace(cg.LongDesc))
-                        cmbFinishName.Items.Add(cg.LongDesc);
-            }
-
-            SetComboIndex(cmbFinType, project.FinishType, FinishTypeOptions[0]);
-            SetComboIndex(cmbFinishGroup, project.FinishGroup, string.Empty);
-            SetComboText(cmbFinishName, project.FinishName);
-            SetComboIndex(cmbApplicatorGroup, project.FinishGroup, string.Empty);
-            SetComboIndex(cmbFinishApplicator, project.FinishApplicator, string.Empty);
+            // These fields are read-only displays: the values are owned by Project Details
+            // and only reflected here for reference. They cannot be edited in Edit Pricing.
+            txtFinType.Text          = project.FinishType;
+            txtFinishGroup.Text      = project.FinishGroup;
+            txtFinishName.Text       = project.FinishName;
+            txtApplicatorGroup.Text  = project.FinishGroup;
+            txtFinishApplicator.Text = project.FinishApplicator;
 
             // ── Mill Finish / IP Upcharges ────────────────────────────────────
             txtCustomerSapDiscount.Text = project.CustomerSapDiscount.ToString("F2");
@@ -166,13 +125,13 @@ namespace QuotingTool.Forms
             // ── Powder / Finishing pricing ─────────────────────────────────────
             int ctIndex = Array.IndexOf(CostTypeValues, ep.CostType);
             cmbCostType.SelectedIndex = ctIndex >= 0 ? ctIndex : 0;
-            chkCostTypeOverride.Checked = ep.CostTypeOverride;
+            //chkCostTypeOverride.Checked = ep.CostTypeOverride;
             // PowderPricedAs: no stored preference yet; always defaults to first option (AP).
             cmbPowderPricedAs.SelectedIndex = 0;
-            txtFinishingCostPricePerM2.Text = ep.FinishingCostPricePerM2.ToString("F4");
+            // txtFinishingCostPricePerM2 (B43) is a calculated field — populated by UpdateDerivedFields.
             txtB42.Text = ep.Price_B42.ToString("F2");
             txtFinishingPrice.Text = ep.FinishingPrice.ToString("F4");
-            txtB44.Text = ep.Price_B44.ToString("F2");
+            
             txtB48.Text = ep.Price_B48.ToString("F2");
             txtB49.Text = ep.Price_B49.ToString("F4");
             txtB50.Text = ep.Price_B50.ToString("F2");
@@ -182,10 +141,10 @@ namespace QuotingTool.Forms
 
             // ── Anodised Thresholds ────────────────────────────────────────────
             txtAnodisedThresholdCost.Text = ep.AnodisedThresholdCostPerM2.ToString("F2");
-            txtB57.Text = ep.Price_B57.ToString("F4");
+           
             txtB58.Text = ep.Price_B58.ToString("F2");
 
-            ApplyRoleAccess();
+           // ApplyRoleAccess();
             UpdateDerivedFields(saveChanges: false);
         }
 
@@ -198,18 +157,18 @@ namespace QuotingTool.Forms
 
         private void btnSave_Click(object sender, EventArgs e) => SavePricing();
 
-        private void btnToggleOverride_Click(object sender, EventArgs e)
-        {
-            if (_projectId <= 0) return;
-            if (!UserSession.HasRole(UserRole.SalesManager))
-            {
-                MessageBox.Show("Sales Manager or Administrator access is required for pricing overrides.",
-                    "Access", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            chkCostTypeOverride.Checked = _showHide.ToggleCostTypeOverride(_projectId);
+        //private void btnToggleOverride_Click(object sender, EventArgs e)
+        //{
+        //    if (_projectId <= 0) return;
+        //    if (!UserSession.HasRole(UserRole.SalesManager))
+        //    {
+        //        MessageBox.Show("Sales Manager or Administrator access is required for pricing overrides.",
+        //            "Access", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        //        return;
+        //    }
+        //    chkCostTypeOverride.Checked = _showHide.ToggleCostTypeOverride(_projectId);
 
-        }
+        //}
 
 
         private void btnEditIpCategories_Click(object sender, EventArgs e)
@@ -226,12 +185,12 @@ namespace QuotingTool.Forms
             SavePricing();
         }
 
-        private void ApplyRoleAccess()
-        {
-            var canAuthorize = UserSession.HasRole(UserRole.SalesManager);
-            chkCostTypeOverride.Enabled = canAuthorize;
-            btnToggleOverride.Enabled = canAuthorize;
-        }
+        //private void ApplyRoleAccess()
+        //{
+        //    var canAuthorize = UserSession.HasRole(UserRole.SalesManager);
+        //    chkCostTypeOverride.Enabled = canAuthorize;
+        //    btnToggleOverride.Enabled = canAuthorize;
+        //}
 
         private void btnBulkNonBulkRates_Click(object sender, EventArgs e)
         {
@@ -269,28 +228,39 @@ namespace QuotingTool.Forms
             ep.PricingNotes = txtPricingNotes.Text.Trim();
 
             // ── Finish fields ────────────────────────────────────────────────
-            project.FinishType = cmbFinType.SelectedItem?.ToString() ?? FinishTypeOptions[0];
-            project.FinishGroup = cmbFinishGroup.SelectedItem?.ToString() ?? string.Empty;
-            project.FinishName = cmbFinishName.Text.Trim();
-            project.FinishApplicator = cmbFinishApplicator.SelectedItem?.ToString() ?? string.Empty;
+            project.FinishType = txtFinType.Text;
+            project.FinishGroup = txtFinishGroup.Text;
+            project.FinishName = txtFinishName.Text;
+            project.FinishApplicator = txtFinishApplicator.Text;
 
             // ── Pricing fields ────────────────────────────────────────────────
             ep.CostType = CostTypeValues[Math.Max(0, cmbCostType.SelectedIndex)];
             // FinType: 1 = Powder Coat / Anodised, 0 = Mill Finish (not powder)
-            ep.FinType = (project.FinishType == "Mill Finish") ? 0 : 1;
-            ep.CostTypeOverride = chkCostTypeOverride.Checked;
+            ep.FinType = (txtFinType.Text == "Mill Finish") ? 0 : 1;
+        //    ep.CostTypeOverride = chkCostTypeOverride.Checked;
             ep.MetalPrice = ParseDecimal(txtMetalPrice.Text);
             ep.FinishingPrice = ParseDecimal(txtFinishingPrice.Text);
-            ep.FinishingCostPricePerM2 = ParseDecimal(txtFinishingCostPricePerM2.Text);
             ep.Price_B42 = ParseDecimal(txtB42.Text);
-            ep.Price_B44 = ParseDecimal(txtB44.Text);
+
+            // ── B43: Finishing Cost Price $/m² (auto-calculated) ──────────────────
+            // Mirrors 3.Edit Pricing!B43 = IFERROR('Pricing Matrix'!E44, 0)
+            // Pricing Matrix!E44 = VLOOKUP(vendor, $B$27:$K$40, MATCH(colourGroup, ...), FALSE)
+            // When the colour group is POA (sentinel 99), the Pricing Matrix cell links
+            // back to B42, so we fall through to the manually entered POA cost.
+            var rawFinishCost = _formulaSvc.LookupPowderCostByVendorAndGroup(
+                project.FinishApplicator, project.FinishGroup);
+            ep.FinishingCostPricePerM2 = (rawFinishCost == FormulaCalculationService.PricePOASentinel || rawFinishCost == 0m)
+                ? ep.Price_B42
+                : rawFinishCost;
+            txtFinishingCostPricePerM2.Text = ep.FinishingCostPricePerM2.ToString("F4");
+          
             ep.Price_B48 = ParseDecimal(txtB48.Text);
             ep.Price_B49 = ParseDecimal(txtB49.Text);
             ep.Price_B50 = ParseDecimal(txtB50.Text);
             ep.Price_B52 = ParseDecimal(txtB52.Text);
             ep.Price_B53 = ParseDecimal(txtB53.Text);
             ep.Price_B54 = ParseDecimal(txtB54.Text);
-            ep.Price_B57 = ParseDecimal(txtB57.Text);
+           
             ep.Price_B58 = ParseDecimal(txtB58.Text);
             ep.ThermalBreakCalcType = cmbTBCalcType.SelectedItem?.ToString() ?? "Margin";
             // TB margin is entered as a percentage (e.g. 50.0); values ≤ 1 are treated as
@@ -372,11 +342,18 @@ namespace QuotingTool.Forms
 
             ep.MillFinishMarginPct = FormulaCalculationService.CalculateMillFinishMarginPct(ep.MetalPrice, metalCostPerKg) * 100m;
             // h. Excel B45: =(B44-B43)/B44 (CostType=0) or =(B44-B42)/B44 (POA).
-            // B44 = sell price (Price_B44), B43 = cost price (FinishingPrice/FinishingCostPricePerM2).
-            // Previously this passed FinishingPrice as the sell price arg (wrong); it is actually the cost.
-            ep.FinishingMarginPct = FormulaCalculationService.CalculateFinishingMarginPct(ep.Price_B44, ep.FinishingPrice, ep.Price_B42, ep.CostType) * 100m;
+            // B44 = sell price (Price_B44), B43 = cost price (FinishingCostPricePerM2), B42 = POA cost.
+            //
+            // Excel C25 = SUM(C22:C23:C24) is auto-derived from the finish configuration:
+            //   C22 = VLOOKUP(FinishApplicatorGroup, ...) → "Group POA" → C22=1 → C25≠0 → use B42 path.
+            // The stored ep.CostType reflects the user combobox and may show "0 – Standard" even
+            // when the finish group is POA. Derive an effective cost type to mirror Excel's C25:
+            //   FinishGroup contains "POA" → force the POA (B42) path regardless of combobox.
+            bool finishGroupIsPoa = project.FinishGroup.Contains("POA", StringComparison.OrdinalIgnoreCase);
+            int effectiveCostType = (finishGroupIsPoa && ep.CostType == 0) ? 1 : ep.CostType;
+            ep.FinishingMarginPct = FormulaCalculationService.CalculateFinishingMarginPct(ep.FinishingPrice, ep.FinishingCostPricePerM2, ep.Price_B42, ep.CostType) * 100m;
             // h. Excel B59: =(B58-B57)/B58 — B57 is the auto-calculated threshold cost (Price_B57).
-            ep.ThermalBreakMarginPct = FormulaCalculationService.CalculateThresholdMarginPct(ep.Price_B58, ep.Price_B57) * 100m;
+            ep.ThermalBreakMarginPct = FormulaCalculationService.CalculateThresholdMarginPct(ep.Price_B58, ep.AnodisedThresholdCostPerM2) * 100m;
 
             // B51: Mill BULK Finish Margin % = (B50 − B49) / B50
             var bulkMarginPct = FormulaCalculationService.CalculateBulkFinishingMarginPct(
@@ -417,53 +394,71 @@ namespace QuotingTool.Forms
             label3.Text = suggestedMax > 0m ? $"{mfMarginMax:F1}%" : "—";
 
             // ── Thermal Break guidance (from Pricing Matrix Table_TB_BP) ──────
-            bool hasThermalBreakContent = _db.GetQuoteLines(_projectId)
-                .Any(line => !string.IsNullOrWhiteSpace(line.ExtrusionCode)
-                    && _extrusionByCode.TryGetValue(line.ExtrusionCode.Trim(), out var extrusion)
-                    && !string.Equals(extrusion.ThermalBreakType, "No", StringComparison.OrdinalIgnoreCase)
-                    && GetMassPerM(line.ExtrusionCode) * line.LengthM * line.Quantity > 0m);
-            if (hasThermalBreakContent)
-            {
+            //bool hasThermalBreakContent = _db.GetQuoteLines(_projectId)
+            //    .Any(line => !string.IsNullOrWhiteSpace(line.ExtrusionCode)
+            //        && _extrusionByCode.TryGetValue(line.ExtrusionCode.Trim(), out var extrusion)
+            //        && !string.Equals(extrusion.ThermalBreakType, "No", StringComparison.OrdinalIgnoreCase)
+            //        && GetMassPerM(line.ExtrusionCode) * line.LengthM * line.Quantity > 0m);
+            //if (hasThermalBreakContent)
+            //{
                 var (tbTypical, tbMin, tbMax) = _formulaSvc.LookupThermalBreakGuidance(
-                    ep.TotalKg, ep.ThermalBreakCalcType);
+                ep.TotalKg, ep.ThermalBreakCalcType);
                 label6.Text = tbTypical > 0m ? $"{tbTypical:P1}" : "—";
                 label4.Text = tbMin > 0m ? $"{tbMin:P1}" : "—";
                 label5.Text = tbMax > 0m ? $"{tbMax:P1}" : "—";
-            }
-            else
-            {
-                label6.Text = "—";
-                label4.Text = "—";
-                label5.Text = "—";
-            }
+            //}
+            //else
+            //{
+            //    label6.Text = "—";
+            //    label4.Text = "—";
+            //    label5.Text = "—";
+            //}
 
             // ── Standard Finishing guidance (Pricing Matrix G44:I45) ──────────
-            // Excel shows sell $/m² guidance = Cost / (1 − BreakpointMargin) and the
-            // breakpoint margin %.  Both are blank when the cost is unavailable/POA (99).
-            bool isAP = cmbPowderPricedAs.SelectedIndex <= 0; // index 0 = "Anodised Perimeter (AP)"
-            var (finTypical, finMin, finMax) = _formulaSvc.LookupFinishBreakpointMargin(
-                ep.TotalFinishingM2, isAP);
+            // Range category is driven by CostType:
+            //   0 = Standard/Capral → 'd'
+            //   1 = POA Colour      → 'b'
+            //   2 = Custom Supplier → 'c'
+            //   4/5 = Bremer Mill   → 'a'
+            bool isAP = cmbPowderPricedAs.SelectedIndex <= 0;
+            char finRange = ep.CostType switch
+            {
+                1 => 'b',
+                2 => 'c',
+                4 or 5 => 'a',
+                _ => 'd'   // CostType 0 = Standard
+            };
 
-            var stdCost = ep.FinishingCostPricePerM2;
-            var stdSellTyp = FormulaCalculationService.CalculateFinishSellGuidance(stdCost, finTypical);
-            var stdSellMin = FormulaCalculationService.CalculateFinishSellGuidance(stdCost, finMin);
-            var stdSellMax = FormulaCalculationService.CalculateFinishSellGuidance(stdCost, finMax);
+            var (finTypical, finMin, finMax) = _formulaSvc.LookupFinishBreakpointMargin(
+                ep.TotalFinishingM2, isAP, finRange);
+
+            // Use the best available cost for guidance:
+            // B43 (FinishingCostPricePerM2) is preferred; fall back to B42 (POA/Other Vendor Cost)
+            // when B43 is zero or holds the POA sentinel (99).
+            static decimal BestCost(decimal primary, decimal fallback)
+                => (primary > 0m && primary != FormulaCalculationService.PricePOASentinel)
+                    ? primary : fallback;
+
+            var stdCost     = BestCost(ep.FinishingCostPricePerM2, ep.Price_B42);
+            var stdSellTyp  = FormulaCalculationService.CalculateFinishSellGuidance(stdCost, finTypical);
+            var stdSellMin  = FormulaCalculationService.CalculateFinishSellGuidance(stdCost, finMin);
+            var stdSellMax  = FormulaCalculationService.CalculateFinishSellGuidance(stdCost, finMax);
             label13.Text = stdSellTyp > 0m ? $"${stdSellTyp:F2}" : "—";
             label14.Text = stdSellMin > 0m ? $"${stdSellMin:F2}" : "—";
             label15.Text = stdSellMax > 0m ? $"${stdSellMax:F2}" : "—";
 
-            // Margin % guidance row (Pricing Matrix G45:I45) — blank when cost is POA.
             bool stdCostValid = stdCost > 0m && stdCost != FormulaCalculationService.PricePOASentinel;
-            label19.Text = stdCostValid ? $"{finTypical:P1}" : "—";
-            label20.Text = stdCostValid ? $"{finMin:P1}" : "—";
-            label21.Text = stdCostValid ? $"{finMax:P1}" : "—";
+            label19.Text = stdCostValid && finTypical > 0m ? $"{finTypical:P1}" : "—";
+            label20.Text = stdCostValid && finMin     > 0m ? $"{finMin:P1}"     : "—";
+            label21.Text = stdCostValid && finMax     > 0m ? $"{finMax:P1}"     : "—";
 
             // ── Bulk / Non-Bulk margin % (B51 and B55) ────────────────────────
             label24.Text = ep.Price_B50 > 0m ? $"{bulkMarginPct * 100m:F2}%" : "—";
             label25.Text = ep.Price_B54 > 0m ? $"{nonBulkMarginPct * 100m:F2}%" : "—";
 
             // Bulk sell $ guidance (Pricing Matrix G46:I46) and margin % (G48:I48).
-            var bulkCost = ep.Price_B49;
+            // Fallback chain: B49 → B48 (POA) → stdCost (mirrors Excel B49 auto = B43).
+            var bulkCost    = BestCost(ep.Price_B49, BestCost(ep.Price_B48, stdCost));
             var bulkSellTyp = FormulaCalculationService.CalculateFinishSellGuidance(bulkCost, finTypical);
             var bulkSellMin = FormulaCalculationService.CalculateFinishSellGuidance(bulkCost, finMin);
             var bulkSellMax = FormulaCalculationService.CalculateFinishSellGuidance(bulkCost, finMax);
@@ -471,12 +466,13 @@ namespace QuotingTool.Forms
             label26.Text = bulkSellTyp > 0m ? $"${bulkSellTyp:F2}" : "—";
             label27.Text = bulkSellMin > 0m ? $"${bulkSellMin:F2}" : "—";
             label28.Text = bulkSellMax > 0m ? $"${bulkSellMax:F2}" : "—";
-            label7.Text = bulkCostValid ? $"{finTypical:P1}" : "—";
-            label8.Text = bulkCostValid ? $"{finMin:P1}" : "—";
-            label9.Text = bulkCostValid ? $"{finMax:P1}" : "—";
+            label7.Text  = bulkCostValid && finTypical > 0m ? $"{finTypical:P1}" : "—";
+            label8.Text  = bulkCostValid && finMin     > 0m ? $"{finMin:P1}"     : "—";
+            label9.Text  = bulkCostValid && finMax     > 0m ? $"{finMax:P1}"     : "—";
 
             // Non-bulk sell $ guidance (Pricing Matrix G47:I47) and margin % (G48:I48).
-            var nbCost = ep.Price_B53;
+            // Fallback chain: B53 → B52 (POA) → stdCost (mirrors Excel B53 auto = B43).
+            var nbCost    = BestCost(ep.Price_B53, BestCost(ep.Price_B52, stdCost));
             var nbSellTyp = FormulaCalculationService.CalculateFinishSellGuidance(nbCost, finTypical);
             var nbSellMin = FormulaCalculationService.CalculateFinishSellGuidance(nbCost, finMin);
             var nbSellMax = FormulaCalculationService.CalculateFinishSellGuidance(nbCost, finMax);
@@ -484,9 +480,9 @@ namespace QuotingTool.Forms
             label16.Text = nbSellTyp > 0m ? $"${nbSellTyp:F2}" : "—";
             label17.Text = nbSellMin > 0m ? $"${nbSellMin:F2}" : "—";
             label18.Text = nbSellMax > 0m ? $"${nbSellMax:F2}" : "—";
-            label10.Text = nbCostValid ? $"{finTypical:P1}" : "—";
-            label11.Text = nbCostValid ? $"{finMin:P1}" : "—";
-            label12.Text = nbCostValid ? $"{finMax:P1}" : "—";
+            label10.Text = nbCostValid && finTypical > 0m ? $"{finTypical:P1}" : "—";
+            label11.Text = nbCostValid && finMin     > 0m ? $"{finMin:P1}"     : "—";
+            label12.Text = nbCostValid && finMax     > 0m ? $"{finMax:P1}"     : "—";
 
             if (saveChanges)
             {
@@ -622,7 +618,7 @@ namespace QuotingTool.Forms
 
             var finishingMarginTooltip =
                 $"Margin % (B45) = IF(CostType=0, (B44−B43)/B44, (B44−B42)/B44){Environment.NewLine}" +
-                $"Current: CostType={ep.CostType}, Sell={ep.FinishingPrice:F4}, Cost={ep.FinishingCostPricePerM2:F4}, POA={ep.Price_B42:F4}{Environment.NewLine}" +
+                $"Current: CostType={ep.CostType}, Sell(B44)={ep.Price_B44:F4}, Cost(B43)={ep.FinishingCostPricePerM2:F4}, POA(B42)={ep.Price_B42:F4}{Environment.NewLine}" +
                 $"Result: {ep.FinishingMarginPct:F2}%";
             _formulaToolTip.SetToolTip(lblFinishingMargin, finishingMarginTooltip);
             _formulaToolTip.SetToolTip(lblFinishingMarginValue, finishingMarginTooltip);
@@ -632,7 +628,7 @@ namespace QuotingTool.Forms
                 $"Guidance (G44:I44) = Cost / (1 − BreakpointMargin){Environment.NewLine}" +
                 $"Breakpoint margins by Total m²: typical {finTypical:P1}, min {finMin:P1}, max {finMax:P1}.{Environment.NewLine}" +
                 $"Blank when cost is POA (99) or unavailable.";
-            _formulaToolTip.SetToolTip(txtB44, finishSellTooltip);
+         
             _formulaToolTip.SetToolTip(txtFinishingPrice, finishSellTooltip);
 
             var thresholdMarginTooltip =

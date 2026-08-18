@@ -54,7 +54,6 @@ namespace QuotingTool.Forms
             cmbGenerateMillFinishAlternative = new ComboBox();
             lblQuoteValidity = new Label();
             txtQuoteValidity = new TextBox();
-            btnSave = new Button();
             pnlScroll.SuspendLayout();
             SuspendLayout();
             // 
@@ -102,7 +101,6 @@ namespace QuotingTool.Forms
             pnlScroll.Controls.Add(cmbGenerateMillFinishAlternative);
             pnlScroll.Controls.Add(lblQuoteValidity);
             pnlScroll.Controls.Add(txtQuoteValidity);
-            pnlScroll.Controls.Add(btnSave);
             pnlScroll.Dock = DockStyle.Fill;
             pnlScroll.Location = new Point(0, 0);
             pnlScroll.Name = "pnlScroll";
@@ -413,7 +411,7 @@ namespace QuotingTool.Forms
             // 
             // cmbLocalLogo
             // 
-            cmbLocalLogo.Items.AddRange(new object[] { "None", "Green", "SuperGreen" });
+            cmbLocalLogo.Items.AddRange(new object[] { "None", "LocAl Green", "LocAl SuperGreen" });
             cmbLocalLogo.Location = new Point(141, 392);
             cmbLocalLogo.Name = "cmbLocalLogo";
             cmbLocalLogo.Size = new Size(285, 23);
@@ -436,6 +434,7 @@ namespace QuotingTool.Forms
             cmbGenerateMillFinishAlternative.Name = "cmbGenerateMillFinishAlternative";
             cmbGenerateMillFinishAlternative.Size = new Size(140, 23);
             cmbGenerateMillFinishAlternative.TabIndex = 42;
+            cmbGenerateMillFinishAlternative.SelectedValueChanged += cmbGenerateMillFinishAlternative_SelectedValueChanged;
             // 
             // lblQuoteValidity
             // 
@@ -453,19 +452,6 @@ namespace QuotingTool.Forms
             txtQuoteValidity.Size = new Size(102, 23);
             txtQuoteValidity.TabIndex = 44;
             txtQuoteValidity.Text = "30 days";
-            // 
-            // btnSave
-            // 
-            btnSave.BackColor = Color.FromArgb(0, 120, 215);
-            btnSave.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnSave.ForeColor = Color.White;
-            btnSave.Location = new Point(545, 14);
-            btnSave.Name = "btnSave";
-            btnSave.Size = new Size(126, 34);
-            btnSave.TabIndex = 50;
-            btnSave.Text = "Save";
-            btnSave.UseVisualStyleBackColor = false;
-            btnSave.Click += btnSave_Click;
             // 
             // ProjectDetailsForm
             // 
@@ -522,6 +508,5 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.ComboBox cmbGenerateMillFinishAlternative;
         private System.Windows.Forms.Label lblQuoteValidity;
         private System.Windows.Forms.TextBox txtQuoteValidity;
-        private System.Windows.Forms.Button btnSave;
     }
 }
