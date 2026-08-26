@@ -52,13 +52,14 @@ namespace QuotingTool.Forms
             _pivotRefresh = new PivotRefreshService(db);
             _formulaSvc = new FormulaCalculationService(db);
             InitializeComponent();
+            // LoadLogos();
             BuildLayout();
 
-        // Finish fields are read-only displays: values come from Project Details.
-            txtFinType.ReadOnly          = true;
-            txtFinishGroup.ReadOnly      = true;
-            txtFinishName.ReadOnly       = true;
-            txtApplicatorGroup.ReadOnly  = true;
+            // Finish fields are read-only displays: values come from Project Details.
+            txtFinType.ReadOnly = true;
+            txtFinishGroup.ReadOnly = true;
+            txtFinishName.ReadOnly = true;
+            txtApplicatorGroup.ReadOnly = true;
             txtFinishApplicator.ReadOnly = true;
 
             // B43 is auto-calculated via Pricing Matrix lookup — not user-editable.
@@ -102,10 +103,10 @@ namespace QuotingTool.Forms
             // ── Finish section ───────────────────────────────────────────────
             // These fields are read-only displays: the values are owned by Project Details
             // and only reflected here for reference. They cannot be edited in Edit Pricing.
-            txtFinType.Text          = project.FinishType;
-            txtFinishGroup.Text      = project.FinishGroup;
-            txtFinishName.Text       = project.FinishName;
-            txtApplicatorGroup.Text  = project.FinishGroup;
+            txtFinType.Text = project.FinishType;
+            txtFinishGroup.Text = project.FinishGroup;
+            txtFinishName.Text = project.FinishName;
+            txtApplicatorGroup.Text = project.FinishGroup;
             txtFinishApplicator.Text = project.FinishApplicator;
 
             // ── Mill Finish / IP Upcharges ────────────────────────────────────
@@ -131,7 +132,7 @@ namespace QuotingTool.Forms
             // txtFinishingCostPricePerM2 (B43) is a calculated field — populated by UpdateDerivedFields.
             txtB42.Text = ep.Price_B42.ToString("F2");
             txtFinishingPrice.Text = ep.FinishingPrice.ToString("F4");
-            
+
             txtB48.Text = ep.Price_B48.ToString("F2");
             txtB49.Text = ep.Price_B49.ToString("F4");
             txtB50.Text = ep.Price_B50.ToString("F2");
@@ -141,10 +142,10 @@ namespace QuotingTool.Forms
 
             // ── Anodised Thresholds ────────────────────────────────────────────
             txtAnodisedThresholdCost.Text = ep.AnodisedThresholdCostPerM2.ToString("F2");
-           
+
             txtB58.Text = ep.Price_B58.ToString("F2");
 
-           // ApplyRoleAccess();
+            // ApplyRoleAccess();
             UpdateDerivedFields(saveChanges: false);
         }
 
@@ -198,7 +199,7 @@ namespace QuotingTool.Forms
                 "Bulk/Non-bulk Rates", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-     
+
 
         private void btnRecalculateAll_Click(object sender, EventArgs e) => UpdateDerivedFields(saveChanges: true);
 
@@ -237,7 +238,7 @@ namespace QuotingTool.Forms
             ep.CostType = CostTypeValues[Math.Max(0, cmbCostType.SelectedIndex)];
             // FinType: 1 = Powder Coat / Anodised, 0 = Mill Finish (not powder)
             ep.FinType = (txtFinType.Text == "Mill Finish") ? 0 : 1;
-        //    ep.CostTypeOverride = chkCostTypeOverride.Checked;
+            //    ep.CostTypeOverride = chkCostTypeOverride.Checked;
             ep.MetalPrice = ParseDecimal(txtMetalPrice.Text);
             ep.FinishingPrice = ParseDecimal(txtFinishingPrice.Text);
             ep.Price_B42 = ParseDecimal(txtB42.Text);
@@ -253,14 +254,14 @@ namespace QuotingTool.Forms
                 ? ep.Price_B42
                 : rawFinishCost;
             txtFinishingCostPricePerM2.Text = ep.FinishingCostPricePerM2.ToString("F4");
-          
+
             ep.Price_B48 = ParseDecimal(txtB48.Text);
             ep.Price_B49 = ParseDecimal(txtB49.Text);
             ep.Price_B50 = ParseDecimal(txtB50.Text);
             ep.Price_B52 = ParseDecimal(txtB52.Text);
             ep.Price_B53 = ParseDecimal(txtB53.Text);
             ep.Price_B54 = ParseDecimal(txtB54.Text);
-           
+
             ep.Price_B58 = ParseDecimal(txtB58.Text);
             ep.ThermalBreakCalcType = cmbTBCalcType.SelectedItem?.ToString() ?? "Margin";
             // TB margin is entered as a percentage (e.g. 50.0); values ≤ 1 are treated as
@@ -401,11 +402,11 @@ namespace QuotingTool.Forms
             //        && GetMassPerM(line.ExtrusionCode) * line.LengthM * line.Quantity > 0m);
             //if (hasThermalBreakContent)
             //{
-                var (tbTypical, tbMin, tbMax) = _formulaSvc.LookupThermalBreakGuidance(
-                ep.TotalKg, ep.ThermalBreakCalcType);
-                label6.Text = tbTypical > 0m ? $"{tbTypical:P1}" : "—";
-                label4.Text = tbMin > 0m ? $"{tbMin:P1}" : "—";
-                label5.Text = tbMax > 0m ? $"{tbMax:P1}" : "—";
+            var (tbTypical, tbMin, tbMax) = _formulaSvc.LookupThermalBreakGuidance(
+            ep.TotalKg, ep.ThermalBreakCalcType);
+            label6.Text = tbTypical > 0m ? $"{tbTypical:P1}" : "—";
+            label4.Text = tbMin > 0m ? $"{tbMin:P1}" : "—";
+            label5.Text = tbMax > 0m ? $"{tbMax:P1}" : "—";
             //}
             //else
             //{
@@ -439,50 +440,59 @@ namespace QuotingTool.Forms
                 => (primary > 0m && primary != FormulaCalculationService.PricePOASentinel)
                     ? primary : fallback;
 
-            var stdCost     = BestCost(ep.FinishingCostPricePerM2, ep.Price_B42);
-            var stdSellTyp  = FormulaCalculationService.CalculateFinishSellGuidance(stdCost, finTypical);
-            var stdSellMin  = FormulaCalculationService.CalculateFinishSellGuidance(stdCost, finMin);
-            var stdSellMax  = FormulaCalculationService.CalculateFinishSellGuidance(stdCost, finMax);
+            // Like CalculateFinishSellGuidance but without the POA-sentinel guard.
+            // Used when the cost is known to be a real value from B49/B53 (e.g. $99.00
+            // from Pricing Matrix E46/E47) that happens to equal the sentinel by coincidence.
+            static decimal DirectSellGuidance(decimal cost, decimal margin)
+                => cost > 0m && margin < 1m ? cost / (1m - margin) : 0m;
+
+            var stdCost = BestCost(ep.FinishingCostPricePerM2, ep.Price_B42);
+            var stdSellTyp = FormulaCalculationService.CalculateFinishSellGuidance(stdCost, finTypical);
+            var stdSellMin = FormulaCalculationService.CalculateFinishSellGuidance(stdCost, finMin);
+            var stdSellMax = FormulaCalculationService.CalculateFinishSellGuidance(stdCost, finMax);
             label13.Text = stdSellTyp > 0m ? $"${stdSellTyp:F2}" : "—";
             label14.Text = stdSellMin > 0m ? $"${stdSellMin:F2}" : "—";
             label15.Text = stdSellMax > 0m ? $"${stdSellMax:F2}" : "—";
 
             bool stdCostValid = stdCost > 0m && stdCost != FormulaCalculationService.PricePOASentinel;
             label19.Text = stdCostValid && finTypical > 0m ? $"{finTypical:P1}" : "—";
-            label20.Text = stdCostValid && finMin     > 0m ? $"{finMin:P1}"     : "—";
-            label21.Text = stdCostValid && finMax     > 0m ? $"{finMax:P1}"     : "—";
+            label20.Text = stdCostValid && finMin > 0m ? $"{finMin:P1}" : "—";
+            label21.Text = stdCostValid && finMax > 0m ? $"{finMax:P1}" : "—";
 
             // ── Bulk / Non-Bulk margin % (B51 and B55) ────────────────────────
             label24.Text = ep.Price_B50 > 0m ? $"{bulkMarginPct * 100m:F2}%" : "—";
             label25.Text = ep.Price_B54 > 0m ? $"{nonBulkMarginPct * 100m:F2}%" : "—";
 
             // Bulk sell $ guidance (Pricing Matrix G46:I46) and margin % (G48:I48).
+            // Use B49 directly when populated — it is a legitimate cost (e.g. $99) and must not
+            // be skipped by BestCost's sentinel check (PricePOASentinel == 99).
             // Fallback chain: B49 → B48 (POA) → stdCost (mirrors Excel B49 auto = B43).
-            var bulkCost    = BestCost(ep.Price_B49, BestCost(ep.Price_B48, stdCost));
-            var bulkSellTyp = FormulaCalculationService.CalculateFinishSellGuidance(bulkCost, finTypical);
-            var bulkSellMin = FormulaCalculationService.CalculateFinishSellGuidance(bulkCost, finMin);
-            var bulkSellMax = FormulaCalculationService.CalculateFinishSellGuidance(bulkCost, finMax);
-            bool bulkCostValid = bulkCost > 0m && bulkCost != FormulaCalculationService.PricePOASentinel;
+            var bulkCost = ep.Price_B49 > 0m ? ep.Price_B49 : BestCost(ep.Price_B48, stdCost);
+            var bulkSellTyp = DirectSellGuidance(bulkCost, finTypical);
+            var bulkSellMin = DirectSellGuidance(bulkCost, finMin);
+            var bulkSellMax = DirectSellGuidance(bulkCost, finMax);
+            bool bulkCostValid = bulkCost > 0m;
             label26.Text = bulkSellTyp > 0m ? $"${bulkSellTyp:F2}" : "—";
             label27.Text = bulkSellMin > 0m ? $"${bulkSellMin:F2}" : "—";
             label28.Text = bulkSellMax > 0m ? $"${bulkSellMax:F2}" : "—";
-            label7.Text  = bulkCostValid && finTypical > 0m ? $"{finTypical:P1}" : "—";
-            label8.Text  = bulkCostValid && finMin     > 0m ? $"{finMin:P1}"     : "—";
-            label9.Text  = bulkCostValid && finMax     > 0m ? $"{finMax:P1}"     : "—";
+            label7.Text = bulkCostValid && finTypical > 0m ? $"{finTypical:P1}" : "—";
+            label8.Text = bulkCostValid && finMin > 0m ? $"{finMin:P1}" : "—";
+            label9.Text = bulkCostValid && finMax > 0m ? $"{finMax:P1}" : "—";
 
             // Non-bulk sell $ guidance (Pricing Matrix G47:I47) and margin % (G48:I48).
+            // Use B53 directly when populated — same sentinel-collision guard as bulkCost above.
             // Fallback chain: B53 → B52 (POA) → stdCost (mirrors Excel B53 auto = B43).
-            var nbCost    = BestCost(ep.Price_B53, BestCost(ep.Price_B52, stdCost));
-            var nbSellTyp = FormulaCalculationService.CalculateFinishSellGuidance(nbCost, finTypical);
-            var nbSellMin = FormulaCalculationService.CalculateFinishSellGuidance(nbCost, finMin);
-            var nbSellMax = FormulaCalculationService.CalculateFinishSellGuidance(nbCost, finMax);
-            bool nbCostValid = nbCost > 0m && nbCost != FormulaCalculationService.PricePOASentinel;
+            var nbCost = ep.Price_B53 > 0m ? ep.Price_B53 : BestCost(ep.Price_B52, stdCost);
+            var nbSellTyp = DirectSellGuidance(nbCost, finTypical);
+            var nbSellMin = DirectSellGuidance(nbCost, finMin);
+            var nbSellMax = DirectSellGuidance(nbCost, finMax);
+            bool nbCostValid = nbCost > 0m;
             label16.Text = nbSellTyp > 0m ? $"${nbSellTyp:F2}" : "—";
             label17.Text = nbSellMin > 0m ? $"${nbSellMin:F2}" : "—";
             label18.Text = nbSellMax > 0m ? $"${nbSellMax:F2}" : "—";
             label10.Text = nbCostValid && finTypical > 0m ? $"{finTypical:P1}" : "—";
-            label11.Text = nbCostValid && finMin     > 0m ? $"{finMin:P1}"     : "—";
-            label12.Text = nbCostValid && finMax     > 0m ? $"{finMax:P1}"     : "—";
+            label11.Text = nbCostValid && finMin > 0m ? $"{finMin:P1}" : "—";
+            label12.Text = nbCostValid && finMax > 0m ? $"{finMax:P1}" : "—";
 
             if (saveChanges)
             {
@@ -496,22 +506,27 @@ namespace QuotingTool.Forms
                 _db.UpsertEditPricing(ep);
 
             // ── Summary grid ──────────────────────────────────────────────────
-            // TotalCost = what we pay (cost); TotalSellValue = what we charge the customer.
-            // Matches Excel columns: Category | Total (Cost) | Total Value | Margin $ | Margin %.
-            decimal millFinishCost = summary.MillFinishTotal - summary.MillFinishMarginDollar;
-            decimal thermalBreakCost = summary.ThermalBreakMetalTotal - summary.ThermalBreakMarginDollar;
-            decimal finishingCost = summary.FinishingTotal - summary.FinishingMarginDollar;
+            // Matches Excel columns: Category | Total Value | Margin $ | Margin %.
             decimal sundryTotalValue = summary.SlottingSundryTotal;
-            decimal sundryCost = summary.SlottingSundryTotal - summary.SlottingSundryMarginDollar;
 
             gridSummary.DataSource = new List<SummaryRow>
             {
-                new() { Category = "Mill Finish",         TotalCost = millFinishCost,    TotalSellValue = summary.MillFinishTotal,        MarginDollar = summary.MillFinishMarginDollar,    MarginPct = summary.MillFinishMarginPct },
-                new() { Category = "Thermal Break Metal", TotalCost = thermalBreakCost,  TotalSellValue = summary.ThermalBreakMetalTotal, MarginDollar = summary.ThermalBreakMarginDollar,  MarginPct = summary.ThermalBreakMarginPct },
-                new() { Category = "Slotting/Sundry",     TotalCost = sundryCost,        TotalSellValue = sundryTotalValue,               MarginDollar = summary.SlottingSundryMarginDollar, MarginPct = summary.SlottingSundryMarginPct },
-                new() { Category = "Finishing",           TotalCost = finishingCost,     TotalSellValue = summary.FinishingTotal,         MarginDollar = summary.FinishingMarginDollar,     MarginPct = summary.FinishingMarginPct },
-                new() { Category = "Total",               TotalCost = summary.GrandTotal - summary.GrandMarginDollar, TotalSellValue = summary.GrandTotal, MarginDollar = summary.GrandMarginDollar, MarginPct = summary.GrandMarginPct }
+                new() { Category = "Mill Finish",         TotalValue = summary.MillFinishTotal,        MarginDollar = summary.MillFinishMarginDollar,    MarginPct = summary.MillFinishMarginPct },
+                new() { Category = "Thermal Break Metal", TotalValue = summary.ThermalBreakMetalTotal, MarginDollar = summary.ThermalBreakMarginDollar,  MarginPct = summary.ThermalBreakMarginPct },
+                new() { Category = "Slotting/Sundry",     TotalValue = sundryTotalValue,               MarginDollar = summary.SlottingSundryMarginDollar, MarginPct = summary.SlottingSundryMarginPct },
+                new() { Category = "Finishing",           TotalValue = summary.FinishingTotal,         MarginDollar = summary.FinishingMarginDollar,     MarginPct = summary.FinishingMarginPct },
+                new() { Category = "Total",               TotalValue = summary.GrandTotal,             MarginDollar = summary.GrandMarginDollar,         MarginPct = summary.GrandMarginPct }
             };
+
+            // Set column headers to match Excel layout
+            if (gridSummary.Columns[nameof(SummaryRow.Category)] is { } catCol)
+                catCol.HeaderText = "Category";
+            if (gridSummary.Columns[nameof(SummaryRow.TotalValue)] is { } tvCol)
+                tvCol.HeaderText = "Total Value";
+            if (gridSummary.Columns[nameof(SummaryRow.MarginDollar)] is { } mdCol)
+                mdCol.HeaderText = "Margin $";
+            if (gridSummary.Columns[nameof(SummaryRow.MarginPct)] is { } mpCol)
+                mpCol.HeaderText = "Margin %";
 
             // Bold the Total row font (no colour — keeps the plain form style)
             if (gridSummary.Rows.Count > 0)
@@ -558,6 +573,32 @@ namespace QuotingTool.Forms
 
         private static decimal ParseDecimal(string text, decimal fallback = 0m)
             => decimal.TryParse(text, out decimal value) ? value : fallback;
+
+        /// <summary>
+        /// Loads the Capral, LocAl Super Green, and LocAl Green logos from the
+        /// Resources folder located alongside the application executable.
+        /// Images are loaded gracefully — a missing file is silently skipped.
+        /// </summary>
+       /* private void LoadLogos()
+        {
+            var resourcesDir = System.IO.Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory, "Resources");
+
+            TryLoadImage(picCapralLogo,       System.IO.Path.Combine(resourcesDir, "capral_logo.png"));
+            TryLoadImage(picLocalSuperGreen,  System.IO.Path.Combine(resourcesDir, "local_super_green.png"));
+            TryLoadImage(picLocalGreen,       System.IO.Path.Combine(resourcesDir, "local_green.png"));
+        }
+       
+        private static void TryLoadImage(System.Windows.Forms.PictureBox box, string path)
+        {
+            try
+            {
+                if (System.IO.File.Exists(path))
+                    box.Image = System.Drawing.Image.FromFile(path);
+            }
+            catch { }
+        }
+*/
 
         private static System.Drawing.Font BoldFont(float size = 9F)
             => size switch
@@ -628,7 +669,7 @@ namespace QuotingTool.Forms
                 $"Guidance (G44:I44) = Cost / (1 − BreakpointMargin){Environment.NewLine}" +
                 $"Breakpoint margins by Total m²: typical {finTypical:P1}, min {finMin:P1}, max {finMax:P1}.{Environment.NewLine}" +
                 $"Blank when cost is POA (99) or unavailable.";
-         
+
             _formulaToolTip.SetToolTip(txtFinishingPrice, finishSellTooltip);
 
             var thresholdMarginTooltip =
@@ -665,7 +706,7 @@ namespace QuotingTool.Forms
         private void FormatSummaryColumns()
         {
             foreach (var colName in new[]
-                     { nameof(SummaryRow.TotalCost), nameof(SummaryRow.TotalSellValue), nameof(SummaryRow.MarginDollar) })
+                     { nameof(SummaryRow.TotalValue), nameof(SummaryRow.MarginDollar) })
             {
                 var col = gridSummary.Columns[colName];
                 if (col != null) col.DefaultCellStyle.Format = "N2";
@@ -745,11 +786,11 @@ namespace QuotingTool.Forms
         private class SummaryRow
         {
             public string Category { get; set; } = string.Empty;
-            /// <summary>Total cost (what we pay to produce).</summary>
-            public decimal TotalCost { get; set; }
-            /// <summary>Total sell value (what we charge the customer).</summary>
-            public decimal TotalSellValue { get; set; }
+            /// <summary>Total sell value (what we charge the customer). Matches Excel "Total Value" column.</summary>
+            public decimal TotalValue { get; set; }
+            /// <summary>Margin in dollars. Matches Excel "Margin $" column.</summary>
             public decimal MarginDollar { get; set; }
+            /// <summary>Margin percentage. Matches Excel "Margin %" column.</summary>
             public decimal MarginPct { get; set; }
         }
 

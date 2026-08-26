@@ -33,7 +33,6 @@ namespace QuotingTool.Forms
             quoteTab = new TabPage();
             millFinishQuoteTab = new TabPage();
             editPricingTab = new TabPage();
-            quoteLetterTab = new TabPage();
             bomTab = new TabPage();
             monthlyUpdateTab = new TabPage();
             statusStrip = new StatusStrip();
@@ -46,24 +45,26 @@ namespace QuotingTool.Forms
             // 
             // menuStrip
             // 
+            menuStrip.ImageScalingSize = new Size(24, 24);
             menuStrip.Items.AddRange(new ToolStripItem[] { menuFile, menuTools, menuHelp });
             menuStrip.Location = new Point(0, 0);
             menuStrip.Name = "menuStrip";
-            menuStrip.Size = new Size(1200, 24);
+            menuStrip.Padding = new Padding(9, 3, 0, 3);
+            menuStrip.Size = new Size(1714, 35);
             menuStrip.TabIndex = 2;
             // 
             // menuFile
             // 
             menuFile.DropDownItems.AddRange(new ToolStripItem[] { menuFileNewProject, menuFileOpenProject, menuFileSep1, menuFileExit });
             menuFile.Name = "menuFile";
-            menuFile.Size = new Size(37, 20);
+            menuFile.Size = new Size(54, 29);
             menuFile.Text = "&File";
             // 
             // menuFileNewProject
             // 
             menuFileNewProject.Name = "menuFileNewProject";
             menuFileNewProject.ShortcutKeys = Keys.Control | Keys.N;
-            menuFileNewProject.Size = new Size(195, 22);
+            menuFileNewProject.Size = new Size(294, 34);
             menuFileNewProject.Text = "&New Project";
             menuFileNewProject.Click += menuFileNewProject_Click;
             // 
@@ -71,19 +72,19 @@ namespace QuotingTool.Forms
             // 
             menuFileOpenProject.Name = "menuFileOpenProject";
             menuFileOpenProject.ShortcutKeys = Keys.Control | Keys.O;
-            menuFileOpenProject.Size = new Size(195, 22);
+            menuFileOpenProject.Size = new Size(294, 34);
             menuFileOpenProject.Text = "&Open Project...";
             menuFileOpenProject.Click += menuFileOpenProject_Click;
             // 
             // menuFileSep1
             // 
             menuFileSep1.Name = "menuFileSep1";
-            menuFileSep1.Size = new Size(192, 6);
+            menuFileSep1.Size = new Size(291, 6);
             // 
             // menuFileExit
             // 
             menuFileExit.Name = "menuFileExit";
-            menuFileExit.Size = new Size(195, 22);
+            menuFileExit.Size = new Size(294, 34);
             menuFileExit.Text = "E&xit";
             menuFileExit.Click += menuFileExit_Click;
             // 
@@ -91,27 +92,27 @@ namespace QuotingTool.Forms
             // 
             menuTools.DropDownItems.AddRange(new ToolStripItem[] { menuToolsSundryItems, menuToolsCopyForSap, menuToolsUserManagement });
             menuTools.Name = "menuTools";
-            menuTools.Size = new Size(47, 20);
+            menuTools.Size = new Size(69, 29);
             menuTools.Text = "&Tools";
             // 
             // menuToolsSundryItems
             // 
             menuToolsSundryItems.Name = "menuToolsSundryItems";
-            menuToolsSundryItems.Size = new Size(171, 22);
+            menuToolsSundryItems.Size = new Size(259, 34);
             menuToolsSundryItems.Text = "Sundry Items";
             menuToolsSundryItems.Click += menuToolsSundryItems_Click;
             // 
             // menuToolsCopyForSap
             // 
             menuToolsCopyForSap.Name = "menuToolsCopyForSap";
-            menuToolsCopyForSap.Size = new Size(171, 22);
+            menuToolsCopyForSap.Size = new Size(259, 34);
             menuToolsCopyForSap.Text = "Copy for SAP";
             menuToolsCopyForSap.Click += menuToolsCopyForSap_Click;
             // 
             // menuToolsUserManagement
             // 
             menuToolsUserManagement.Name = "menuToolsUserManagement";
-            menuToolsUserManagement.Size = new Size(171, 22);
+            menuToolsUserManagement.Size = new Size(259, 34);
             menuToolsUserManagement.Text = "User Management";
             menuToolsUserManagement.Click += menuToolsUserManagement_Click;
             // 
@@ -119,35 +120,37 @@ namespace QuotingTool.Forms
             // 
             menuHelp.DropDownItems.AddRange(new ToolStripItem[] { menuHelpAbout });
             menuHelp.Name = "menuHelp";
-            menuHelp.Size = new Size(44, 20);
+            menuHelp.Size = new Size(65, 29);
             menuHelp.Text = "&Help";
             // 
             // menuHelpAbout
             // 
             menuHelpAbout.Name = "menuHelpAbout";
-            menuHelpAbout.Size = new Size(107, 22);
+            menuHelpAbout.Size = new Size(164, 34);
             menuHelpAbout.Text = "&About";
             menuHelpAbout.Click += menuHelpAbout_Click;
             // 
             // toolStrip
             // 
+            toolStrip.ImageScalingSize = new Size(24, 24);
             toolStrip.Items.AddRange(new ToolStripItem[] { btnNewProject, btnOpenProject });
-            toolStrip.Location = new Point(0, 24);
+            toolStrip.Location = new Point(0, 35);
             toolStrip.Name = "toolStrip";
-            toolStrip.Size = new Size(1200, 25);
+            toolStrip.Padding = new Padding(0, 0, 3, 0);
+            toolStrip.Size = new Size(1714, 34);
             toolStrip.TabIndex = 1;
             // 
             // btnNewProject
             // 
             btnNewProject.Name = "btnNewProject";
-            btnNewProject.Size = new Size(75, 22);
+            btnNewProject.Size = new Size(110, 29);
             btnNewProject.Text = "New Project";
             btnNewProject.Click += btnNewProject_Click;
             // 
             // btnOpenProject
             // 
             btnOpenProject.Name = "btnOpenProject";
-            btnOpenProject.Size = new Size(80, 22);
+            btnOpenProject.Size = new Size(119, 29);
             btnOpenProject.Text = "Open Project";
             btnOpenProject.Click += btnOpenProject_Click;
             // 
@@ -157,104 +160,104 @@ namespace QuotingTool.Forms
             tabControl.Controls.Add(quoteTab);
             tabControl.Controls.Add(millFinishQuoteTab);
             tabControl.Controls.Add(editPricingTab);
-            tabControl.Controls.Add(quoteLetterTab);
             tabControl.Controls.Add(bomTab);
             tabControl.Controls.Add(monthlyUpdateTab);
             tabControl.Dock = DockStyle.Fill;
-            tabControl.Location = new Point(0, 49);
+            tabControl.Location = new Point(0, 69);
+            tabControl.Margin = new Padding(4, 5, 4, 5);
             tabControl.Name = "tabControl";
             tabControl.SelectedIndex = 0;
-            tabControl.Size = new Size(1200, 700);
+            tabControl.Size = new Size(1714, 1069);
             tabControl.TabIndex = 0;
             // 
             // projectDetailsTab
             // 
-            projectDetailsTab.Location = new Point(4, 24);
+            projectDetailsTab.Location = new Point(4, 34);
+            projectDetailsTab.Margin = new Padding(4, 5, 4, 5);
             projectDetailsTab.Name = "projectDetailsTab";
-            projectDetailsTab.Padding = new Padding(3);
-            projectDetailsTab.Size = new Size(1192, 672);
+            projectDetailsTab.Padding = new Padding(4, 5, 4, 5);
+            projectDetailsTab.Size = new Size(1706, 1031);
             projectDetailsTab.TabIndex = 0;
             projectDetailsTab.Text = "Project Details";
             // 
             // quoteTab
             // 
-            quoteTab.Location = new Point(4, 24);
+            quoteTab.Location = new Point(4, 34);
+            quoteTab.Margin = new Padding(4, 5, 4, 5);
             quoteTab.Name = "quoteTab";
-            quoteTab.Padding = new Padding(3);
-            quoteTab.Size = new Size(1192, 672);
+            quoteTab.Padding = new Padding(4, 5, 4, 5);
+            quoteTab.Size = new Size(1706, 1031);
             quoteTab.TabIndex = 1;
             quoteTab.Text = "Quote";
             // 
             // millFinishQuoteTab
             // 
-            millFinishQuoteTab.Location = new Point(4, 24);
+            millFinishQuoteTab.Location = new Point(4, 34);
+            millFinishQuoteTab.Margin = new Padding(4, 5, 4, 5);
             millFinishQuoteTab.Name = "millFinishQuoteTab";
-            millFinishQuoteTab.Padding = new Padding(3);
-            millFinishQuoteTab.Size = new Size(1192, 672);
+            millFinishQuoteTab.Padding = new Padding(4, 5, 4, 5);
+            millFinishQuoteTab.Size = new Size(1706, 1031);
             millFinishQuoteTab.TabIndex = 10;
             millFinishQuoteTab.Text = "Mill Finish Quote";
             // 
             // editPricingTab
             // 
-            editPricingTab.Location = new Point(4, 24);
+            editPricingTab.Location = new Point(4, 34);
+            editPricingTab.Margin = new Padding(4, 5, 4, 5);
             editPricingTab.Name = "editPricingTab";
-            editPricingTab.Padding = new Padding(3);
-            editPricingTab.Size = new Size(1192, 672);
+            editPricingTab.Padding = new Padding(4, 5, 4, 5);
+            editPricingTab.Size = new Size(1706, 1031);
             editPricingTab.TabIndex = 2;
             editPricingTab.Text = "Edit Pricing";
             // 
-            // quoteLetterTab
-            // 
-            quoteLetterTab.Location = new Point(4, 24);
-            quoteLetterTab.Name = "quoteLetterTab";
-            quoteLetterTab.Padding = new Padding(3);
-            quoteLetterTab.Size = new Size(1192, 672);
-            quoteLetterTab.TabIndex = 3;
-            quoteLetterTab.Text = "Quote Letter";
-            // 
             // bomTab
             // 
-            bomTab.Location = new Point(4, 24);
+            bomTab.Location = new Point(4, 34);
+            bomTab.Margin = new Padding(4, 5, 4, 5);
             bomTab.Name = "bomTab";
-            bomTab.Padding = new Padding(3);
-            bomTab.Size = new Size(1192, 672);
+            bomTab.Padding = new Padding(4, 5, 4, 5);
+            bomTab.Size = new Size(1706, 1031);
             bomTab.TabIndex = 5;
             bomTab.Text = "BOM Import";
             // 
             // monthlyUpdateTab
             // 
-            monthlyUpdateTab.Location = new Point(4, 24);
+            monthlyUpdateTab.Location = new Point(4, 34);
+            monthlyUpdateTab.Margin = new Padding(4, 5, 4, 5);
             monthlyUpdateTab.Name = "monthlyUpdateTab";
-            monthlyUpdateTab.Padding = new Padding(3);
-            monthlyUpdateTab.Size = new Size(1192, 672);
+            monthlyUpdateTab.Padding = new Padding(4, 5, 4, 5);
+            monthlyUpdateTab.Size = new Size(1706, 1031);
             monthlyUpdateTab.TabIndex = 6;
             monthlyUpdateTab.Text = "Monthly Update";
             // 
             // statusStrip
             // 
+            statusStrip.ImageScalingSize = new Size(24, 24);
             statusStrip.Items.AddRange(new ToolStripItem[] { statusLabel });
-            statusStrip.Location = new Point(0, 749);
+            statusStrip.Location = new Point(0, 1138);
             statusStrip.Name = "statusStrip";
-            statusStrip.Size = new Size(1200, 22);
+            statusStrip.Padding = new Padding(1, 0, 20, 0);
+            statusStrip.Size = new Size(1714, 32);
             statusStrip.TabIndex = 3;
             // 
             // statusLabel
             // 
             statusLabel.Name = "statusLabel";
-            statusLabel.Size = new Size(93, 17);
+            statusLabel.Size = new Size(142, 25);
             statusLabel.Text = "No project open";
             // 
             // MainForm
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1200, 771);
+            ClientSize = new Size(1714, 1170);
             Controls.Add(tabControl);
             Controls.Add(toolStrip);
             Controls.Add(menuStrip);
             Controls.Add(statusStrip);
             MainMenuStrip = menuStrip;
-            MinimumSize = new Size(900, 600);
+            Margin = new Padding(4, 5, 4, 5);
+            MinimumSize = new Size(1276, 963);
             Name = "MainForm";
             Text = "QuotingTool – Aluminium Extrusion Pricing";
             Load += MainForm_Load;
@@ -298,7 +301,6 @@ namespace QuotingTool.Forms
         public System.Windows.Forms.TabPage quoteTab;
         public System.Windows.Forms.TabPage millFinishQuoteTab;
         public System.Windows.Forms.TabPage editPricingTab;
-        public System.Windows.Forms.TabPage quoteLetterTab;
         public System.Windows.Forms.TabPage bomTab;
         public System.Windows.Forms.TabPage monthlyUpdateTab;
         private System.Windows.Forms.StatusStrip statusStrip;

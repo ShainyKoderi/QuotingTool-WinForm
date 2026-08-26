@@ -16,9 +16,7 @@ namespace QuotingTool.Forms
             lblTitle = new Label();
             btnRefresh = new Button();
             pnlPreview = new Panel();
-            lblCapralLogoPlaceholder = new Label();
             lblLocalLogoPlaceholder = new Label();
-            lblBrand = new Label();
             lblCompanyInfo = new Label();
             lblTo = new Label();
             lblToValue = new Label();
@@ -40,6 +38,7 @@ namespace QuotingTool.Forms
             lblTerms = new Label();
             lblAccountManager = new Label();
             lblLocalLogoValue = new Label();
+            lblCapralLogoPlaceholder = new Label();
             pnlButtons.SuspendLayout();
             pnlPreview.SuspendLayout();
             SuspendLayout();
@@ -50,24 +49,27 @@ namespace QuotingTool.Forms
             pnlButtons.Controls.Add(btnRefresh);
             pnlButtons.Dock = DockStyle.Top;
             pnlButtons.Location = new Point(0, 0);
+            pnlButtons.Margin = new Padding(4, 5, 4, 5);
             pnlButtons.Name = "pnlButtons";
-            pnlButtons.Size = new Size(900, 52);
+            pnlButtons.Size = new Size(1286, 87);
             pnlButtons.TabIndex = 1;
             // 
             // lblTitle
             // 
             lblTitle.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
-            lblTitle.Location = new Point(110, 10);
+            lblTitle.Location = new Point(157, 17);
+            lblTitle.Margin = new Padding(4, 0, 4, 0);
             lblTitle.Name = "lblTitle";
-            lblTitle.Size = new Size(420, 30);
+            lblTitle.Size = new Size(600, 50);
             lblTitle.TabIndex = 3;
             lblTitle.Text = "Quote Letter Preview";
             // 
             // btnRefresh
             // 
-            btnRefresh.Location = new Point(12, 12);
+            btnRefresh.Location = new Point(17, 20);
+            btnRefresh.Margin = new Padding(4, 5, 4, 5);
             btnRefresh.Name = "btnRefresh";
-            btnRefresh.Size = new Size(90, 28);
+            btnRefresh.Size = new Size(129, 47);
             btnRefresh.TabIndex = 0;
             btnRefresh.Text = "Refresh";
             btnRefresh.Click += btnRefresh_Click;
@@ -79,7 +81,6 @@ namespace QuotingTool.Forms
             pnlPreview.BorderStyle = BorderStyle.FixedSingle;
             pnlPreview.Controls.Add(lblCapralLogoPlaceholder);
             pnlPreview.Controls.Add(lblLocalLogoPlaceholder);
-            pnlPreview.Controls.Add(lblBrand);
             pnlPreview.Controls.Add(lblCompanyInfo);
             pnlPreview.Controls.Add(lblTo);
             pnlPreview.Controls.Add(lblToValue);
@@ -102,51 +103,32 @@ namespace QuotingTool.Forms
             pnlPreview.Controls.Add(lblAccountManager);
             pnlPreview.Controls.Add(lblLocalLogoValue);
             pnlPreview.Dock = DockStyle.Fill;
-            pnlPreview.Location = new Point(0, 52);
+            pnlPreview.Location = new Point(0, 87);
+            pnlPreview.Margin = new Padding(4, 5, 4, 5);
             pnlPreview.Name = "pnlPreview";
-            pnlPreview.Size = new Size(900, 748);
+            pnlPreview.Size = new Size(1286, 1083);
             pnlPreview.TabIndex = 0;
-            // 
-            // lblCapralLogoPlaceholder
-            // 
-            lblCapralLogoPlaceholder.BackColor = Color.FromArgb(0, 128, 128);
-            lblCapralLogoPlaceholder.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            lblCapralLogoPlaceholder.ForeColor = Color.White;
-            lblCapralLogoPlaceholder.Location = new Point(32, 24);
-            lblCapralLogoPlaceholder.Name = "lblCapralLogoPlaceholder";
-            lblCapralLogoPlaceholder.Size = new Size(140, 50);
-            lblCapralLogoPlaceholder.TabIndex = 22;
-            lblCapralLogoPlaceholder.Text = "[ CAPRAL LOGO ]";
-            lblCapralLogoPlaceholder.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblLocalLogoPlaceholder
             // 
-            lblLocalLogoPlaceholder.BackColor = Color.FromArgb(220, 240, 220);
+            lblLocalLogoPlaceholder.BackColor = Color.White;
             lblLocalLogoPlaceholder.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
-            lblLocalLogoPlaceholder.ForeColor = Color.DarkGreen;
-            lblLocalLogoPlaceholder.Location = new Point(560, 296);
+            lblLocalLogoPlaceholder.ForeColor = Color.White;
+            lblLocalLogoPlaceholder.Image = Properties.Resources.local_super_green;
+            lblLocalLogoPlaceholder.Location = new Point(37, 123);
+            lblLocalLogoPlaceholder.Margin = new Padding(4, 0, 4, 0);
             lblLocalLogoPlaceholder.Name = "lblLocalLogoPlaceholder";
-            lblLocalLogoPlaceholder.Size = new Size(220, 36);
+            lblLocalLogoPlaceholder.Size = new Size(314, 60);
             lblLocalLogoPlaceholder.TabIndex = 23;
             lblLocalLogoPlaceholder.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // lblBrand
-            // 
-            lblBrand.AutoSize = true;
-            lblBrand.Font = new Font("Segoe UI", 15F, FontStyle.Bold);
-            lblBrand.ForeColor = Color.Teal;
-            lblBrand.Location = new Point(182, 30);
-            lblBrand.Name = "lblBrand";
-            lblBrand.Size = new Size(211, 28);
-            lblBrand.TabIndex = 0;
-            lblBrand.Text = "CAPRAL ALUMINIUM";
             // 
             // lblCompanyInfo
             // 
             lblCompanyInfo.AutoSize = true;
-            lblCompanyInfo.Location = new Point(680, 24);
+            lblCompanyInfo.Location = new Point(971, 40);
+            lblCompanyInfo.Margin = new Padding(4, 0, 4, 0);
             lblCompanyInfo.Name = "lblCompanyInfo";
-            lblCompanyInfo.Size = new Size(216, 75);
+            lblCompanyInfo.Size = new Size(326, 125);
             lblCompanyInfo.TabIndex = 1;
             lblCompanyInfo.Text = "Capral Limited\r\nABN 78 004 213 692\r\nBuilding System Group and Distribution\r\nT: 1300 366 517  F: 1300 133 975\r\nwww.capral.com.au";
             // 
@@ -154,164 +136,183 @@ namespace QuotingTool.Forms
             // 
             lblTo.AutoSize = true;
             lblTo.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            lblTo.Location = new Point(32, 130);
+            lblTo.Location = new Point(46, 217);
+            lblTo.Margin = new Padding(4, 0, 4, 0);
             lblTo.Name = "lblTo";
-            lblTo.Size = new Size(23, 15);
+            lblTo.Size = new Size(37, 25);
             lblTo.TabIndex = 2;
             lblTo.Text = "To:";
             // 
             // lblToValue
             // 
-            lblToValue.Location = new Point(180, 130);
+            lblToValue.Location = new Point(257, 217);
+            lblToValue.Margin = new Padding(4, 0, 4, 0);
             lblToValue.Name = "lblToValue";
-            lblToValue.Size = new Size(480, 23);
+            lblToValue.Size = new Size(686, 38);
             lblToValue.TabIndex = 3;
             // 
             // lblAttention
             // 
             lblAttention.AutoSize = true;
             lblAttention.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            lblAttention.Location = new Point(32, 158);
+            lblAttention.Location = new Point(46, 263);
+            lblAttention.Margin = new Padding(4, 0, 4, 0);
             lblAttention.Name = "lblAttention";
-            lblAttention.Size = new Size(64, 15);
+            lblAttention.Size = new Size(99, 25);
             lblAttention.TabIndex = 4;
             lblAttention.Text = "Attention:";
             // 
             // lblAttentionValue
             // 
-            lblAttentionValue.Location = new Point(180, 158);
+            lblAttentionValue.Location = new Point(257, 263);
+            lblAttentionValue.Margin = new Padding(4, 0, 4, 0);
             lblAttentionValue.Name = "lblAttentionValue";
-            lblAttentionValue.Size = new Size(480, 23);
+            lblAttentionValue.Size = new Size(686, 38);
             lblAttentionValue.TabIndex = 5;
             // 
             // lblDate
             // 
             lblDate.AutoSize = true;
             lblDate.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            lblDate.Location = new Point(32, 186);
+            lblDate.Location = new Point(46, 310);
+            lblDate.Margin = new Padding(4, 0, 4, 0);
             lblDate.Name = "lblDate";
-            lblDate.Size = new Size(37, 15);
+            lblDate.Size = new Size(57, 25);
             lblDate.TabIndex = 6;
             lblDate.Text = "Date:";
             // 
             // lblDateValue
             // 
-            lblDateValue.Location = new Point(180, 186);
+            lblDateValue.Location = new Point(257, 310);
+            lblDateValue.Margin = new Padding(4, 0, 4, 0);
             lblDateValue.Name = "lblDateValue";
-            lblDateValue.Size = new Size(480, 23);
+            lblDateValue.Size = new Size(686, 38);
             lblDateValue.TabIndex = 7;
             // 
             // lblRe
             // 
             lblRe.AutoSize = true;
             lblRe.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            lblRe.Location = new Point(32, 214);
+            lblRe.Location = new Point(46, 357);
+            lblRe.Margin = new Padding(4, 0, 4, 0);
             lblRe.Name = "lblRe";
-            lblRe.Size = new Size(25, 15);
+            lblRe.Size = new Size(39, 25);
             lblRe.TabIndex = 8;
             lblRe.Text = "Re:";
             // 
             // lblReValue
             // 
-            lblReValue.Location = new Point(180, 214);
+            lblReValue.Location = new Point(257, 357);
+            lblReValue.Margin = new Padding(4, 0, 4, 0);
             lblReValue.Name = "lblReValue";
-            lblReValue.Size = new Size(480, 23);
+            lblReValue.Size = new Size(686, 38);
             lblReValue.TabIndex = 9;
             // 
             // lblLetterBody
             // 
             lblLetterBody.AutoSize = true;
-            lblLetterBody.Location = new Point(32, 260);
-            lblLetterBody.MaximumSize = new Size(820, 0);
+            lblLetterBody.Location = new Point(46, 433);
+            lblLetterBody.Margin = new Padding(4, 0, 4, 0);
+            lblLetterBody.MaximumSize = new Size(1171, 0);
             lblLetterBody.Name = "lblLetterBody";
-            lblLetterBody.Size = new Size(0, 15);
+            lblLetterBody.Size = new Size(0, 25);
             lblLetterBody.TabIndex = 10;
             // 
             // lblColour
             // 
             lblColour.AutoSize = true;
             lblColour.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            lblColour.Location = new Point(32, 530);
+            lblColour.Location = new Point(46, 883);
+            lblColour.Margin = new Padding(4, 0, 4, 0);
             lblColour.Name = "lblColour";
-            lblColour.Size = new Size(88, 15);
+            lblColour.Size = new Size(140, 25);
             lblColour.TabIndex = 11;
             lblColour.Text = "Colour / Finish:";
             // 
             // lblColourValue
             // 
-            lblColourValue.Location = new Point(220, 530);
+            lblColourValue.Location = new Point(314, 883);
+            lblColourValue.Margin = new Padding(4, 0, 4, 0);
             lblColourValue.Name = "lblColourValue";
-            lblColourValue.Size = new Size(400, 23);
+            lblColourValue.Size = new Size(571, 38);
             lblColourValue.TabIndex = 12;
             // 
             // lblProjectPrice
             // 
             lblProjectPrice.AutoSize = true;
             lblProjectPrice.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            lblProjectPrice.Location = new Point(32, 558);
+            lblProjectPrice.Location = new Point(46, 930);
+            lblProjectPrice.Margin = new Padding(4, 0, 4, 0);
             lblProjectPrice.Name = "lblProjectPrice";
-            lblProjectPrice.Size = new Size(132, 15);
+            lblProjectPrice.Size = new Size(202, 25);
             lblProjectPrice.TabIndex = 13;
             lblProjectPrice.Text = "Project Price (ex GST):";
             // 
             // lblProjectPriceValue
             // 
-            lblProjectPriceValue.Location = new Point(220, 558);
+            lblProjectPriceValue.Location = new Point(314, 930);
+            lblProjectPriceValue.Margin = new Padding(4, 0, 4, 0);
             lblProjectPriceValue.Name = "lblProjectPriceValue";
-            lblProjectPriceValue.Size = new Size(200, 23);
+            lblProjectPriceValue.Size = new Size(286, 38);
             lblProjectPriceValue.TabIndex = 14;
             // 
             // lblDelivery
             // 
             lblDelivery.AutoSize = true;
             lblDelivery.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            lblDelivery.Location = new Point(32, 586);
+            lblDelivery.Location = new Point(46, 977);
+            lblDelivery.Margin = new Padding(4, 0, 4, 0);
             lblDelivery.Name = "lblDelivery";
-            lblDelivery.Size = new Size(57, 15);
+            lblDelivery.Size = new Size(88, 25);
             lblDelivery.TabIndex = 15;
             lblDelivery.Text = "Delivery:";
             // 
             // lblDeliveryValue
             // 
-            lblDeliveryValue.Location = new Point(220, 586);
+            lblDeliveryValue.Location = new Point(314, 977);
+            lblDeliveryValue.Margin = new Padding(4, 0, 4, 0);
             lblDeliveryValue.Name = "lblDeliveryValue";
-            lblDeliveryValue.Size = new Size(400, 23);
+            lblDeliveryValue.Size = new Size(571, 38);
             lblDeliveryValue.TabIndex = 16;
             // 
             // lblFooterLeft
             // 
             lblFooterLeft.AutoSize = true;
             lblFooterLeft.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            lblFooterLeft.Location = new Point(32, 630);
+            lblFooterLeft.Location = new Point(46, 1050);
+            lblFooterLeft.Margin = new Padding(4, 0, 4, 0);
             lblFooterLeft.Name = "lblFooterLeft";
-            lblFooterLeft.Size = new Size(0, 15);
+            lblFooterLeft.Size = new Size(0, 25);
             lblFooterLeft.TabIndex = 17;
             // 
             // lblFooterRight
             // 
             lblFooterRight.AutoSize = true;
             lblFooterRight.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            lblFooterRight.Location = new Point(560, 630);
+            lblFooterRight.Location = new Point(800, 1050);
+            lblFooterRight.Margin = new Padding(4, 0, 4, 0);
             lblFooterRight.Name = "lblFooterRight";
-            lblFooterRight.Size = new Size(0, 15);
+            lblFooterRight.Size = new Size(0, 25);
             lblFooterRight.TabIndex = 18;
             // 
             // lblTerms
             // 
             lblTerms.AutoSize = true;
-            lblTerms.Location = new Point(32, 670);
-            lblTerms.MaximumSize = new Size(820, 0);
+            lblTerms.Location = new Point(46, 1117);
+            lblTerms.Margin = new Padding(4, 0, 4, 0);
+            lblTerms.MaximumSize = new Size(1171, 0);
             lblTerms.Name = "lblTerms";
-            lblTerms.Size = new Size(0, 15);
+            lblTerms.Size = new Size(0, 25);
             lblTerms.TabIndex = 19;
             // 
             // lblAccountManager
             // 
             lblAccountManager.AutoSize = true;
             lblAccountManager.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            lblAccountManager.Location = new Point(32, 760);
+            lblAccountManager.Location = new Point(46, 1267);
+            lblAccountManager.Margin = new Padding(4, 0, 4, 0);
             lblAccountManager.Name = "lblAccountManager";
-            lblAccountManager.Size = new Size(0, 15);
+            lblAccountManager.Size = new Size(0, 25);
             lblAccountManager.TabIndex = 20;
             // 
             // lblLocalLogoValue
@@ -319,18 +320,33 @@ namespace QuotingTool.Forms
             lblLocalLogoValue.AutoSize = true;
             lblLocalLogoValue.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblLocalLogoValue.ForeColor = Color.DarkGreen;
-            lblLocalLogoValue.Location = new Point(32, 80);
+            lblLocalLogoValue.Location = new Point(46, 133);
+            lblLocalLogoValue.Margin = new Padding(4, 0, 4, 0);
             lblLocalLogoValue.Name = "lblLocalLogoValue";
-            lblLocalLogoValue.Size = new Size(0, 15);
+            lblLocalLogoValue.Size = new Size(0, 25);
             lblLocalLogoValue.TabIndex = 21;
+            // 
+            // lblCapralLogoPlaceholder
+            // 
+            lblCapralLogoPlaceholder.BackColor = Color.White;
+            lblCapralLogoPlaceholder.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblCapralLogoPlaceholder.ForeColor = Color.White;
+            lblCapralLogoPlaceholder.Image = Properties.Resources.capral_logo;
+            lblCapralLogoPlaceholder.Location = new Point(46, 40);
+            lblCapralLogoPlaceholder.Margin = new Padding(4, 0, 4, 0);
+            lblCapralLogoPlaceholder.Name = "lblCapralLogoPlaceholder";
+            lblCapralLogoPlaceholder.Size = new Size(200, 83);
+            lblCapralLogoPlaceholder.TabIndex = 22;
+            lblCapralLogoPlaceholder.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // QuoteLetterForm
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(900, 800);
+            ClientSize = new Size(1286, 1170);
             Controls.Add(pnlPreview);
             Controls.Add(pnlButtons);
+            Margin = new Padding(4, 5, 4, 5);
             Name = "QuoteLetterForm";
             Text = "Quote Letter";
             pnlButtons.ResumeLayout(false);
@@ -352,9 +368,7 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.Panel pnlButtons;
         private System.Windows.Forms.Button btnRefresh;
         private System.Windows.Forms.Panel pnlPreview;
-        private System.Windows.Forms.Label lblCapralLogoPlaceholder;
         private System.Windows.Forms.Label lblLocalLogoPlaceholder;
-        private System.Windows.Forms.Label lblBrand;
         private System.Windows.Forms.Label lblCompanyInfo;
         private System.Windows.Forms.Label lblTo;
         private System.Windows.Forms.Label lblToValue;
@@ -377,5 +391,6 @@ namespace QuotingTool.Forms
         private System.Windows.Forms.Label lblAccountManager;
         private Label lblTitle;
         private Label lblLocalLogoValue;
+        private Label lblCapralLogoPlaceholder;
     }
 }

@@ -51,7 +51,7 @@ namespace QuotingTool.Forms
         {
             if (_project == null)
             {
-                lblBrand.Text = "CAPRAL ALUMINIUM";
+                //lblBrand.Text = "CAPRAL ALUMINIUM";
                 lblCompanyInfo.Text = string.Empty;
                 lblTo.Text = "To:";
                 lblToValue.Text = string.Empty;
@@ -79,7 +79,7 @@ namespace QuotingTool.Forms
 
             // j. Header changes based on Region
             var region = _project.Region ?? string.Empty;
-            lblBrand.Text = QuotePdfService.GetRegionalHeader(region);
+            //lblBrand.Text = QuotePdfService.GetRegionalHeader(region);
             lblCompanyInfo.Text = _quotePdf.GetRegionalContactInfo(region);
 
             // i. Local logo placeholder

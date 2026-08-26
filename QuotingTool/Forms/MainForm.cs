@@ -30,11 +30,11 @@ namespace QuotingTool.Forms
             EmbedForm(new QuoteForm(_db), quoteTab);
             EmbedForm(new MillFinishQuoteForm(_db), millFinishQuoteTab);
             EmbedForm(new EditPricingForm(_db), editPricingTab);
-            EmbedForm(new QuoteLetterForm(_db), quoteLetterTab);           
+          //  EmbedForm(new QuoteLetterForm(_db), quoteLetterTab);           
             EmbedForm(new BomImportForm(_db), bomTab);
             EmbedForm(new MonthlyUpdateForm(_db), monthlyUpdateTab);
 
-            _allTabs.AddRange(new[] { projectDetailsTab, quoteTab, millFinishQuoteTab, editPricingTab, quoteLetterTab, bomTab, monthlyUpdateTab });
+            _allTabs.AddRange(new[] { projectDetailsTab, quoteTab, millFinishQuoteTab, editPricingTab,  bomTab, monthlyUpdateTab });
             ApplyRoleAccess();
 
         }
@@ -144,8 +144,8 @@ namespace QuotingTool.Forms
                 bif.LoadProject(CurrentProjectId);
             if (monthlyUpdateTab.Controls.Count > 0 && monthlyUpdateTab.Controls[0] is MonthlyUpdateForm muf)
                 muf.LoadProject(CurrentProjectId);
-            if (quoteLetterTab.Controls.Count > 0 && quoteLetterTab.Controls[0] is QuoteLetterForm qlf)
-                qlf.LoadProject(CurrentProjectId);
+      //      if (quoteLetterTab.Controls.Count > 0 && quoteLetterTab.Controls[0] is QuoteLetterForm qlf)
+          //      qlf.LoadProject(CurrentProjectId);
             //if (noPricingTab.Controls.Count > 0 && noPricingTab.Controls[0] is QuoteNoPricingForm qnp)
             //    qnp.LoadProject(CurrentProjectId);
         }
@@ -225,7 +225,7 @@ namespace QuotingTool.Forms
                 _ => _allTabs.Where(t => t == projectDetailsTab
                                          || t == quoteTab
                                          || t == millFinishQuoteTab
-                                         || t == quoteLetterTab                                        
+                           //              || t == quoteLetterTab                                        
                                          || t == bomTab)
             };
 
