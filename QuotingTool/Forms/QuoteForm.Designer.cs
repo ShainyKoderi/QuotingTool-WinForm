@@ -35,89 +35,101 @@ namespace QuotingTool.Forms
             // lblTitle
             // 
             lblTitle.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
-            lblTitle.Location = new Point(10, 8);
+            lblTitle.Location = new Point(14, 13);
+            lblTitle.Margin = new Padding(4, 0, 4, 0);
             lblTitle.Name = "lblTitle";
-            lblTitle.Size = new Size(152, 30);
+            lblTitle.Size = new Size(217, 50);
             lblTitle.TabIndex = 0;
             lblTitle.Text = "Quote";
             // 
             // btnFixLengths
             // 
-            btnFixLengths.Location = new Point(12, 41);
+            btnFixLengths.Location = new Point(17, 68);
+            btnFixLengths.Margin = new Padding(4, 5, 4, 5);
             btnFixLengths.Name = "btnFixLengths";
-            btnFixLengths.Size = new Size(150, 28);
+            btnFixLengths.Size = new Size(214, 47);
             btnFixLengths.TabIndex = 4;
             btnFixLengths.Text = "Fix Lengths (mm → m)";
+            btnFixLengths.Visible = false;
             btnFixLengths.Click += btnFixLengths_Click;
             // 
             // btnResetPrices
             // 
-            btnResetPrices.Location = new Point(10, 75);
+            btnResetPrices.Location = new Point(14, 125);
+            btnResetPrices.Margin = new Padding(4, 5, 4, 5);
             btnResetPrices.Name = "btnResetPrices";
-            btnResetPrices.Size = new Size(150, 28);
+            btnResetPrices.Size = new Size(214, 47);
             btnResetPrices.TabIndex = 5;
             btnResetPrices.Text = "Reset Price Formulas";
+            btnResetPrices.Visible = false;
             btnResetPrices.Click += btnResetPrices_Click;
             // 
             // btnImportQuoteLines
             // 
-            btnImportQuoteLines.Location = new Point(183, 41);
+            btnImportQuoteLines.Location = new Point(261, 68);
+            btnImportQuoteLines.Margin = new Padding(4, 5, 4, 5);
             btnImportQuoteLines.Name = "btnImportQuoteLines";
-            btnImportQuoteLines.Size = new Size(120, 28);
+            btnImportQuoteLines.Size = new Size(171, 47);
             btnImportQuoteLines.TabIndex = 6;
             btnImportQuoteLines.Text = "Import...";
             btnImportQuoteLines.Click += btnImportQuoteLines_Click;
             // 
             // btnExportQuote
             // 
-            btnExportQuote.Location = new Point(183, 80);
+            btnExportQuote.Location = new Point(261, 133);
+            btnExportQuote.Margin = new Padding(4, 5, 4, 5);
             btnExportQuote.Name = "btnExportQuote";
-            btnExportQuote.Size = new Size(120, 28);
+            btnExportQuote.Size = new Size(171, 47);
             btnExportQuote.TabIndex = 7;
             btnExportQuote.Text = "Export Quote";
             btnExportQuote.Click += btnExportQuote_Click;
             // 
             // btnExportPdf
             // 
-            btnExportPdf.Location = new Point(547, 41);
+            btnExportPdf.Location = new Point(781, 68);
+            btnExportPdf.Margin = new Padding(4, 5, 4, 5);
             btnExportPdf.Name = "btnExportPdf";
-            btnExportPdf.Size = new Size(120, 28);
+            btnExportPdf.Size = new Size(171, 47);
             btnExportPdf.TabIndex = 8;
             btnExportPdf.Text = "Print / PDF...";
             btnExportPdf.Click += btnExportPdf_Click;
             // 
             // btnCopyForSap
             // 
-            btnCopyForSap.Location = new Point(421, 41);
+            btnCopyForSap.Location = new Point(601, 68);
+            btnCopyForSap.Margin = new Padding(4, 5, 4, 5);
             btnCopyForSap.Name = "btnCopyForSap";
-            btnCopyForSap.Size = new Size(120, 28);
+            btnCopyForSap.Size = new Size(171, 47);
             btnCopyForSap.TabIndex = 9;
             btnCopyForSap.Text = "Copy for SAP";
             btnCopyForSap.Click += btnCopyForSap_Click;
             // 
             // btnSundryItems
             // 
-            btnSundryItems.Location = new Point(421, 80);
+            btnSundryItems.Location = new Point(601, 133);
+            btnSundryItems.Margin = new Padding(4, 5, 4, 5);
             btnSundryItems.Name = "btnSundryItems";
-            btnSundryItems.Size = new Size(120, 28);
+            btnSundryItems.Size = new Size(171, 47);
             btnSundryItems.TabIndex = 10;
             btnSundryItems.Text = "Sundry Items";
             btnSundryItems.Click += btnSundryItems_Click;
             // 
             // btnDeleteSelected
             // 
-            btnDeleteSelected.Location = new Point(320, 77);
+            btnDeleteSelected.Location = new Point(457, 128);
+            btnDeleteSelected.Margin = new Padding(4, 5, 4, 5);
             btnDeleteSelected.Name = "btnDeleteSelected";
-            btnDeleteSelected.Size = new Size(95, 28);
+            btnDeleteSelected.Size = new Size(136, 47);
             btnDeleteSelected.TabIndex = 13;
             btnDeleteSelected.Text = "Delete Row";
             btnDeleteSelected.Click += btnDeleteSelected_Click;
             // 
             // btnDeleteAll
             // 
-            btnDeleteAll.Location = new Point(320, 41);
+            btnDeleteAll.Location = new Point(457, 68);
+            btnDeleteAll.Margin = new Padding(4, 5, 4, 5);
             btnDeleteAll.Name = "btnDeleteAll";
-            btnDeleteAll.Size = new Size(95, 28);
+            btnDeleteAll.Size = new Size(136, 47);
             btnDeleteAll.TabIndex = 14;
             btnDeleteAll.Text = "Delete All";
             btnDeleteAll.Click += btnDeleteAll_Click;
@@ -127,10 +139,13 @@ namespace QuotingTool.Forms
             gridQuote.AllowUserToAddRows = false;
             gridQuote.AllowUserToDeleteRows = false;
             gridQuote.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            gridQuote.ColumnHeadersHeight = 34;
             gridQuote.Dock = DockStyle.Fill;
-            gridQuote.Location = new Point(0, 120);
+            gridQuote.Location = new Point(0, 200);
+            gridQuote.Margin = new Padding(4, 5, 4, 5);
             gridQuote.Name = "gridQuote";
-            gridQuote.Size = new Size(754, 580);
+            gridQuote.RowHeadersWidth = 62;
+            gridQuote.Size = new Size(1077, 967);
             gridQuote.TabIndex = 0;
             gridQuote.CellValueChanged += gridQuote_CellValueChanged;
             gridQuote.CurrentCellDirtyStateChanged += gridQuote_CurrentCellDirtyStateChanged;
@@ -151,8 +166,9 @@ namespace QuotingTool.Forms
             pnlToolbar.Controls.Add(btnDeleteAll);
             pnlToolbar.Dock = DockStyle.Top;
             pnlToolbar.Location = new Point(0, 0);
+            pnlToolbar.Margin = new Padding(4, 5, 4, 5);
             pnlToolbar.Name = "pnlToolbar";
-            pnlToolbar.Size = new Size(935, 120);
+            pnlToolbar.Size = new Size(1336, 200);
             pnlToolbar.TabIndex = 2;
             // 
             // pnlRight
@@ -160,18 +176,20 @@ namespace QuotingTool.Forms
             pnlRight.Controls.Add(lblPriceBreakdown);
             pnlRight.Controls.Add(lblBreakdownTitle);
             pnlRight.Dock = DockStyle.Right;
-            pnlRight.Location = new Point(754, 120);
+            pnlRight.Location = new Point(1077, 200);
+            pnlRight.Margin = new Padding(4, 5, 4, 5);
             pnlRight.Name = "pnlRight";
-            pnlRight.Padding = new Padding(12);
-            pnlRight.Size = new Size(181, 580);
+            pnlRight.Padding = new Padding(17, 20, 17, 20);
+            pnlRight.Size = new Size(259, 967);
             pnlRight.TabIndex = 1;
             // 
             // lblPriceBreakdown
             // 
             lblPriceBreakdown.Dock = DockStyle.Fill;
-            lblPriceBreakdown.Location = new Point(12, 42);
+            lblPriceBreakdown.Location = new Point(17, 70);
+            lblPriceBreakdown.Margin = new Padding(4, 0, 4, 0);
             lblPriceBreakdown.Name = "lblPriceBreakdown";
-            lblPriceBreakdown.Size = new Size(157, 526);
+            lblPriceBreakdown.Size = new Size(225, 877);
             lblPriceBreakdown.TabIndex = 0;
             lblPriceBreakdown.Text = "Select a quote line to review the calculation.";
             // 
@@ -179,20 +197,22 @@ namespace QuotingTool.Forms
             // 
             lblBreakdownTitle.Dock = DockStyle.Top;
             lblBreakdownTitle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            lblBreakdownTitle.Location = new Point(12, 12);
+            lblBreakdownTitle.Location = new Point(17, 20);
+            lblBreakdownTitle.Margin = new Padding(4, 0, 4, 0);
             lblBreakdownTitle.Name = "lblBreakdownTitle";
-            lblBreakdownTitle.Size = new Size(157, 30);
+            lblBreakdownTitle.Size = new Size(225, 50);
             lblBreakdownTitle.TabIndex = 1;
             lblBreakdownTitle.Text = "Price build-up";
             // 
             // QuoteForm
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(935, 700);
+            ClientSize = new Size(1336, 1167);
             Controls.Add(gridQuote);
             Controls.Add(pnlRight);
             Controls.Add(pnlToolbar);
+            Margin = new Padding(4, 5, 4, 5);
             Name = "QuoteForm";
             Text = "Quote";
             ((System.ComponentModel.ISupportInitialize)gridQuote).EndInit();

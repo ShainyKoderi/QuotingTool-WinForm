@@ -195,8 +195,10 @@ namespace QuotingTool.Forms
 
         private void btnBulkNonBulkRates_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Bulk rates apply when total finishing area > 100m². Non-bulk rates apply below this threshold.",
-                "Bulk/Non-bulk Rates", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            grpBulkCategories.Visible = true;
+
+          //  MessageBox.Show("Bulk rates apply when total finishing area > 100m². Non-bulk rates apply below this threshold.",
+            //    "Bulk/Non-bulk Rates", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
 
@@ -372,7 +374,7 @@ namespace QuotingTool.Forms
             lblIP3MarginValue.Text = $"{ep.IP3MarginPct:N2}%";
             lblMillFinishMarginValue.Text = $"{ep.MillFinishMarginPct:N2}%";
             lblFinishingMarginValue.Text = $"{ep.FinishingMarginPct:N2}%";
-            lblThresholdMarginValue.Text = $"{ep.ThermalBreakMarginPct:N2}%";
+            lblThresholdMarginValue.Text = $"{ep.ThermalBreakMarginPct:N2}%";  // always show % suffix
 
             // ── Metal price guidance (Pricing Matrix rows 8-13) ────────────────
             // Excel C/D/E: Typical = MetalCost + Spread, Min = Typical − MinFactor,

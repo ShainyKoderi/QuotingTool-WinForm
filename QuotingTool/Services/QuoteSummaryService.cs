@@ -38,20 +38,19 @@ namespace QuotingTool.Services
             decimal finishingCostPerM2  = ep.FinishingCostPricePerM2 > 0m
                 ? ep.FinishingCostPricePerM2 : ep.FinishingPrice;
 
-            // ── Compute all components directly from per-line data ────────────
-            // This mirrors the 2.Quote column formulas exactly:
-            //   AH = MF each (kg/m × L × MetalSell)
-            //   AI = IP each (kg/m × L × IP rate)
-            //   AS = SF Sell each (perimeter/1000 × L × FinishSell)
-            //   AR = SF Cost each (perimeter/1000 × L × FinishCost)
-            //   K  = SubsillSurcharge each (stored on line)
-            //   AJ = AH + AI (non-TB metal each)
-            //   AL = AH + AI (TB metal each)
-            //   AN = AH cost each = kg/m × L × metalCostPerKg
+            // IP upcharge rates from EditPricing (mirrors 3.Edit Pricing G33/H33/I33).
+            //decimal ip1Rate = ep.IP1UpchargePerKg > 0m ? ep.IP1UpchargePerKg : 1.00m;
+            //decimal ip2Rate = ep.IP2UpchargePerKg > 0m ? ep.IP2UpchargePerKg : 2.00m;
+            //decimal ip3Rate = ep.IP3PanoramicFixedKgRate > 0m ? ep.IP3PanoramicFixedKgRate : 25.85m;
+            decimal ip1Rate = ep.IP1UpchargePerKg ;
+            decimal ip2Rate = ep.IP2UpchargePerKg ;
+            decimal ip3Rate = ep.IP3PanoramicFixedKgRate ;
+            // 3.Edit Pricing B33: metal sell price per kg
+            decimal metalSellPrice = ep.MetalPrice;
 
-            decimal nonTbSellTotal  = 0m;  // B62
+            decimal nonTbSellTotal  = 0m;  // B62: Mill Finish total value
             decimal nonTbCostTotal  = 0m;  // C62 cost basis
-            decimal tbSellTotal     = 0m;  // B63
+            decimal tbSellTotal     = 0m;  // B63: Thermal Break total value
             decimal tbCostTotal     = 0m;  // C63 cost basis
 
             decimal finishingSellTotal = 0m;  // B65 (summed per line)
@@ -66,17 +65,16 @@ namespace QuotingTool.Services
             {
                 var code = line.ExtrusionCode?.Trim() ?? "";
 
-                // ── Standalone sundry items ────────────────────────────────────
+                // Standalone sundry items (code exists in sundry master)
                 if (!string.IsNullOrWhiteSpace(code) && sundryMaster.TryGetValue(code, out var sundry))
                 {
-                    // Use the actual line TotalPrice so the summary matches the quote total exactly.
-                    decimal lineTotal = line.TotalPrice;
-                    sundrySellTotal += lineTotal;
+                    sundrySellTotal +=  sundry.UnitSell * line.Quantity;   // was: line.TotalPrice
                     sundryCostTotal += sundry.UnitCost * line.Quantity;
                     continue;
                 }
 
-                // ── Blank-code / unrecognised lines (freeform sundry/description) ─────
+                // Blank-code / unrecognised lines (freeform description/sundry lines)
+                // Accumulate sell value into sundry - no cost data available.
                 if (string.IsNullOrWhiteSpace(code) || !extrusionLookup.TryGetValue(code, out var em))
                 {
                     if (line.TotalPrice > 0m)
@@ -84,23 +82,18 @@ namespace QuotingTool.Services
                     continue;
                 }
 
-                // ── Finishing (SF) component ───────────────────────────────────
+                // Finishing (SF) component
+                // Uses AP->PP perimeter fallback consistent with the per-line price calculation.
                 bool ignoreFinish = string.Equals(line.IgnoreFinish, "Yes", StringComparison.OrdinalIgnoreCase);
-                // Use the same AP→PP fallback for both finishingSellTotal and sfSellLine
-                // so the finishing portion is never double-counted in Mill Finish.
                 decimal perimeterMm = em.ApMm > 0m ? em.ApMm : em.PpMm;
-                if (!isMillFinishProject && !ignoreFinish && finishingPricePerM2 > 0m && line.LengthM > 0m)
+                if (!isMillFinishProject && !ignoreFinish && finishingPricePerM2 > 0m && line.LengthM > 0m && perimeterMm > 0m)
                 {
-                    // perimeterMm already assigned above
-                    if (perimeterMm > 0m)
-                    {
-                        decimal areaM2Each = perimeterMm / 1000m * line.LengthM;
-                        finishingSellTotal += areaM2Each * finishingPricePerM2 * line.Quantity;
-                        finishingCostTotal += areaM2Each * finishingCostPerM2  * line.Quantity;
-                    }
+                    decimal areaM2Each = perimeterMm / 1000m * line.LengthM;
+                    finishingSellTotal += areaM2Each * finishingPricePerM2 * line.Quantity;
+                    finishingCostTotal += areaM2Each * finishingCostPerM2  * line.Quantity;
                 }
 
-                // ── Slotting/subsill surcharge ─────────────────────────────────
+                // Slotting/subsill surcharge
                 if (line.SubsillSurcharge > 0m)
                 {
                     slottingSellTotal += line.SubsillSurcharge * line.Quantity;
@@ -113,19 +106,32 @@ namespace QuotingTool.Services
                     }
                 }
 
-                // ── Metal (MF + IP) component ──────────────────────────────────
+                // Metal (MF + IP) component
+                // Mirrors Excel col AJ = (AH x G) + (AI x G):
+                //   AH x G = kg x MetalSellPrice (B33)   -- mill finish sell
+                //   AI x G = kg x IP upcharge rate        -- IP sell
+                // B62 = SUMIF(ThermalBreak="No", AJ)
+                // Computed directly from master rates, NOT back-calculated from TotalPrice.
                 if (em.MassPerM <= 0m || line.LengthM <= 0m) continue;
 
                 decimal kgLine = em.MassPerM * line.LengthM * line.Quantity;
 
-                // Sell: use actual stored TotalPrice minus the separable finishing and slotting portions.
-                // Uses the same perimeterMm (AP→PP fallback) as finishingSellTotal to prevent
-                // finishing value leaking into the metal total when ApMm=0 but PpMm>0.
-                decimal sfSellLine = (!isMillFinishProject && !ignoreFinish && perimeterMm > 0m)
-                    ? (perimeterMm / 1000m * line.LengthM * finishingPricePerM2 * line.Quantity) : 0m;
-                decimal slottingLine = line.SubsillSurcharge * line.Quantity;
-                decimal metalSellLine = line.TotalPrice - sfSellLine - slottingLine;
+                // AH x G: mill-finish sell (kg x B33)
+                decimal mfSellLine = metalSellPrice > 0m ? kgLine * metalSellPrice : 0m;
 
+                // AI x G: IP upcharge sell (kg x IP rate based on IpGrade 0-3)
+                decimal ipSellLine = line.IpGrade switch
+                {
+                    1 => kgLine * ip1Rate,
+                    2 => kgLine * ip2Rate,
+                    3 => kgLine * ip3Rate,
+                    _ => 0m
+                };
+
+                // AJ = AH x G + AI x G
+                decimal metalSellLine = mfSellLine + ipSellLine;
+
+                // AN: metal cost = kg x B5
                 decimal metalCostLine = kgLine * metalCostPerKg;
 
                 bool isTb = !string.Equals(em.ThermalBreakType, "No", StringComparison.OrdinalIgnoreCase);
@@ -136,24 +142,24 @@ namespace QuotingTool.Services
                 }
                 else
                 {
-                    nonTbSellTotal  += metalSellLine;
-                    nonTbCostTotal  += metalCostLine;
+                    nonTbSellTotal += metalSellLine;
+                    nonTbCostTotal += metalCostLine;
                 }
             }
 
-            // ── B64: Slotting/Sundry ──────────────────────────────────────────
+            // B64: Slotting/Sundry
             decimal slottingSundryTotal = sundrySellTotal + slottingSellTotal;
             decimal slottingSundryMarginDollar = slottingSundryTotal - sundryCostTotal - slottingCostTotal;
             decimal slottingSundryMarginPct = slottingSundryTotal > 0m
                 ? slottingSundryMarginDollar / slottingSundryTotal * 100m : 0m;
 
-            // ── B65: Finishing ────────────────────────────────────────────────
+            // B65: Finishing
             decimal finishingTotal        = finishingSellTotal;
             decimal finishingMarginDollar = finishingTotal - finishingCostTotal;
             decimal finishingMarginPct    = finishingTotal > 0m
                 ? finishingMarginDollar / finishingTotal * 100m : 0m;
 
-            // ── B62: Mill Finish Metal ────────────────────────────────────────
+            // B62: Mill Finish Metal
             decimal millFinishTotal        = nonTbSellTotal;
             decimal millFinishCost         = nonTbCostTotal > 0m ? nonTbCostTotal
                 : millFinishTotal * MillFinishCostRatioFallback;
@@ -161,16 +167,16 @@ namespace QuotingTool.Services
             decimal millFinishMarginPct    = millFinishTotal > 0m
                 ? millFinishMarginDollar / millFinishTotal * 100m : 0m;
 
-            // ── B63: Thermal Break Metal ──────────────────────────────────────
+            // B63: Thermal Break Metal
             decimal thermalBreakTotal        = tbSellTotal;
             decimal thermalBreakMarginDollar = thermalBreakTotal - tbCostTotal;
             decimal thermalBreakMarginPct    = thermalBreakTotal > 0m
                 ? thermalBreakMarginDollar / thermalBreakTotal * 100m : 0m;
 
-            // ── B66: Grand Total ──────────────────────────────────────────────
+            // B66: Grand Total
             decimal grandTotal = lines.Sum(l => l.TotalPrice);
 
-            // ── C66: Total margin ─────────────────────────────────────────────
+            // C66: Total margin
             decimal grandMarginDollar = millFinishMarginDollar + thermalBreakMarginDollar
                 + slottingSundryMarginDollar + finishingMarginDollar;
             decimal grandMarginPct = grandTotal > 0m

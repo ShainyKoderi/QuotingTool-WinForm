@@ -238,6 +238,7 @@ namespace QuotingTool.Forms
             grpBulkCategories.TabIndex = 49;
             grpBulkCategories.TabStop = false;
             grpBulkCategories.Text = "Bulk Rates";
+            grpBulkCategories.Visible = false;
             // 
             // label10
             // 
@@ -627,6 +628,7 @@ namespace QuotingTool.Forms
             btnEditIpCategories.Size = new Size(170, 43);
             btnEditIpCategories.TabIndex = 7;
             btnEditIpCategories.Text = "Edit IP Categories";
+            btnEditIpCategories.Visible = false;
             btnEditIpCategories.Click += btnEditIpCategories_Click;
             // 
             // txtIP1Upcharge
@@ -1589,7 +1591,7 @@ namespace QuotingTool.Forms
             lblThresholdMargin.Location = new Point(139, 108);
             lblThresholdMargin.Margin = new Padding(4, 0, 4, 0);
             lblThresholdMargin.Name = "lblThresholdMargin";
-            lblThresholdMargin.Size = new Size(73, 30);
+            lblThresholdMargin.Size = new Size(110, 30);
             lblThresholdMargin.TabIndex = 6;
             lblThresholdMargin.Text = "Margin %:";
             // 
@@ -1598,7 +1600,7 @@ namespace QuotingTool.Forms
             lblThresholdMarginValue.Location = new Point(284, 108);
             lblThresholdMarginValue.Margin = new Padding(4, 0, 4, 0);
             lblThresholdMarginValue.Name = "lblThresholdMarginValue";
-            lblThresholdMarginValue.Size = new Size(63, 30);
+            lblThresholdMarginValue.Size = new Size(90, 30);
             lblThresholdMarginValue.TabIndex = 7;
             lblThresholdMarginValue.Text = "0.00%";
             // 
