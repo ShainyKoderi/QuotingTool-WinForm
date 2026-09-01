@@ -52,6 +52,9 @@ namespace QuotingTool.Forms
         private decimal _millFinishMarginPct;
         private decimal _finishingMarginPct;
         private decimal _finishingCostPricePerM2;
+        // B58: Anodised threshold sell rate $/m² — used instead of FinishingPrice when a
+        // section is flagged as a threshold (BF col = 1) and ThresholdChoice is not "No".
+        private decimal _thresholdSellPricePerM2;
 
         public QuoteForm(DatabaseContext db)
         {
@@ -292,7 +295,19 @@ namespace QuotingTool.Forms
             // project's finish type (mirrors the Excel col L / **MILL FINISH** override logic).
             if (string.Equals(line.IgnoreFinish, "Yes", StringComparison.OrdinalIgnoreCase))
                 return 0m;
-            if (_finishingSellPricePerM2 <= 0 || line.LengthM <= 0 || string.IsNullOrWhiteSpace(line.ExtrusionCode))
+            if (line.LengthM <= 0 || string.IsNullOrWhiteSpace(line.ExtrusionCode))
+                return 0m;
+
+            // Col AP: SF Sell $/m² — switches to the threshold sell rate (B58) when the
+            // section is in the THRESHOLDS named range (BF col = 1) and ThresholdChoice is active.
+            // Otherwise falls back to the standard finishing sell rate (FinishingPrice / B44).
+            bool isThreshold = _thresholdSections.Contains(line.ExtrusionCode)
+                && !string.Equals(NormalizeThresholdChoice(_thresholdChoice), "No", StringComparison.OrdinalIgnoreCase);
+            decimal sfSellRatePerM2 = isThreshold && _thresholdSellPricePerM2 > 0m
+                ? _thresholdSellPricePerM2
+                : _finishingSellPricePerM2;
+
+            if (sfSellRatePerM2 <= 0)
                 return 0m;
 
             decimal perimeterMm = 0m;
@@ -305,7 +320,7 @@ namespace QuotingTool.Forms
                 return 0m;
 
             var areaM2Each = (perimeterMm / 1000m) * line.LengthM;
-            return areaM2Each * _finishingSellPricePerM2;
+            return areaM2Each * sfSellRatePerM2;
         }
 
         private decimal GetMassPerM(string? sectionCode)
@@ -697,6 +712,7 @@ namespace QuotingTool.Forms
                 _finishingCostPricePerM2 = pricing.FinishingCostPricePerM2 > 0
                     ? pricing.FinishingCostPricePerM2
                     : pricing.FinishingPrice;
+                _thresholdSellPricePerM2 = pricing.Price_B58;
             }
 
             var project = _db.GetProject(_projectId);

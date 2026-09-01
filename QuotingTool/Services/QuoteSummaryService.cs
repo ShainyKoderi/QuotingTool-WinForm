@@ -47,6 +47,16 @@ namespace QuotingTool.Services
                     : ep.Price_B42 > 0m ? ep.Price_B42 : 0m,
                 2);
 
+            // B58: Anodised threshold sell rate $/m² and its cost basis (B57).
+            // Used instead of the standard finishing rate when a section is in the THRESHOLDS
+            // named range and the project ThresholdChoice is not "No" (mirrors col AP formula).
+            decimal thresholdSellPerM2 = Math.Round(ep.Price_B58, 2);
+            decimal thresholdCostPerM2 = Math.Round(
+                ep.AnodisedThresholdCostPerM2 > 0m ? ep.AnodisedThresholdCostPerM2 : ep.Price_B57, 2);
+            bool thresholdActive = !string.Equals(project.ThresholdChoice, "No", StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(project.ThresholdChoice);
+            var thresholdSections = _db.GetThresholdSections();
+
             // IP upcharge rates from EditPricing (mirrors 3.Edit Pricing G33/H33/I33).
             //decimal ip1Rate = ep.IP1UpchargePerKg > 0m ? ep.IP1UpchargePerKg : 1.00m;
             //decimal ip2Rate = ep.IP2UpchargePerKg > 0m ? ep.IP2UpchargePerKg : 2.00m;
@@ -103,15 +113,25 @@ namespace QuotingTool.Services
                     continue;
                 }
 
-                // Finishing (SF) component
-                // Uses AP->PP perimeter fallback consistent with the per-line price calculation.
+                // Finishing (SF) component — mirrors col AS formula:
+                // AP col (sell rate) = B58 threshold rate when BF=1 and ThresholdChoice?No,
+                //                     otherwise standard FinishingPrice (B44).
+                // AO col (cost rate) = B57 threshold cost when threshold active, else B43.
                 bool ignoreFinish = string.Equals(line.IgnoreFinish, "Yes", StringComparison.OrdinalIgnoreCase);
                 decimal perimeterMm = em.ApMm > 0m ? em.ApMm : em.PpMm;
-                if (!isMillFinishProject && !ignoreFinish && finishingPricePerM2 > 0m && line.LengthM > 0m && perimeterMm > 0m)
+                if (!isMillFinishProject && !ignoreFinish && line.LengthM > 0m && perimeterMm > 0m)
                 {
-                    decimal areaM2Each = perimeterMm / 1000m * line.LengthM;
-                    finishingSellTotal += areaM2Each * finishingPricePerM2 * line.Quantity;
-                    finishingCostTotal += areaM2Each * finishingCostPerM2  * line.Quantity;
+                    bool isThresholdLine = thresholdActive && thresholdSections.Contains(code);
+                    decimal sfSellRate = isThresholdLine && thresholdSellPerM2 > 0m
+                        ? thresholdSellPerM2 : finishingPricePerM2;
+                    decimal sfCostRate = isThresholdLine && thresholdCostPerM2 > 0m
+                        ? thresholdCostPerM2 : finishingCostPerM2;
+                    if (sfSellRate > 0m)
+                    {
+                        decimal areaM2Each = perimeterMm / 1000m * line.LengthM;
+                        finishingSellTotal += areaM2Each * sfSellRate * line.Quantity;
+                        finishingCostTotal += areaM2Each * sfCostRate * line.Quantity;
+                    }
                 }
 
                 // Slotting/subsill surcharge
@@ -184,9 +204,6 @@ namespace QuotingTool.Services
             decimal finishingMarginPct    = finishingTotal > 0m
                 ? finishingMarginDollar / finishingTotal * 100m : 0m;
 
-            // B66: Grand Total
-            decimal grandTotal = lines.Sum(l => l.TotalPrice);
-
             // B62: Mill Finish Metal
             decimal millFinishTotal        = nonTbSellTotal;
             decimal millFinishCost         = nonTbCostTotal > 0m ? nonTbCostTotal
@@ -200,6 +217,10 @@ namespace QuotingTool.Services
             decimal thermalBreakMarginDollar = thermalBreakTotal - tbCostTotal;
             decimal thermalBreakMarginPct    = thermalBreakTotal > 0m
                 ? thermalBreakMarginDollar / thermalBreakTotal * 100m : 0m;
+
+            // B66: Grand Total = sum of the four computed category totals so the
+            // Total row always reconciles with the rows displayed above it.
+            decimal grandTotal = millFinishTotal + thermalBreakTotal + slottingSundryTotal + finishingTotal;
 
             // C66: Total margin
             decimal grandMarginDollar = millFinishMarginDollar + thermalBreakMarginDollar
