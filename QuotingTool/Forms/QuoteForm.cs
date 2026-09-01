@@ -44,6 +44,8 @@ namespace QuotingTool.Forms
         private Dictionary<string, int> _ipMasterByCodes = new(StringComparer.Ordinal);
         // Section codes in the THRESHOLDS named range; used for the BF column threshold flag
         private HashSet<string> _thresholdSections = new(StringComparer.OrdinalIgnoreCase);
+        // SubsillTierPrices keyed by Tier, used to compute AZ (slot sell each) live
+        private Dictionary<int, SubsillTierPrice> _subsillTiers = new();
         private string _projectFinishSapCode = "NON";
         private string _thresholdChoice = "No";
         private string _projectFinishType = "Mill Finish";
@@ -67,6 +69,7 @@ namespace QuotingTool.Forms
             LoadExtrusionMaster();
             LoadSundryMaster();
             LoadIPMasterData();
+            LoadSubsillTiers();
             ConfigureGridColumns();
             gridQuote.CellToolTipTextNeeded += gridQuote_CellToolTipTextNeeded;
         }
@@ -94,6 +97,12 @@ namespace QuotingTool.Forms
                 _ipMasterByCodes = new Dictionary<string, int>(StringComparer.Ordinal);
                 _thresholdSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             }
+        }
+
+        private void LoadSubsillTiers()
+        {
+            try { _subsillTiers = _db.GetSubsillTierPrices().ToDictionary(t => t.Tier); }
+            catch { _subsillTiers = new Dictionary<int, SubsillTierPrice>(); }
         }
 
         private void LoadSundryMaster()
@@ -191,8 +200,22 @@ namespace QuotingTool.Forms
                 line.Temper = master.DefaultTemper;
 
             // Col V: SubsillFlag = tier > 0 (auto-filled from Table5 col K; user can still override).
+            // AZ12: Slot Sell ea = VLOOKUP(V, SubSill_Tier_Price, 2) * H
+            //   Tier 4 (Panoramic door): +150% market factor applied to sell price.
             if (master.SubsillTier > 0)
+            {
                 line.SubsillFlag = true;
+                if (line.LengthM > 0m && _subsillTiers.TryGetValue(master.SubsillTier, out var tier))
+                {
+                    line.SubsillSurcharge = tier.SellPricePerMetre * line.LengthM;
+                    if (master.SubsillTier == 4)
+                        line.SubsillSurcharge += line.SubsillSurcharge * 1.5m;
+                }
+            }
+            else
+            {
+                line.SubsillSurcharge = 0m;
+            }
 
             // Col AV: IP grade auto-computed from PH code via IPMasterData lookup.
             // IpGrade is stored so the user can override it if needed.

@@ -19,8 +19,9 @@ namespace QuotingTool.Services
         // Page count thresholds (rows → pages)
         private static readonly int[] PageThresholds = { 40, 80, 120, 160, 200 };
 
-        // Subsill surcharge per unit ($12 as per spec)
-        private const decimal SubsillSurcharge = 12m;
+        // Subsill surcharge is computed live from SubsillTierPrices:
+        //   AZ = IF(V>0, VLOOKUP(V, SubSill_Tier_Price, 2) * H, 0)
+        //   Tier 4 (Panoramic): +150% market factor applied to sell price.
 
         private readonly DatabaseContext _db;
 
@@ -178,6 +179,12 @@ namespace QuotingTool.Services
             // Clear existing quote lines
             _db.DeleteQuoteLines(projectId);
 
+            // Load tier prices once for surcharge calculation (mirrors AZ formula).
+            var subsillTiers = _db.GetSubsillTierPrices()
+                .ToDictionary(t => t.Tier);
+            var extrusionLookup = _db.GetExtrusionMasterList()
+                .ToDictionary(m => m.Section, m => m, StringComparer.OrdinalIgnoreCase);
+
             int distributed = 0;
             int maxRowsPerPage = 40;
 
@@ -189,7 +196,21 @@ namespace QuotingTool.Services
                 if (pageBlock > pageCount) break; // safety cap
 
                 var bom = bomLines[i];
-                decimal surcharge = bom.SubsillFlag ? SubsillSurcharge : 0m;
+
+                // AZ: Slot Sell ea = SellPricePerMetre * LengthM (live from tier table)
+                // Tier 4 (Panoramic door): +150% market factor.
+                decimal surcharge = 0m;
+                if (bom.SubsillFlag
+                    && bom.LengthM > 0m
+                    && !string.IsNullOrWhiteSpace(bom.ExtrusionCode)
+                    && extrusionLookup.TryGetValue(bom.ExtrusionCode, out var em)
+                    && em.SubsillTier > 0
+                    && subsillTiers.TryGetValue(em.SubsillTier, out var tier))
+                {
+                    surcharge = tier.SellPricePerMetre * bom.LengthM;
+                    if (em.SubsillTier == 4)
+                        surcharge += surcharge * 1.5m;
+                }
 
                 _db.UpsertQuoteLine(new QuoteLine
                 {

@@ -34,9 +34,18 @@ namespace QuotingTool.Services
 
             bool isMillFinishProject = string.Equals(project.FinishType, "Mill Finish",
                 StringComparison.OrdinalIgnoreCase);
-            decimal finishingPricePerM2 = ep.FinishingPrice;
-            decimal finishingCostPerM2  = ep.FinishingCostPricePerM2 > 0m
-                ? ep.FinishingCostPricePerM2 : ep.FinishingPrice;
+            // Round SF Sell/m² and SF Cost/m² to 2 decimal places, matching Excel's
+            // AP sell rate (col AP) and cost rate (col AO) display precision.
+            decimal finishingPricePerM2 = Math.Round(ep.FinishingPrice, 2);
+            // Finishing cost rate mirrors AO column: FinishingCostPricePerM2 (B43).
+            // Do NOT fall back to the sell price (FinishingPrice) — that collapses margin to zero.
+            // Fall back to Price_B42 (POA/Other vendor cost) instead, which is the correct
+            // cost basis when B43 has not been auto-populated from the Pricing Matrix.
+            decimal finishingCostPerM2 = Math.Round(
+                ep.FinishingCostPricePerM2 > 0m
+                    ? ep.FinishingCostPricePerM2
+                    : ep.Price_B42 > 0m ? ep.Price_B42 : 0m,
+                2);
 
             // IP upcharge rates from EditPricing (mirrors 3.Edit Pricing G33/H33/I33).
             //decimal ip1Rate = ep.IP1UpchargePerKg > 0m ? ep.IP1UpchargePerKg : 1.00m;
@@ -68,8 +77,20 @@ namespace QuotingTool.Services
                 // Standalone sundry items (code exists in sundry master)
                 if (!string.IsNullOrWhiteSpace(code) && sundryMaster.TryGetValue(code, out var sundry))
                 {
-                    sundrySellTotal +=  sundry.UnitSell * line.Quantity;   // was: line.TotalPrice
+                    sundrySellTotal += sundry.UnitSell * line.Quantity;
                     sundryCostTotal += sundry.UnitCost * line.Quantity;
+
+                    // Sundry items that carry a finishing perimeter also contribute a finishing
+                    // component to $ Each (mirroring QuoteForm.CalculateFinishingEach).
+                    bool sundryIgnoreFinish = string.Equals(line.IgnoreFinish, "Yes", StringComparison.OrdinalIgnoreCase);
+                    decimal sundryPerimeterMm = sundry.Ap > 0 ? sundry.Ap : sundry.Pp;
+                    if (!isMillFinishProject && !sundryIgnoreFinish && finishingPricePerM2 > 0m
+                        && line.LengthM > 0m && sundryPerimeterMm > 0m)
+                    {
+                        decimal areaM2Each = sundryPerimeterMm / 1000m * line.LengthM;
+                        finishingSellTotal += areaM2Each * finishingPricePerM2 * line.Quantity;
+                        finishingCostTotal += areaM2Each * finishingCostPerM2  * line.Quantity;
+                    }
                     continue;
                 }
 
@@ -153,11 +174,18 @@ namespace QuotingTool.Services
             decimal slottingSundryMarginPct = slottingSundryTotal > 0m
                 ? slottingSundryMarginDollar / slottingSundryTotal * 100m : 0m;
 
-            // B65: Finishing
+            // B65: Finishing — mirrors Excel B65 = SUM(AT12:AT327)
+            // where AT (sell total per line) = AS (sell each) × G (qty)
+            //       AS = (AP perimeter mm / 1000 × length m) × AP sell rate (FinishingPrice)
+            //       AR (cost total per line) = area m² × AO cost rate (FinishingCostPricePerM2)
+            // Accumulated above in finishingSellTotal / finishingCostTotal during the per-line loop.
             decimal finishingTotal        = finishingSellTotal;
-            decimal finishingMarginDollar = finishingTotal - finishingCostTotal;
+            decimal finishingMarginDollar = finishingSellTotal - finishingCostTotal;
             decimal finishingMarginPct    = finishingTotal > 0m
                 ? finishingMarginDollar / finishingTotal * 100m : 0m;
+
+            // B66: Grand Total
+            decimal grandTotal = lines.Sum(l => l.TotalPrice);
 
             // B62: Mill Finish Metal
             decimal millFinishTotal        = nonTbSellTotal;
@@ -172,9 +200,6 @@ namespace QuotingTool.Services
             decimal thermalBreakMarginDollar = thermalBreakTotal - tbCostTotal;
             decimal thermalBreakMarginPct    = thermalBreakTotal > 0m
                 ? thermalBreakMarginDollar / thermalBreakTotal * 100m : 0m;
-
-            // B66: Grand Total
-            decimal grandTotal = lines.Sum(l => l.TotalPrice);
 
             // C66: Total margin
             decimal grandMarginDollar = millFinishMarginDollar + thermalBreakMarginDollar
