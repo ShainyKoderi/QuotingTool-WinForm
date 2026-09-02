@@ -37,9 +37,9 @@ namespace QuotingTool.Forms
         private decimal _metalPricePerKg;
         private decimal _finishingSellPricePerM2;
         // IP upcharge rates loaded from EditPricing (default to workbook constants when no project pricing exists)
-        private decimal _ip1RatePerKg = 1.00m;
-        private decimal _ip2RatePerKg = 2.00m;
-        private decimal _ip3RatePerKg = 25.85m;
+        private decimal _ip1RatePerKg ;
+        private decimal _ip2RatePerKg; 
+        private decimal _ip3RatePerKg ;
         // PH code → IP category (0-3) lookup, sourced from 5.Edit_PH_IP sheet via IPMasterData table
         private Dictionary<string, int> _ipMasterByCodes = new(StringComparer.Ordinal);
         // Section codes in the THRESHOLDS named range; used for the BF column threshold flag
@@ -268,23 +268,19 @@ namespace QuotingTool.Forms
         }
 
         /// <summary>
-        /// Col AI – IP Each = kg/m × Length (m) × IP upcharge rate ($/kg).
-        /// Rate lookup: 0 → $0, 1 → IP1UpchargePerKg, 2 → IP2UpchargePerKg, 3 → IP3PanoramicFixedKgRate.
+        /// Col AI – IP Each = Z × rate ($/kg), mirroring the Excel formula:
+        ///   =IF(AV=1, Z*G33, IF(AV=2, Z*H33, IF(AV=3, Z*I33, 0)))
+        /// Where Z (col Z) = kg each = kg/m × Length (m), and G33/H33/I33 are the
+        /// IP1/IP2/IP3 upcharge rates from '3.Edit Pricing'.
         /// </summary>
         private decimal CalculateIpEach(QuoteLine line)
         {
-            if (line.IpGrade <= 0) return 0m;
-            var massPerM = GetMassPerM(line.ExtrusionCode);
-            if (massPerM <= 0 || line.LengthM <= 0) return 0m;
-
-            var kgEach = massPerM * line.LengthM;
-            return line.IpGrade switch
-            {
-                1 => kgEach * _ip1RatePerKg,
-                2 => kgEach * _ip2RatePerKg,
-                3 => kgEach * _ip3RatePerKg,
-                _ => 0m
-            };
+            // Z32: kg each = kg/m × Length(m)
+            var kgEach = FormulaCalculationService.CalculateKgEach(
+                GetMassPerM(line.ExtrusionCode), line.LengthM);
+            // AI32: IP Each = Z32 × G33/H33/I33 based on IP grade (AV col)
+            return FormulaCalculationService.CalculateIpEach(
+                line.IpGrade, kgEach, _ip1RatePerKg, _ip2RatePerKg, _ip3RatePerKg);
         }
 
         private decimal CalculateFinishingEach(QuoteLine line)
@@ -699,14 +695,14 @@ namespace QuotingTool.Forms
         {
             var pricing = _db.GetEditPricing(_projectId);
             _metalPricePerKg = pricing?.MetalPrice ?? 0m;
-            //Changing the field to fix the SF each price - Shainy
-            //_finishingSellPricePerM2 = pricing?.Price_B44 ?? 0m;
             _finishingSellPricePerM2 = pricing?.FinishingPrice ?? 0m;
             if (pricing != null)
             {
-                _ip1RatePerKg = pricing.IP1UpchargePerKg > 0 ? pricing.IP1UpchargePerKg : 1.00m;
-                _ip2RatePerKg = pricing.IP2UpchargePerKg > 0 ? pricing.IP2UpchargePerKg : 2.00m;
-                _ip3RatePerKg = pricing.IP3PanoramicFixedKgRate > 0 ? pricing.IP3PanoramicFixedKgRate : 25.85m;
+                // Use IP margin % fields from DB; fall back to workbook constants when zero/unset.
+                _ip1RatePerKg = pricing.IP1UpchargePerKg; //> 0 ? pricing.IP1MarginPct : 1.00m;
+                _ip2RatePerKg = pricing.IP2UpchargePerKg; //> 0 ? pricing.IP2MarginPct : 2.00m;
+                _ip3RatePerKg = pricing.IP3PanoramicFixedKgRate; //> 0 ? pricing.IP3MarginPct : 25.85m;
+
                 _millFinishMarginPct = pricing.MillFinishMarginPct;
                 _finishingMarginPct = pricing.FinishingMarginPct;
                 _finishingCostPricePerM2 = pricing.FinishingCostPricePerM2 > 0
