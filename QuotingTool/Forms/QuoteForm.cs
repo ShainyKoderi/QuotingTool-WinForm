@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows.Forms;
 using QuotingTool.Data;
 using QuotingTool.Services;
+using System.Reflection;
 
 namespace QuotingTool.Forms
 {
@@ -205,19 +206,19 @@ namespace QuotingTool.Forms
             // Col V: SubsillFlag = tier > 0 (auto-filled from Table5 col K; user can still override).
             // AZ12: Slot Sell ea = VLOOKUP(V, SubSill_Tier_Price, 2) * H
             //   Tier 4 (Panoramic door): +150% market factor applied to sell price.
+            // Extra/Sundry Charge (ea) (SubsillSurcharge) is a manually entered field, so only
+            // apply the tier-based default the first time (while it is still 0) — never
+            // overwrite a value the user has already typed in.
             if (master.SubsillTier > 0)
             {
                 line.SubsillFlag = true;
-                if (line.LengthM > 0m && _subsillTiers.TryGetValue(master.SubsillTier, out var tier))
+                if (line.SubsillSurcharge == 0m && line.LengthM > 0m &&
+                    _subsillTiers.TryGetValue(master.SubsillTier, out var tier))
                 {
                     line.SubsillSurcharge = tier.SellPricePerMetre * line.LengthM;
                     if (master.SubsillTier == 4)
                         line.SubsillSurcharge += line.SubsillSurcharge * 1.5m;
                 }
-            }
-            else
-            {
-                line.SubsillSurcharge = 0m;
             }
 
             // Col AV: IP grade auto-computed from PH code via IPMasterData lookup.
@@ -294,28 +295,78 @@ namespace QuotingTool.Forms
             if (line.LengthM <= 0 || string.IsNullOrWhiteSpace(line.ExtrusionCode))
                 return 0m;
 
-            // Col AP: SF Sell $/m² — switches to the threshold sell rate (B58) when the
-            // section is in the THRESHOLDS named range (BF col = 1) and ThresholdChoice is active.
-            // Otherwise falls back to the standard finishing sell rate (FinishingPrice / B44).
+            // Determine whether this line should use Capral Mill (AP) finishing rules.
+            // Use the per-line MillPCOverride value (stored as "Yes"/"No" or bool) when present.
+            bool millPcOverride = GetLineBoolFlag(line, new[] { "MillPCOverride" });
+            bool useCapralAp = string.Equals(_projectFinishType, "Capral Mill (AP)", StringComparison.OrdinalIgnoreCase)
+                || millPcOverride;
+
+            // When not using Capral AP, choose threshold vs standard finishing sell rate as before.
             bool isThreshold = _thresholdSections.Contains(line.ExtrusionCode)
                 && !string.Equals(NormalizeThresholdChoice(_thresholdChoice), "No", StringComparison.OrdinalIgnoreCase);
-            decimal sfSellRatePerM2 = isThreshold && _thresholdSellPricePerM2 > 0m
-                ? _thresholdSellPricePerM2
-                : _finishingSellPricePerM2;
 
-            if (sfSellRatePerM2 <= 0)
-                return 0m;
+            decimal sfSellRatePerM2 = _finishingSellPricePerM2;
+            decimal sfCostPerM2 = _finishingCostPricePerM2;
+            if (!useCapralAp)
+            {
+                sfSellRatePerM2 = isThreshold && _thresholdSellPricePerM2 > 0m
+                    ? _thresholdSellPricePerM2
+                    : _finishingSellPricePerM2;
+            }
 
             decimal perimeterMm = 0m;
             if (_extrusionMasterByCode.TryGetValue(line.ExtrusionCode, out var master))
-                perimeterMm = master.ApMm > 0 ? master.ApMm : master.PpMm;
+                perimeterMm = useCapralAp ? master.ApMm : (master.ApMm > 0 ? master.ApMm : master.PpMm);
             else if (_sundryMasterByCode.TryGetValue(line.ExtrusionCode, out var sundry))
-                perimeterMm = sundry.Ap > 0 ? sundry.Ap : sundry.Pp;
+                perimeterMm = useCapralAp ? sundry.Ap : (sundry.Ap > 0 ? sundry.Ap : sundry.Pp);
 
             if (perimeterMm <= 0)
                 return 0m;
 
-            var areaM2Each = (perimeterMm / 1000m) * line.LengthM;
+            // AC: AP each (per piece) = AB(perimeter mm) × H(length m) / 1000
+            var areaM2Each = (perimeterMm * line.LengthM) / 1000m;
+            if (areaM2Each <= 0)
+                return 0m;
+
+            if (useCapralAp)
+            {
+                // AD: AP total = AC(area each) × G(quantity). The Bulk/Non-bulk/Minfin band
+                // (col U) is classified from the TOTAL area, not the per-piece area.
+                var areaM2Total = areaM2Each * line.Quantity;
+                string band = areaM2Total < 0m ? "Minfin" : (areaM2Total < 80m ? "Non-bulk" : "Bulk");
+
+                var pricing = _db.GetEditPricing(_projectId);
+                string[] sellCandidates;
+                string[] costCandidates;
+                if (band == "Bulk")
+                {
+                    // 3.Edit Pricing B50 = Mill BULK Sell Price $/m², B49 = Mill BULK Cost Price $/m² (auto)
+                    sellCandidates = new[] { "Price_B50", "CapralApSellPrice_Bulk", "Price_AP_Bulk", "AP_Sell_Bulk", "APBulkSellPrice", "APBulkSell", "APSellPrice_Bulk" };
+                    costCandidates = new[] { "Price_B49", "CapralApCostPrice_Bulk", "Cost_AP_Bulk", "AP_Cost_Bulk", "APBulkCostPrice", "APBulkCost" };
+                }
+                else if (band == "Non-bulk")
+                {
+                    // 3.Edit Pricing B54 = Mill NON-Bulk Sell Price $/m², B53 = Mill NON-Bulk Cost Price $/m² (auto)
+                    sellCandidates = new[] { "Price_B54", "CapralApSellPrice_NonBulk", "Price_AP_NonBulk", "AP_Sell_NonBulk", "APNonBulkSellPrice", "APNonBulkSell", "APSellPrice_NonBulk" };
+                    costCandidates = new[] { "Price_B53", "CapralApCostPrice_NonBulk", "Cost_AP_NonBulk", "AP_Cost_NonBulk", "APNonBulkCostPrice", "APNonBulkCost" };
+                }
+                else
+                {
+                    // No dedicated Minfin rate exists in EditPricing; fall back to the anodised
+                    // threshold sell/cost price ($/m²) as the closest equivalent.
+                    sellCandidates = new[] { "Price_B58", "CapralApSellPrice_Minfin", "Price_AP_Minfin", "AP_Sell_Minfin", "APMinfinSellPrice" };
+                    costCandidates = new[] { "AnodisedThresholdCostPerM2", "CapralApCostPrice_Minfin", "Cost_AP_Minfin", "AP_Cost_Minfin", "APMinfinCostPrice" };
+                }
+
+                if (!TryGetDecimalFromObject(pricing, sellCandidates, out var foundSell) || foundSell <= 0m)
+                    foundSell = _finishingSellPricePerM2;
+                if (!TryGetDecimalFromObject(pricing, costCandidates, out var foundCost) || foundCost <= 0m)
+                    foundCost = _finishingCostPricePerM2;
+
+                sfSellRatePerM2 = foundSell;
+                sfCostPerM2 = foundCost;
+            }
+
             return areaM2Each * sfSellRatePerM2;
         }
 
@@ -328,6 +379,61 @@ namespace QuotingTool.Forms
             if (_sundryMasterByCode.TryGetValue(sectionCode, out var sundry))
                 return sundry.MassKgPerM;
             return 0m;
+        }
+
+        // Helper: reads a boolean-like flag from the QuoteLine by several candidate property names.
+        private bool GetLineBoolFlag(QuoteLine line, string[] candidateNames)
+        {
+            if (line == null) return false;
+            var t = line.GetType();
+            foreach (var name in candidateNames)
+            {
+                var prop = t.GetProperty(name, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                if (prop == null) continue;
+                var val = prop.GetValue(line);
+                if (val == null) continue;
+                if (val is bool b) return b;
+                var s = val.ToString();
+                if (string.Equals(s, "Yes", StringComparison.OrdinalIgnoreCase) || string.Equals(s, "Y", StringComparison.OrdinalIgnoreCase) || s == "1")
+                    return true;
+            }
+            return false;
+        }
+
+        // Helper: tries to extract a decimal-valued property from an object using a list of candidate property names.
+        private bool TryGetDecimalFromObject(object? obj, string[] candidateNames, out decimal value)
+        {
+            value = 0m;
+            if (obj == null) return false;
+            var t = obj.GetType();
+            foreach (var name in candidateNames)
+            {
+                var prop = t.GetProperty(name, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                if (prop == null) continue;
+                var val = prop.GetValue(obj);
+                if (val == null) continue;
+                switch (val)
+                {
+                    case decimal d:
+                        value = d; return true;
+                    case double db:
+                        value = (decimal)db; return true;
+                    case float f:
+                        value = (decimal)f; return true;
+                    case int i:
+                        value = i; return true;
+                    case long l:
+                        value = l; return true;
+                    default:
+                        if (decimal.TryParse(val.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed) ||
+                            decimal.TryParse(val.ToString(), NumberStyles.Any, CultureInfo.CurrentCulture, out parsed))
+                        {
+                            value = parsed; return true;
+                        }
+                        break;
+                }
+            }
+            return false;
         }
 
         private void ConfigureGridColumns()
@@ -356,8 +462,43 @@ namespace QuotingTool.Forms
                 SetColHeader("Price", "$ Each", PriceColumnWidth, false);
                 SetColHeader("TotalPrice", "$ Total", TotalColumnWidth, false);
                 SetColHeader("SellPrice", "Sell Price", 90, true);
-                SetColHeader("SubsillSurcharge", "Slotting (K)", 90, false);
+                SetColHeader("SubsillSurcharge", "Extra/Sundry Charge (ea)", 150, false);
                 SetColHeader("IgnoreFinish", "Ign Fin", 80, false);
+                // New manual control to force Capral Mill AP finishing on a row
+                SetColHeader("MillPCOverride", "Mill PC Over-ride", 110, false);
+                // Ensure MillPCOverride is presented as a Yes/No dropdown bound to the boolean model property.
+                if (gridQuote.Columns.Contains("MillPCOverride"))
+                {
+                    var existing = gridQuote.Columns["MillPCOverride"];
+                    if (existing is not DataGridViewComboBoxColumn)
+                    {
+                        int displayIdx = existing.DisplayIndex;
+                        int colIndex = existing.Index;
+                        var combo = new DataGridViewComboBoxColumn
+                        {
+                            DataPropertyName = "MillPCOverride",
+                            Name = "MillPCOverride",
+                            HeaderText = existing.HeaderText,
+                            Width = existing.Width,
+                            ValueType = typeof(string),
+                            FlatStyle = FlatStyle.Flat
+                        };
+                        // Use a small DataTable as the data source so we can show "Yes"/"No" while binding to string values.
+                        var dt = new System.Data.DataTable();
+                        dt.Columns.Add("Value", typeof(string));
+                        dt.Columns.Add("Text", typeof(string));
+                        dt.Rows.Add("Yes", "Yes");
+                        dt.Rows.Add("No", "No");
+                        combo.DataSource = dt;
+                        combo.ValueMember = "Value";
+                        combo.DisplayMember = "Text";
+
+                        // Preserve display index when replacing column
+                        gridQuote.Columns.RemoveAt(colIndex);
+                        gridQuote.Columns.Add(combo);
+                        combo.DisplayIndex = displayIdx;
+                    }
+                }
                 SetColHeader("SapColourCode", "SAP Code", 90, false);
                 SetColHeader("SubsillFlag", "SS?", 60, false);
                 HideCol("Id");
@@ -378,7 +519,7 @@ namespace QuotingTool.Forms
                 SetColFormat("SubsillSurcharge", "0.0000", DataGridViewContentAlignment.MiddleRight);
 
                 if (gridQuote.Columns.Contains("Price"))
-                    gridQuote.Columns["Price"].ToolTipText = "$ Each = MF Each + IP Each + SF Sell Each + Slotting/Sundry";
+                    gridQuote.Columns["Price"].ToolTipText = "$ Each = MF Each + IP Each + SF Sell Each + Extra/Sundry Charge (ea)";
                 if (gridQuote.Columns.Contains("TotalPrice"))
                     gridQuote.Columns["TotalPrice"].ToolTipText = "$ Total = $ Each × Qty";
 
@@ -388,6 +529,36 @@ namespace QuotingTool.Forms
                     column.DefaultCellStyle.BackColor = column.ReadOnly
                         ? System.Drawing.Color.FromArgb(240, 240, 240)
                         : System.Drawing.Color.White;
+                }
+
+                // Reorder columns to match the numbered layout (left-to-right positions):
+                // 1=LineNumber, 2=ExtrusionCode, 3=Description, 4=Alloy, 5=Temper,
+                // 6=Price, 7=Quantity, 8=LengthM, 9=TotalPrice, 10=SubsillSurcharge,
+                // 11=SapColourCode, 12=SubsillFlag, 13=IgnoreFinish, 14=MillPCOverride, 15=ManualPriceOverride, 16=PageBlock
+                var displayOrder = new Dictionary<string, int>
+                {
+                    {"LineNumber", 0},      // 1
+                    {"ExtrusionCode", 1},   // 2
+                    {"Description", 2},     // 3
+                    {"Alloy", 3},           // 4
+                    {"Temper", 4},          // 5
+                    {"Price", 5},           // 6
+                    {"Quantity", 6},        // 7
+                    {"LengthM", 7},         // 8
+                    {"TotalPrice", 8},      // 9
+                    {"SubsillSurcharge", 9},//10
+                    {"SapColourCode", 10},  //11
+                    {"SubsillFlag", 11},    //12
+                    {"IgnoreFinish", 12},   //13
+                    {"MillPCOverride",13},  //14
+                    {"ManualPriceOverride",14},//15
+                    {"PageBlock",15}        //16
+                };
+
+                foreach (var kv in displayOrder)
+                {
+                    if (gridQuote.Columns.Contains(kv.Key))
+                        gridQuote.Columns[kv.Key].DisplayIndex = kv.Value;
                 }
             };
         }
@@ -656,9 +827,21 @@ namespace QuotingTool.Forms
 
             line.LineNumber = line.LineNumber <= 0 ? e.RowIndex + 1 : line.LineNumber;
 
-            // Always re-run the section lookup so Description/Alloy/Temper/IpGrade/SubsillFlag stay
-            // in sync regardless of which column was just edited (Section, Qty, Length, IgnoreFinish, etc.).
-            ApplySectionLookup(line);
+            // Extra/Sundry Charge (ea) (SubsillSurcharge) is a manually entered field.
+            // ApplySectionLookup re-derives it from the section's subsill tier data (or resets
+            // it to 0 when there's no tier), which would immediately overwrite whatever the
+            // user just typed. Skip the section lookup when this is the column being edited —
+            // the Section itself hasn't changed, so Description/Alloy/Temper/IpGrade/SubsillFlag
+            // don't need to be re-derived anyway.
+            var editedColumnName = e.ColumnIndex >= 0 && e.ColumnIndex < gridQuote.Columns.Count
+                ? gridQuote.Columns[e.ColumnIndex].DataPropertyName
+                : null;
+            if (!string.Equals(editedColumnName, nameof(QuoteLine.SubsillSurcharge), StringComparison.Ordinal))
+            {
+                // Always re-run the section lookup so Description/Alloy/Temper/IpGrade/SubsillFlag stay
+                // in sync regardless of which column was just edited (Section, Qty, Length, IgnoreFinish, etc.).
+                ApplySectionLookup(line);
+            }
             RecalculatePrice(line);
 
             // Push computed values back into the grid cells, suppressing re-entrant events.
@@ -796,7 +979,7 @@ namespace QuotingTool.Forms
                 $"Mill finish each: {millFinishEach:0.0000}{Environment.NewLine}" +
                 $"IP each: {ipEach:0.0000}{Environment.NewLine}" +
                 $"SF each: {sfEach:0.0000}{Environment.NewLine}" +
-                $"Slotting / sundry: {line.SubsillSurcharge:0.0000}{Environment.NewLine}" +
+                $"Extra/Sundry Charge (ea): {line.SubsillSurcharge:0.0000}{Environment.NewLine}" +
                 $"Override: {overrideText}{Environment.NewLine}" +
                 $"Final $ each: {line.Price:0.0000}{Environment.NewLine}" +
                 $"Line total: {line.TotalPrice:0.0000}{Environment.NewLine}" +
@@ -827,7 +1010,7 @@ namespace QuotingTool.Forms
                 var sfEach = CalculateFinishingEach(line);
                 var sundryEach = line.SubsillSurcharge;
                 e.ToolTipText =
-                    $"$ Each = MF + IP + SF + Slotting/Sundry{Environment.NewLine}" +
+                    $"$ Each = MF + IP + SF + Extra/Sundry Charge (ea){Environment.NewLine}" +
                     $"= {mfEach:0.0000} + {ipEach:0.0000} + {sfEach:0.0000} + {sundryEach:0.0000}{Environment.NewLine}" +
                     $"= {line.Price:0.0000}";
             }

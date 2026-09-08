@@ -33,8 +33,13 @@ namespace QuotingTool.Data
         public string ThresholdChoice { get; set; } = "No";            // named range: Threshold_Choice (E33)
         public bool GenerateMillFinishAlternative { get; set; }
         public bool GenerateMfAlt { get; set; } = false;               // named range: MF_ALT (E24)
-        public decimal DeliveryCharge { get; set; } = 97m;
         public decimal CustomerSapDiscount { get; set; }
+        // Links this project to a specific snapshot of the global Pricing Matrix constants
+        // (PricingConstants.Id). New projects are assigned the latest constants at creation
+        // time. Existing projects keep whatever snapshot they were assigned and are NOT
+        // automatically updated when the constants change – the user must explicitly click
+        // "Recalculate All" on the Edit Pricing tab to re-link the project to the latest constants.
+        public int? PricingConstantsId { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
@@ -63,6 +68,9 @@ namespace QuotingTool.Data
         //   IF(L="No", SAP_Colour_Code, "NON")))
         public string SapColourCode { get; set; } = string.Empty;   // col M
         public string IgnoreFinish { get; set; } = "No";            // col L
+        // Manual per-row override to force Capral Mill (AP) finishing on this line.
+        // Stored as a Yes/No string to match legacy database values. "Yes" = override, "No" = no override.
+        public string MillPCOverride { get; set; } = "No";          // new column (Yes/No)
         public string Alloy { get; set; } = string.Empty;           // col E (auto)
         public string Temper { get; set; } = string.Empty;          // col F (auto)
         public decimal TotalPrice { get; set; }

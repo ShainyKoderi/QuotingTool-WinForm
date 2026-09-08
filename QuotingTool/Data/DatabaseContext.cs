@@ -15,8 +15,6 @@ namespace QuotingTool.Data
     /// </summary>
     public class DatabaseContext
     {
-        private const decimal DefaultDeliveryCharge = 97m;
-
         private readonly string _connectionString;
 
         public DatabaseContext()
@@ -52,9 +50,6 @@ namespace QuotingTool.Data
             project.LocalLogo = string.IsNullOrWhiteSpace(project.LocalLogo) ? project.AddLocAlLogos : project.LocalLogo;
             project.GenerateMillFinishAlternative = project.GenerateMillFinishAlternative || project.GenerateMfAlt;
             project.GenerateMfAlt = project.GenerateMfAlt || project.GenerateMillFinishAlternative;
-
-            if (isNew && project.DeliveryCharge == 0m)
-                project.DeliveryCharge = DefaultDeliveryCharge;
         }
 
         private static void NormalizeQuoteLine(QuoteLine line)
@@ -91,6 +86,8 @@ namespace QuotingTool.Data
             using var conn = GetConnection();
             conn.Open();
             EnsureSundryItemColumns(conn);
+            EnsureQuoteLineColumns(conn);
+            EnsureProjectColumns(conn);
             // Split by GO statements if present
             foreach (var batch in sql.Split(new[] { "\nGO\n", "\nGO\r\n" }, StringSplitOptions.RemoveEmptyEntries))
             {
@@ -193,6 +190,41 @@ IF EXISTS (SELECT 1 FROM sys.tables WHERE name='SundryItems')
 BEGIN
     IF COL_LENGTH('SundryItems','UnitCost') IS NULL ALTER TABLE SundryItems ADD UnitCost DECIMAL(18,4) DEFAULT 0;
     IF COL_LENGTH('SundryItems','UnitSell') IS NULL ALTER TABLE SundryItems ADD UnitSell DECIMAL(18,4) DEFAULT 0;
+END");
+        }
+
+        private static void EnsureQuoteLineColumns(SqlConnection conn)
+        {
+            conn.Execute(@"
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name='QuoteLines')
+BEGIN
+    IF COL_LENGTH('QuoteLines','MillPCOverride') IS NULL ALTER TABLE QuoteLines ADD MillPCOverride BIT NOT NULL DEFAULT 0;
+END");
+        }
+
+        private static void EnsureProjectColumns(SqlConnection conn)
+        {
+            conn.Execute(@"
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name='Projects')
+BEGIN
+    IF COL_LENGTH('Projects','DeliveryCharge') IS NOT NULL
+        ALTER TABLE Projects DROP COLUMN DeliveryCharge;
+    IF COL_LENGTH('Projects','PricingConstantsId') IS NULL
+        ALTER TABLE Projects ADD PricingConstantsId INT NULL;
+END");
+
+            // One-time freeze: any existing project that has never been linked to a
+            // Pricing Matrix constants snapshot is pinned to whichever snapshot is
+            // currently the latest. This preserves current behaviour for existing quotes
+            // while ensuring future changes to PricingConstants do NOT silently affect
+            // them – the user must click "Recalculate All" to re-link to newer constants.
+            conn.Execute(@"
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name='Projects') AND EXISTS (SELECT 1 FROM sys.tables WHERE name='PricingConstants')
+BEGIN
+    UPDATE Projects
+    SET PricingConstantsId = (SELECT TOP 1 Id FROM PricingConstants ORDER BY EffectiveDate DESC, Id DESC)
+    WHERE PricingConstantsId IS NULL
+      AND EXISTS (SELECT 1 FROM PricingConstants);
 END");
         }
 
@@ -308,20 +340,26 @@ WHEN NOT MATCHED THEN
         {
             NormalizeProject(p, isNew: true);
             using var conn = GetConnection();
+            // New projects always start pinned to the latest Pricing Matrix constants snapshot.
+            if (p.PricingConstantsId == null)
+            {
+                p.PricingConstantsId = conn.QueryFirstOrDefault<int?>(
+                    "SELECT TOP 1 Id FROM PricingConstants ORDER BY EffectiveDate DESC, Id DESC");
+            }
             return conn.ExecuteScalar<int>(
                 @"INSERT INTO Projects (CustomerName, ProjectName, RevisionDate, LMERate, BilletPremium,
                   Region, QuotedBy, AccountManager, Attention, AttentionTo, QuoteValidity,
                   MarketSegment, ProductSegment, ProjectNotes, AddLocAlLogos, LocalLogo,
                   FinishType, FinishApplicator, FinishGroup, FinishName, FinishCustomName,
                   FinishSapCode, ThresholdChoice, GenerateMfAlt, GenerateMillFinishAlternative,
-                  DeliveryCharge, CustomerSapDiscount)
+                  CustomerSapDiscount, PricingConstantsId)
                   OUTPUT INSERTED.Id
                   VALUES (@CustomerName, @ProjectName, @RevisionDate, @LMERate, @BilletPremium,
                   @Region, @QuotedBy, @AccountManager, @Attention, @AttentionTo, @QuoteValidity,
                   @MarketSegment, @ProductSegment, @ProjectNotes, @AddLocAlLogos, @LocalLogo,
                   @FinishType, @FinishApplicator, @FinishGroup, @FinishName, @FinishCustomName,
                   @FinishSapCode, @ThresholdChoice, @GenerateMfAlt, @GenerateMillFinishAlternative,
-                  @DeliveryCharge, @CustomerSapDiscount)", p);
+                  @CustomerSapDiscount, @PricingConstantsId)", p);
         }
 
         public Project? GetProject(int id)
@@ -355,7 +393,7 @@ WHEN NOT MATCHED THEN
                   FinishName=@FinishName, FinishCustomName=@FinishCustomName,
                   FinishSapCode=@FinishSapCode, ThresholdChoice=@ThresholdChoice,
                   GenerateMfAlt=@GenerateMfAlt, GenerateMillFinishAlternative=@GenerateMillFinishAlternative,
-                  DeliveryCharge=@DeliveryCharge, CustomerSapDiscount=@CustomerSapDiscount,
+                  CustomerSapDiscount=@CustomerSapDiscount, PricingConstantsId=@PricingConstantsId,
                   UpdatedAt=@UpdatedAt WHERE Id=@Id", p);
         }
 
@@ -396,7 +434,6 @@ WHEN NOT MATCHED THEN
                 ThresholdChoice = source.ThresholdChoice,
                 GenerateMillFinishAlternative = false,
                 GenerateMfAlt = false,
-                DeliveryCharge = source.DeliveryCharge,
                 CustomerSapDiscount = source.CustomerSapDiscount
             };
 
@@ -464,16 +501,17 @@ WHEN NOT MATCHED THEN
                       SapColourCode=@SapColourCode, IgnoreFinish=@IgnoreFinish,
                       Alloy=@Alloy, Temper=@Temper, TotalPrice=@TotalPrice, LineNumber=@LineNumber,
                       ManualPriceOverride=@ManualPriceOverride,
-                      IpGrade=@IpGrade
+                      IpGrade=@IpGrade,
+                      MillPCOverride=@MillPCOverride
                       WHERE ProjectId=@ProjectId AND PageBlock=@PageBlock AND RowInBlock=@RowInBlock", line);
             else
                 conn.Execute(
                     @"INSERT INTO QuoteLines (ProjectId,PageBlock,RowInBlock,ExtrusionCode,Description,
                       Quantity,LengthM,Price,SellPrice,SubsillFlag,SubsillSurcharge,
-                      SapColourCode,IgnoreFinish,Alloy,Temper,TotalPrice,LineNumber,ManualPriceOverride,IpGrade)
+                      SapColourCode,IgnoreFinish,Alloy,Temper,TotalPrice,LineNumber,ManualPriceOverride,IpGrade,MillPCOverride)
                       VALUES (@ProjectId,@PageBlock,@RowInBlock,@ExtrusionCode,@Description,
                       @Quantity,@LengthM,@Price,@SellPrice,@SubsillFlag,@SubsillSurcharge,
-                      @SapColourCode,@IgnoreFinish,@Alloy,@Temper,@TotalPrice,@LineNumber,@ManualPriceOverride,@IpGrade)", line);
+                      @SapColourCode,@IgnoreFinish,@Alloy,@Temper,@TotalPrice,@LineNumber,@ManualPriceOverride,@IpGrade,@MillPCOverride)", line);
         }
 
         public void DeleteQuoteLines(int projectId)
@@ -1074,6 +1112,26 @@ WHEN NOT MATCHED THEN
             using var conn = GetConnection();
             return conn.QueryFirstOrDefault<PricingConstants>(
                 "SELECT TOP 1 * FROM PricingConstants ORDER BY EffectiveDate DESC, Id DESC");
+        }
+
+        public PricingConstants? GetPricingConstantsById(int id)
+        {
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<PricingConstants>(
+                "SELECT * FROM PricingConstants WHERE Id=@id", new { id });
+        }
+
+        /// <summary>
+        /// Re-links a project to the latest Pricing Matrix constants snapshot.
+        /// Called only when the user explicitly clicks "Recalculate All" on the
+        /// Edit Pricing tab – projects are never auto-updated to newer constants.
+        /// </summary>
+        public void UpdateProjectPricingConstants(int projectId, int pricingConstantsId)
+        {
+            using var conn = GetConnection();
+            conn.Execute(
+                "UPDATE Projects SET PricingConstantsId=@pricingConstantsId WHERE Id=@projectId",
+                new { projectId, pricingConstantsId });
         }
 
         public void InsertPricingConstants(PricingConstants pc)

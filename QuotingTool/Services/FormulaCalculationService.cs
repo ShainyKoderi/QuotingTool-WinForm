@@ -240,6 +240,24 @@ namespace QuotingTool.Services
             };
 
         /// <summary>
+        /// Looks up the Pricing Matrix constants snapshot pinned to the given project
+        /// (Project.PricingConstantsId). Existing projects keep whatever snapshot they were
+        /// assigned when created (or when the user last clicked "Recalculate All") and are
+        /// NOT automatically updated when new global constants are seeded. Falls back to the
+        /// latest constants (or workbook defaults) if the project has no snapshot pinned yet.
+        /// </summary>
+        public PricingConstants GetPricingConstantsForProject(Project? project)
+        {
+            if (project?.PricingConstantsId is int id)
+            {
+                var pinned = _db.GetPricingConstantsById(id);
+                if (pinned != null)
+                    return pinned;
+            }
+            return GetPricingConstants();
+        }
+
+        /// <summary>
         /// Metal sell price lookup by total kg via Table_Metal_BP (Pricing Matrix rows 7-13).
         /// Returns the typical sell price for the given breakpoint.
         /// Original Excel in 3.Edit Pricing: =IFERROR(VLOOKUP(B27, Table_Metal_BP[], 3), "")
@@ -251,8 +269,8 @@ namespace QuotingTool.Services
             return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.TypicalPrice);
         }
 
-        public decimal LookupMetalMinPrice(decimal totalKg)
-        {
+      public decimal LookupMetalMinPrice(decimal totalKg)
+          {
             var breakpoints = _db.GetMetalBreakpoints().OrderBy(b => b.BreakpointKg).ToList();
             return VlookupLessOrEqual(totalKg, breakpoints, b => b.BreakpointKg, b => b.MinPrice);
         }

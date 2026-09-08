@@ -296,7 +296,6 @@ IF COL_LENGTH('Projects','FinishGroup') IS NULL ALTER TABLE Projects ADD FinishG
 IF COL_LENGTH('Projects','FinishSapCode') IS NULL ALTER TABLE Projects ADD FinishSapCode NVARCHAR(50);
 IF COL_LENGTH('Projects','FinishName') IS NULL ALTER TABLE Projects ADD FinishName NVARCHAR(200);
 IF COL_LENGTH('Projects','GenerateMillFinishAlternative') IS NULL ALTER TABLE Projects ADD GenerateMillFinishAlternative BIT DEFAULT 0;
-IF COL_LENGTH('Projects','DeliveryCharge') IS NULL ALTER TABLE Projects ADD DeliveryCharge DECIMAL(18,4) DEFAULT 97.00;
 IF COL_LENGTH('Projects','CustomerSapDiscount') IS NULL ALTER TABLE Projects ADD CustomerSapDiscount DECIMAL(18,4) DEFAULT 0;
 
 -- Add missing columns to QuoteLines

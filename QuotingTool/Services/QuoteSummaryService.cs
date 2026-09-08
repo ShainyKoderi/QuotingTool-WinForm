@@ -9,7 +9,7 @@ namespace QuotingTool.Services
     {
         // Fallback cost ratio used only when no kg/cost data is available
         // (e.g. sections not yet seeded in ExtrusionMaster).
-        private const decimal MillFinishCostRatioFallback = 0.87m;
+      //  private const decimal MillFinishCostRatioFallback = 0.87m;
 
         private readonly DatabaseContext _db;
         public QuoteSummaryService(DatabaseContext db) => _db = db;
@@ -21,7 +21,12 @@ namespace QuotingTool.Services
             var project = _db.GetProject(projectId) ?? new Project();
 
             // Metal cost per kg: Pricing Matrix B5 = LME + Billet + Spread.
-            var constants = _db.GetLatestPricingConstants()
+            // Existing projects: use the pricing constants snapshot they were linked to.
+            // New projects (no PricingConstantsId assigned yet): use the latest constants.
+            var constants = (project.Id > 0 && project.PricingConstantsId.HasValue
+                    ? _db.GetPricingConstantsById(project.PricingConstantsId.Value)
+                    : null)
+                ?? _db.GetLatestPricingConstants()
                 ?? new PricingConstants { MetalCostPerKg = 8.73m, InternalSpread = 3.12m };
             decimal metalCostPerKg = constants.MetalCostPerKg;
 
@@ -199,23 +204,65 @@ namespace QuotingTool.Services
             //       AS = (AP perimeter mm / 1000 × length m) × AP sell rate (FinishingPrice)
             //       AR (cost total per line) = area m² × AO cost rate (FinishingCostPricePerM2)
             // Accumulated above in finishingSellTotal / finishingCostTotal during the per-line loop.
-            decimal finishingTotal        = finishingSellTotal;
+
+            //decimal finishingTotal        = finishingSellTotal;
+            //decimal finishingMarginDollar = finishingSellTotal - finishingCostTotal;
+            //decimal finishingMarginPct    = finishingTotal > 0m
+            //    ? finishingMarginDollar / finishingTotal * 100m : 0m;
+
+            //decimal millFinishTotal = nonTbSellTotal;
+            //decimal millFinishCost = nonTbCostTotal > 0m ? nonTbCostTotal
+            //    : millFinishTotal * MillFinishCostRatioFallback;
+            //decimal millFinishMarginDollar = millFinishTotal - millFinishCost;
+            //decimal millFinishMarginPct = millFinishTotal > 0m
+            //    ? millFinishMarginDollar / millFinishTotal * 100m : 0m;
+
+
+
+
+            //// B62: Mill Finish Metal
+            //decimal millFinishTotal        = nonTbSellTotal;
+            //decimal millFinishCost         = nonTbCostTotal > 0m ? nonTbCostTotal
+            //    : millFinishTotal * MillFinishCostRatioFallback;
+            //decimal millFinishMarginDollar = millFinishTotal - millFinishCost;
+            //decimal millFinishMarginPct    = millFinishTotal > 0m
+            //    ? millFinishMarginDollar / millFinishTotal * 100m : 0m;
+
+            //// B63: Thermal Break Metal
+            //decimal thermalBreakTotal        = tbSellTotal;
+            //decimal thermalBreakMarginDollar = thermalBreakTotal - tbCostTotal;
+            //decimal thermalBreakMarginPct    = thermalBreakTotal > 0m
+            //    ? thermalBreakMarginDollar / thermalBreakTotal * 100m : 0m;
+
+            //// B66: Grand Total = sum of the four computed category totals so the
+            //// Total row always reconciles with the rows displayed above it.
+            //decimal grandTotal = millFinishTotal + thermalBreakTotal + slottingSundryTotal + finishingTotal;
+
+            //// C66: Total margin
+            //decimal grandMarginDollar = millFinishMarginDollar + thermalBreakMarginDollar
+            //    + slottingSundryMarginDollar + finishingMarginDollar;
+            //decimal grandMarginPct = grandTotal > 0m
+            //    ? grandMarginDollar / grandTotal * 100m : 0m;
+
+
+            decimal finishingTotal = finishingSellTotal;
             decimal finishingMarginDollar = finishingSellTotal - finishingCostTotal;
-            decimal finishingMarginPct    = finishingTotal > 0m
+            decimal finishingMarginPct = finishingTotal > 0m
                 ? finishingMarginDollar / finishingTotal * 100m : 0m;
 
             // B62: Mill Finish Metal
-            decimal millFinishTotal        = nonTbSellTotal;
-            decimal millFinishCost         = nonTbCostTotal > 0m ? nonTbCostTotal
-                : millFinishTotal * MillFinishCostRatioFallback;
+            // Mirrors Excel 2.Quote!AN328 = SUMIF(P="No", AN) — an exact sum of each
+            // line's (sell - cost) margin, with no approximated cost ratio fallback.
+           decimal millFinishTotal = nonTbSellTotal;
+            decimal millFinishCost = nonTbCostTotal;
             decimal millFinishMarginDollar = millFinishTotal - millFinishCost;
-            decimal millFinishMarginPct    = millFinishTotal > 0m
+            decimal millFinishMarginPct = millFinishTotal > 0m
                 ? millFinishMarginDollar / millFinishTotal * 100m : 0m;
 
             // B63: Thermal Break Metal
-            decimal thermalBreakTotal        = tbSellTotal;
+            decimal thermalBreakTotal = tbSellTotal;
             decimal thermalBreakMarginDollar = thermalBreakTotal - tbCostTotal;
-            decimal thermalBreakMarginPct    = thermalBreakTotal > 0m
+            decimal thermalBreakMarginPct = thermalBreakTotal > 0m
                 ? thermalBreakMarginDollar / thermalBreakTotal * 100m : 0m;
 
             // B66: Grand Total = sum of the four computed category totals so the

@@ -14,6 +14,7 @@ namespace QuotingTool.Forms
         private int _projectId;
         private Project? _project;
         private decimal _projectPrice;
+        private decimal _deliveryCharge;
 
         private const string LetterBodyText =
             "We have pleasure in supplying our quotation for Capral Architectural Glazing Systems " +
@@ -44,6 +45,7 @@ namespace QuotingTool.Forms
             _project = _db.GetProject(projectId);
             var lines = _db.GetQuoteLines(projectId).ToList();
             _projectPrice = lines.Sum(l => l.TotalPrice);
+            _deliveryCharge = (_db.GetLatestPricingConstants() ?? new PricingConstants()).StandardDeliveryCharge;
             UpdatePreview();
         }
 
@@ -112,7 +114,7 @@ namespace QuotingTool.Forms
 
             lblColourValue.Text = QuotePdfService.GetFinishDisplay(_project);
             lblProjectPriceValue.Text = _projectPrice.ToString("C2");
-            lblDeliveryValue.Text = $"${_project.DeliveryCharge:N2} (standard delivery charge)";
+            lblDeliveryValue.Text = $"${_deliveryCharge:N2} (standard delivery charge)";
             lblFooterLeft.Text = "All prices exclude GST";
             lblFooterRight.Text = $"Quote valid for {(_project.QuoteValidity ?? "30 days")}";
             lblAccountManager.Text = QuotePdfService.GetQuotedByDisplay(_project);

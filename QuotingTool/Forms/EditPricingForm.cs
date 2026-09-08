@@ -78,6 +78,23 @@ namespace QuotingTool.Forms
             if (cmbPowderPricedAs.SelectedIndex < 0) cmbPowderPricedAs.SelectedIndex = 0;
             if (cmbCostType.SelectedIndex < 0) cmbCostType.SelectedIndex = 0;
             if (cmbTBCalcType.SelectedIndex < 0) cmbTBCalcType.SelectedIndex = 0;
+
+            // Pricing constants (global LME/spread/delivery rates) are only editable by administrators.
+            btnEditPricingConstants.Visible = UserSession.IsAdministrator;
+        }
+
+        private void btnEditPricingConstants_Click(object sender, EventArgs e)
+        {
+            if (!UserSession.IsAdministrator)
+            {
+                MessageBox.Show("Only administrators can edit pricing constants.", "Access denied",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using var form = new PricingConstantsForm(_db);
+            if (form.ShowDialog(this) == DialogResult.OK)
+                UpdateDerivedFields(saveChanges: false);
         }
 
         public void LoadProject(int projectId)
@@ -111,7 +128,7 @@ namespace QuotingTool.Forms
 
             // ── Mill Finish / IP Upcharges ────────────────────────────────────
             txtCustomerSapDiscount.Text = project.CustomerSapDiscount.ToString("F2");
-            txtDeliveryCharge.Text = project.DeliveryCharge.ToString("F2");
+            //txtDeliveryCharge.Text = project.DeliveryCharge.ToString("F2");
             txtMetalPrice.Text = ep.MetalPrice.ToString("F4");
             txtIP1Upcharge.Text = ep.IP1UpchargePerKg.ToString("F2");
             txtIP2Upcharge.Text = ep.IP2UpchargePerKg.ToString("F2");
@@ -203,7 +220,24 @@ namespace QuotingTool.Forms
 
 
 
-        private void btnRecalculateAll_Click(object sender, EventArgs e) => UpdateDerivedFields(saveChanges: true);
+        private void btnRecalculateAll_Click(object sender, EventArgs e)
+        {
+            if (_projectId <= 0) return;
+
+            var answer = MessageBox.Show(
+                "Recalculate All will re-link this project to the LATEST Pricing Matrix constants\n" +
+                "(LME/billet premium, spreads, ALF cost, delivery charge, AP/PP factor) and refresh\n" +
+                "all derived margins/totals.\n\nContinue?",
+                "Recalculate All", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (answer != DialogResult.Yes)
+                return;
+
+            var latest = _db.GetLatestPricingConstants();
+            if (latest != null)
+                _db.UpdateProjectPricingConstants(_projectId, latest.Id);
+
+            UpdateDerivedFields(saveChanges: true);
+        }
 
         private void btnRefreshSummary_Click(object sender, EventArgs e)
         {
@@ -286,7 +320,6 @@ namespace QuotingTool.Forms
             txtB53.Text = ep.Price_B53.ToString("F4");
 
             project.CustomerSapDiscount = ParseDecimal(txtCustomerSapDiscount.Text);
-            project.DeliveryCharge = ParseDecimal(txtDeliveryCharge.Text, 97m);
 
             // ── Computed totals (Quantities section) ──────────────────────────
             // Compute total kg accurately using the kg/m value from ExtrusionMaster
@@ -328,7 +361,7 @@ namespace QuotingTool.Forms
             ep.TotalPieces = (int)Math.Round(lines.Sum(l => l.Quantity), MidpointRounding.AwayFromZero);
 
             // ── Margin calculations ───────────────────────────────────────────
-            var pricingConstants = _formulaSvc.GetPricingConstants();
+            var pricingConstants = _formulaSvc.GetPricingConstantsForProject(project);
 
             // Metal cost per kg (Pricing Matrix B5 = LME + Billet + Spread).
             // Excel uses the single global monthly rate for all Edit Pricing margins.

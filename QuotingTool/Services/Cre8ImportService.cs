@@ -80,18 +80,16 @@ namespace QuotingTool.Services
                 "Finish SAP Code", "FinishSapCode", "SAP Code", "SAPCode", "Colour Code", "ColourCode");
             Apply(result, csv, headerLookup, 14, project, nameof(Project.ThresholdChoice), value => project.ThresholdChoice = value,
                 "Threshold Choice", "ThresholdChoice", "Threshold");
-            Apply(result, csv, headerLookup, 15, project, nameof(Project.DeliveryCharge), value => project.DeliveryCharge = ParseDecimal(value, project.DeliveryCharge),
-                "Delivery Charge", "DeliveryCharge", "Freight", "Freight Charge", "Delivery");
-            Apply(result, csv, headerLookup, 16, project, nameof(Project.CustomerSapDiscount), value => project.CustomerSapDiscount = ParseDecimal(value, project.CustomerSapDiscount),
+            Apply(result, csv, headerLookup, 15, project, nameof(Project.CustomerSapDiscount), value => project.CustomerSapDiscount = ParseDecimal(value, project.CustomerSapDiscount),
                 "Customer SAP Discount", "CustomerSapDiscount", "Customer SAP Discount %", "Sap Discount", "SAP Discount", "Discount");
-            Apply(result, csv, headerLookup, 17, project, nameof(Project.QuoteValidity), value => project.QuoteValidity = value,
+            Apply(result, csv, headerLookup, 16, project, nameof(Project.QuoteValidity), value => project.QuoteValidity = value,
                 "Quote Validity", "QuoteValidity", "Validity", "Valid For");
-            Apply(result, csv, headerLookup, 18, project, nameof(Project.AddLocAlLogos), value =>
+            Apply(result, csv, headerLookup, 17, project, nameof(Project.AddLocAlLogos), value =>
             {
                 project.AddLocAlLogos = value;
                 project.LocalLogo = value;
             }, "Add LocAl Logos", "AddLocAlLogos", "Local Logo", "LocalLogo", "LocAl Logos", "Logo Option");
-            Apply(result, csv, headerLookup, 19, project, nameof(Project.GenerateMillFinishAlternative), value =>
+            Apply(result, csv, headerLookup, 18, project, nameof(Project.GenerateMillFinishAlternative), value =>
             {
                 bool enabled = ParseBool(value);
                 project.GenerateMillFinishAlternative = enabled;

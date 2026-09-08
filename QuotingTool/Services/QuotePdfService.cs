@@ -72,12 +72,13 @@ namespace QuotingTool.Services
             var contactInfo = GetRegionalContactInfo(project.Region);
             var capralLogo  = GetCapralLogoBytes();
             var localLogo   = includeLocalLogo ? GetLocalLogoBytes(project) : null;
+            var deliveryCharge = (_db.GetLatestPricingConstants() ?? new PricingConstants()).StandardDeliveryCharge;
 
             Document.Create(document =>
             {
                 if (includeQuoteLetter)
                     document.Page(page => ComposeLetterPage(page, project, total, finish, quotedBy,
-                        contactInfo, capralLogo, localLogo));
+                        contactInfo, capralLogo, localLogo, deliveryCharge));
 
                 document.Page(page => ComposeQuotePage(page, project, lines, finish, quotedBy,
                     unpriced, capralLogo, localLogo));
@@ -99,7 +100,8 @@ namespace QuotingTool.Services
             string          quotedBy,
             string          contactInfo,
             byte[]?         capralLogo,
-            byte[]?         localLogo)
+            byte[]?         localLogo,
+            decimal         deliveryCharge)
         {
             page.Size(PageSizes.A4);
             page.MarginHorizontal(40);
@@ -202,7 +204,7 @@ namespace QuotingTool.Services
                                 txt.Span("Delivery:").Underline();
                             });
                             r.ConstantItem(20).Text("$");
-                            r.RelativeItem().Text(project.DeliveryCharge.ToString("N2")).Bold();
+                            r.RelativeItem().Text(deliveryCharge.ToString("N2")).Bold();
                         });
                     });
 
