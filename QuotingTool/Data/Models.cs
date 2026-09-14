@@ -40,6 +40,16 @@ namespace QuotingTool.Data
         // automatically updated when the constants change – the user must explicitly click
         // "Recalculate All" on the Edit Pricing tab to re-link the project to the latest constants.
         public int? PricingConstantsId { get; set; }
+        // Links this project to a specific batch (BatchId) of each Pricing Matrix
+        // reference table. New projects are assigned the latest batch at creation time.
+        // Existing projects keep whatever batch they were assigned.
+        public int? MetalBreakpointsBatchId { get; set; }
+        public int? ThermalBreakBreakpointsBatchId { get; set; }
+        public int? PowderCostTableBatchId { get; set; }
+        public int? FinishBreakpointsBatchId { get; set; }
+        public int? SubsillTierPricesBatchId { get; set; }
+        public int? ThermalBreakCostBatchId { get; set; }
+        public int? ThermalBreakMaterialPriceGroupBatchId { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
@@ -244,15 +254,14 @@ namespace QuotingTool.Data
         public DateTime UpdatedAt { get; set; }
     }
 
-    // Pricing matrix for colour/finish cost lookups (legacy – kept for compatibility)
-    public class PricingMatrix
+    // Master formula backup (col BA in original Excel)
+    public class MasterFormula
     {
         public int Id { get; set; }
-        public string ColourGroup { get; set; } = string.Empty;
-        public string FinishType { get; set; } = string.Empty;
-        public int CostType { get; set; }
-        public decimal BaseRate { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public int ProjectId { get; set; }
+        public int PageBlock { get; set; }
+        public int RowInBlock { get; set; }
+        public string FormulaExpression { get; set; } = string.Empty;
     }
 
     // Maps to "DATA" sheet / "Table5" Excel table (Section master lookup)
@@ -288,26 +297,6 @@ namespace QuotingTool.Data
         public string Section { get; set; } = string.Empty;
     }
 
-    // Master formula backup (col BA in original Excel)
-    public class MasterFormula
-    {
-        public int Id { get; set; }
-        public int ProjectId { get; set; }
-        public int PageBlock { get; set; }
-        public int RowInBlock { get; set; }
-        public string FormulaExpression { get; set; } = string.Empty;
-    }
-
-    // Sheet lock state (used by ProtectionHelper)
-    public class SheetLock
-    {
-        public int Id { get; set; }
-        public int ProjectId { get; set; }
-        public string SheetName { get; set; } = string.Empty;
-        public bool IsLocked { get; set; } = true;
-        public DateTime UpdatedAt { get; set; }
-    }
-
     // ── Reference / Lookup models (from .xlsm) ───────────────────────────────
 
     // Maps to "Colour_Groups" sheet (VeryHidden in VBA)
@@ -341,6 +330,11 @@ namespace QuotingTool.Data
         public decimal MaxPrice { get; set; }
         public decimal MinFactor { get; set; }
         public decimal MaxFactor { get; set; }
+        // Groups rows saved together in one "Save" click (shared SQL Server SEQUENCE
+        // value). Projects.MetalBreakpointsBatchId links to this column.
+        public int BatchId { get; set; }
+        public DateTime EffectiveDate { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 
     // Maps to "Pricing Matrix" rows 15-21 – thermal break margin breakpoints (Table_TB_BP)
@@ -354,6 +348,9 @@ namespace QuotingTool.Data
         public decimal ListTyp { get; set; }
         public decimal ListMin { get; set; }
         public decimal ListMax { get; set; }
+        public int BatchId { get; set; }
+        public DateTime EffectiveDate { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 
     // Maps to "Pricing Matrix" rows 27-40 – powder/anodised cost table per vendor/group
@@ -371,6 +368,8 @@ namespace QuotingTool.Data
         public decimal Anodised20umRate { get; set; }
         public decimal Anodised25umRate { get; set; }
         public decimal GroupPOARate { get; set; } = 99m;
+        public int BatchId { get; set; }
+        public DateTime EffectiveDate { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
 
@@ -392,6 +391,9 @@ namespace QuotingTool.Data
         public decimal RangeD_Typical { get; set; }
         public decimal RangeD_Min { get; set; }
         public decimal RangeD_Max { get; set; }
+        public int BatchId { get; set; }
+        public DateTime EffectiveDate { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 
     // Maps to "Pricing Matrix" rows 63-68 – SubSill tier prices (SubSill_Tier_Price A64:C68)
@@ -402,6 +404,9 @@ namespace QuotingTool.Data
         public decimal SellPricePerMetre { get; set; }
         public decimal CostPerMetre { get; set; }
         public string Notes { get; set; } = string.Empty;
+        public int BatchId { get; set; }
+        public DateTime EffectiveDate { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 
     // Maps to "Pricing Matrix" rows 1-6 – global metal/delivery constants that feed
@@ -428,5 +433,38 @@ namespace QuotingTool.Data
         public string MatRefNo { get; set; } = string.Empty;
         public string MatRefDescription { get; set; } = string.Empty;
         public string SapMatNo { get; set; } = string.Empty;
+    }
+
+    // Maps to "Pricing Matrix" cols S–AB – Table_TB_Cost: per-section thermal-break
+    // (PLS/PDB) metal cost reference table used by the 2.Quote!AH column formula:
+    //   PLS path: VLOOKUP(Section,Table_TB_Cost,11)/VLOOKUP(Section,Table_TB_Cost,3)*Length
+    //   PDB path (List less Discount): VLOOKUP(LEFT(VLOOKUP(Section,Table5,10),2), TB_MPG, 2)
+    // Column numbering below follows the 1-based Table_TB_Cost column offsets referenced
+    // in the workbook formulas (col 3 = ReferenceLengthM, col 10 = MaterialPriceGroupCode,
+    // col 11 = MetalSellPrice).
+    public class ThermalBreakCost
+    {
+        public int Id { get; set; }
+        public string Section { get; set; } = string.Empty;         // col 1: Section code (matches ExtrusionMaster.Section)
+        public decimal MetalCost { get; set; }                      // col 2: base metal cost for the reference length ($)
+        public decimal ReferenceLengthM { get; set; }               // col 3: reference length (m) the MetalCost/MetalSellPrice apply to
+        public string MaterialPriceGroupCode { get; set; } = string.Empty; // col 10: 2-char code looked up in TB_MPG (ThermalBreakMaterialPriceGroup)
+        public decimal MetalSellPrice { get; set; }                 // col 11: metal sell price for the reference length ($), margin-applied
+        public int BatchId { get; set; }
+        public DateTime EffectiveDate { get; set; }
+        public DateTime UpdatedAt { get; set; }
+    }
+
+    // Maps to the TB_MPG named range – material price group $/kg rate lookup used by the
+    // "List less Discount" branch of the AH column PDB formula:
+    //   VLOOKUP(LEFT(MaterialPriceGroupCode,2), TB_MPG, 2)
+    public class ThermalBreakMaterialPriceGroup
+    {
+        public int Id { get; set; }
+        public string GroupCode { get; set; } = string.Empty;  // col 1: 2-char material price group code
+        public decimal RatePerKg { get; set; }                  // col 2: $/kg rate for this group
+        public int BatchId { get; set; }
+        public DateTime EffectiveDate { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }

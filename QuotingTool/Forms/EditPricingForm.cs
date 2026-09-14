@@ -78,23 +78,6 @@ namespace QuotingTool.Forms
             if (cmbPowderPricedAs.SelectedIndex < 0) cmbPowderPricedAs.SelectedIndex = 0;
             if (cmbCostType.SelectedIndex < 0) cmbCostType.SelectedIndex = 0;
             if (cmbTBCalcType.SelectedIndex < 0) cmbTBCalcType.SelectedIndex = 0;
-
-            // Pricing constants (global LME/spread/delivery rates) are only editable by administrators.
-            btnEditPricingConstants.Visible = UserSession.IsAdministrator;
-        }
-
-        private void btnEditPricingConstants_Click(object sender, EventArgs e)
-        {
-            if (!UserSession.IsAdministrator)
-            {
-                MessageBox.Show("Only administrators can edit pricing constants.", "Access denied",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            using var form = new PricingConstantsForm(_db);
-            if (form.ShowDialog(this) == DialogResult.OK)
-                UpdateDerivedFields(saveChanges: false);
         }
 
         public void LoadProject(int projectId)
@@ -457,13 +440,10 @@ namespace QuotingTool.Forms
             //   2 = Custom Supplier → 'c'
             //   4/5 = Bremer Mill   → 'a'
             bool isAP = cmbPowderPricedAs.SelectedIndex <= 0;
-            char finRange = ep.CostType switch
-            {
-                1 => 'b',
-                2 => 'c',
-                4 or 5 => 'a',
-                _ => 'd'   // CostType 0 = Standard
-            };
+            // Category is driven by the FinishGroup (Pricing Matrix K44 = HLOOKUP($D$44,...) → row 36),
+            // NOT by the CostType combobox. Mirrors the Pricing Matrix row-36 mapping:
+            //   Group 1 → a, Group 2/3/4/5 → b, 20um/25um Clear → c, Group POA → d.
+            char finRange = GetFinishBreakpointRangeCategory(project.FinishGroup);
 
             var (finTypical, finMin, finMax) = _formulaSvc.LookupFinishBreakpointMargin(
                 ep.TotalFinishingM2, isAP, finRange);
@@ -579,6 +559,31 @@ namespace QuotingTool.Forms
                 finTypical, finMin, finMax);
 
 
+        }
+
+        /// <summary>
+        /// Maps a Finish Group name to its Pricing Matrix breakpoint range category
+        /// ('a','b','c','d'), mirroring Pricing Matrix!K44 = HLOOKUP($D$44,$D$27:$K$40,10,FALSE)
+        /// which resolves to row 36:
+        ///   Group 1            → a
+        ///   Group 2/3/4/5      → b
+        ///   20um Clear/25um Clear → c
+        ///   Group POA          → d
+        /// </summary>
+        private static char GetFinishBreakpointRangeCategory(string? finishGroup)
+        {
+            if (string.IsNullOrWhiteSpace(finishGroup)) return 'd';
+            var g = finishGroup.Trim();
+            if (g.Equals("Group 1", StringComparison.OrdinalIgnoreCase)) return 'a';
+            if (g.Equals("Group 2", StringComparison.OrdinalIgnoreCase) ||
+                g.Equals("Group 3", StringComparison.OrdinalIgnoreCase) ||
+                g.Equals("Group 4", StringComparison.OrdinalIgnoreCase) ||
+                g.Equals("Group 5", StringComparison.OrdinalIgnoreCase))
+                return 'b';
+            if (g.Contains("20um Clear", StringComparison.OrdinalIgnoreCase) ||
+                g.Contains("25um Clear", StringComparison.OrdinalIgnoreCase))
+                return 'c';
+            return 'd'; // Group POA / unknown
         }
 
         private decimal GetMassPerM(string? sectionCode)

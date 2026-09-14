@@ -37,6 +37,21 @@ namespace QuotingTool.Services
                 .ToDictionary(i => i.SectionCode.Trim(), i => i, StringComparer.OrdinalIgnoreCase);
             var subsillTiers = _db.GetSubsillTierPrices().ToDictionary(t => t.Tier);
 
+            // Table_TB_Cost / TB_MPG reference data — required to correctly price PLS/PDB
+            // thermal-break sections (mirrors QuoteForm.CalculateMillFinishEach). Without this,
+            // thermal-break lines were incorrectly priced using the standard mill-finish metal
+            // sell rate instead of the PLS/PDB-specific rates, producing a wrong Thermal Break
+            // Metal total on the Quote Summary.
+            var thermalBreakCostBySection = _db.GetThermalBreakCosts()
+                .ToDictionary(t => t.Section, StringComparer.OrdinalIgnoreCase);
+            var tbMaterialPriceGroupsByCode = _db.GetThermalBreakMaterialPriceGroups()
+                .ToDictionary(t => t.GroupCode, StringComparer.OrdinalIgnoreCase);
+            string thermalBreakCalcType = string.IsNullOrWhiteSpace(ep.ThermalBreakCalcType)
+                ? "Margin" : ep.ThermalBreakCalcType;
+            decimal thermalBreakMargin = ep.ThermalBreakMargin;
+            decimal pdbMetalCostBase = constants.PdbMetalCostBase;
+            decimal alfCostPerMetre = constants.AlfCostPerMetre;
+
             bool isMillFinishProject = string.Equals(project.FinishType, "Mill Finish",
                 StringComparison.OrdinalIgnoreCase);
             // Round SF Sell/m² and SF Cost/m² to 2 decimal places, matching Excel's
@@ -160,10 +175,53 @@ namespace QuotingTool.Services
                 // Computed directly from master rates, NOT back-calculated from TotalPrice.
                 if (em.MassPerM <= 0m || line.LengthM <= 0m) continue;
 
-                decimal kgLine = em.MassPerM * line.LengthM * line.Quantity;
+                decimal kgEach = em.MassPerM * line.LengthM;
+                decimal kgLine = kgEach * line.Quantity;
 
-                // AH x G: mill-finish sell (kg x B33)
-                decimal mfSellLine = metalSellPrice > 0m ? kgLine * metalSellPrice : 0m;
+                // AH (MF Each): mirrors QuoteForm.CalculateMillFinishEach — for PLS/PDB
+                // thermal-break sections this uses Table_TB_Cost / TB_MPG rates rather than
+                // the standard mill-finish metal sell price, matching 2.Quote!AH.
+                decimal mfEach;
+                if (line.IpGrade == 3)
+                {
+                    mfEach = em.MassPerM < 0.5m ? kgEach * 2.5m : 0m;
+                }
+                else if (string.Equals(em.ThermalBreakType, "PLS", StringComparison.OrdinalIgnoreCase)
+                    && thermalBreakCostBySection.TryGetValue(code, out var tbCostPls)
+                    && tbCostPls.ReferenceLengthM > 0)
+                {
+                    mfEach = (tbCostPls.MetalSellPrice / tbCostPls.ReferenceLengthM) * line.LengthM;
+                }
+                else if (string.Equals(em.ThermalBreakType, "PDB", StringComparison.OrdinalIgnoreCase))
+                {
+                    bool isMarginCalc = string.Equals(thermalBreakCalcType, "Margin", StringComparison.OrdinalIgnoreCase);
+                    decimal? pdbEach = null;
+                    if (isMarginCalc)
+                    {
+                        decimal denominator = 1m - thermalBreakMargin;
+                        if (denominator > 0m && pdbMetalCostBase > 0m)
+                            pdbEach = ((kgEach * pdbMetalCostBase) + (line.LengthM * alfCostPerMetre)) / denominator;
+                    }
+                    else if (thermalBreakCostBySection.TryGetValue(code, out var tbCostPdb)
+                        && !string.IsNullOrWhiteSpace(tbCostPdb.MaterialPriceGroupCode))
+                    {
+                        var groupKey = tbCostPdb.MaterialPriceGroupCode.Length >= 2
+                            ? tbCostPdb.MaterialPriceGroupCode.Substring(0, 2)
+                            : tbCostPdb.MaterialPriceGroupCode;
+                        if (tbMaterialPriceGroupsByCode.TryGetValue(groupKey, out var mpg))
+                        {
+                            pdbEach = ((kgEach * mpg.RatePerKg) + (line.LengthM * alfCostPerMetre * 3m))
+                                      * (1m - thermalBreakMargin);
+                        }
+                    }
+                    mfEach = pdbEach ?? (metalSellPrice > 0m ? kgEach * metalSellPrice : 0m);
+                }
+                else
+                {
+                    mfEach = metalSellPrice > 0m ? kgEach * metalSellPrice : 0m;
+                }
+
+                decimal mfSellLine = mfEach * line.Quantity;
 
                 // AI x G: IP upcharge sell (kg x IP rate based on IpGrade 0-3)
                 decimal ipSellLine = line.IpGrade switch
@@ -177,8 +235,31 @@ namespace QuotingTool.Services
                 // AJ = AH x G + AI x G
                 decimal metalSellLine = mfSellLine + ipSellLine;
 
-                // AN: metal cost = kg x B5
-                decimal metalCostLine = kgLine * metalCostPerKg;
+                // Cost basis: mirrors Excel col AM (TB margin) / AN (MF margin) formulas.
+                // For PLS/PDB thermal-break lines the cost is NOT simply kg x Pricing Matrix B5 —
+                // it uses the same thermal-break reference data as the sell-side (AH) calculation:
+                //   PLS: (TB_Cost.MetalCost / TB_Cost.ReferenceLengthM) x Length x Qty
+                //   PDB: ((kg x PdbMetalCostBase) + (Length x AlfCostPerMetre)) x Qty
+                // Only the standard (non-TB) path uses kg x metalCostPerKg (Pricing Matrix B5).
+                decimal metalCostLine;
+                if (string.Equals(em.ThermalBreakType, "PLS", StringComparison.OrdinalIgnoreCase)
+                    && thermalBreakCostBySection.TryGetValue(code, out var tbCostForMargin)
+                    && tbCostForMargin.ReferenceLengthM > 0)
+                {
+                    metalCostLine = (tbCostForMargin.MetalCost / tbCostForMargin.ReferenceLengthM)
+                        * line.LengthM * line.Quantity;
+                }
+                else if (string.Equals(em.ThermalBreakType, "PDB", StringComparison.OrdinalIgnoreCase)
+                    && pdbMetalCostBase > 0m)
+                {
+                    metalCostLine = ((kgEach * pdbMetalCostBase) + (line.LengthM * alfCostPerMetre))
+                        * line.Quantity;
+                }
+                else
+                {
+                    // AN: metal cost = kg x B5
+                    metalCostLine = kgLine * metalCostPerKg;
+                }
 
                 bool isTb = !string.Equals(em.ThermalBreakType, "No", StringComparison.OrdinalIgnoreCase);
                 if (isTb)

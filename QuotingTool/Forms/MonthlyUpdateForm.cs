@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using Microsoft.Extensions.Configuration;
 using QuotingTool.Data;
-using QuotingTool.Helpers;
 using QuotingTool.Services;
 
 namespace QuotingTool.Forms
@@ -16,16 +15,15 @@ namespace QuotingTool.Forms
     {
         private readonly DatabaseContext _db;
         private readonly MonthlyUpdateService _monthlyUpdate;
-        private readonly ProtectionHelper _protection;
         private readonly string _monthlyUpdatePassword;
         private int _projectId;
+        private Project? _project;
         private bool _isUnlocked;
 
         public MonthlyUpdateForm(DatabaseContext db)
         {
             _db = db;
-            _protection    = new ProtectionHelper(db);
-            _monthlyUpdate = new MonthlyUpdateService(db, _protection);
+            _monthlyUpdate = new MonthlyUpdateService(db);
             _monthlyUpdatePassword = LoadMonthlyUpdatePassword();
             InitializeComponent();
         }
@@ -33,6 +31,7 @@ namespace QuotingTool.Forms
         public void LoadProject(int projectId)
         {
             _projectId = projectId;
+            _project = _db.GetProject(projectId);
             if (UserSession.IsAdministrator)
             {
                 SetMaintenanceVisibility(true);               
@@ -41,7 +40,6 @@ namespace QuotingTool.Forms
             {
                 SetMaintenanceVisibility(false);              
             }
-            RefreshPricingMatrix();
 
             // Pre-populate from latest revision
             var rev = _db.GetLatestRevision();
@@ -53,10 +51,146 @@ namespace QuotingTool.Forms
             }
         }
 
-        private void RefreshPricingMatrix()
+        private void btnEditPricingConstants_Click(object sender, EventArgs e)
         {
-            var matrix = new System.Collections.Generic.List<PricingMatrix>(_db.GetPricingMatrix());
-            gridPricingMatrix.DataSource = matrix;
+            if (!UserSession.IsAdministrator)
+            {
+                MessageBox.Show("Only administrators can edit pricing constants.", "Access denied",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using var form = new PricingConstantsForm(_db);
+            form.ShowDialog(this);
+        }
+
+        private void btnEditMetalBreakpoints_Click(object sender, EventArgs e)
+        {
+            if (!UserSession.IsAdministrator)
+            {
+                MessageBox.Show("Only administrators can edit metal breakpoints.", "Access denied",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using var form = new MetalBreakpointsForm(_db, _projectId, _project?.MetalBreakpointsBatchId, dtpRevisionDate.Value.Date);
+            if (form.ShowDialog(this) == DialogResult.OK && form.SavedBatchId != null && _projectId > 0)
+            {
+                _db.UpdateProjectReferenceBatchIds(_projectId, form.SavedBatchId,
+                    _project?.ThermalBreakBreakpointsBatchId, _project?.PowderCostTableBatchId,
+                    _project?.FinishBreakpointsBatchId, _project?.SubsillTierPricesBatchId);
+                _project = _db.GetProject(_projectId);
+            }
+        }
+
+        private void btnEditThermalBreakBreakpoints_Click(object sender, EventArgs e)
+        {
+            if (!UserSession.IsAdministrator)
+            {
+                MessageBox.Show("Only administrators can edit thermal break breakpoints.", "Access denied",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using var form = new ThermalBreakBreakpointsForm(_db, _project?.ThermalBreakBreakpointsBatchId, dtpRevisionDate.Value.Date);
+            if (form.ShowDialog(this) == DialogResult.OK && form.SavedBatchId != null && _projectId > 0)
+            {
+                _db.UpdateProjectReferenceBatchIds(_projectId, _project?.MetalBreakpointsBatchId,
+                    form.SavedBatchId, _project?.PowderCostTableBatchId,
+                    _project?.FinishBreakpointsBatchId, _project?.SubsillTierPricesBatchId);
+                _project = _db.GetProject(_projectId);
+            }
+        }
+
+        private void btnEditPowderCostTable_Click(object sender, EventArgs e)
+        {
+            if (!UserSession.IsAdministrator)
+            {
+                MessageBox.Show("Only administrators can edit the powder cost table.", "Access denied",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using var form = new PowderCostTableForm(_db, _project?.PowderCostTableBatchId, dtpRevisionDate.Value.Date);
+            if (form.ShowDialog(this) == DialogResult.OK && form.SavedBatchId != null && _projectId > 0)
+            {
+                _db.UpdateProjectReferenceBatchIds(_projectId, _project?.MetalBreakpointsBatchId,
+                    _project?.ThermalBreakBreakpointsBatchId, form.SavedBatchId,
+                    _project?.FinishBreakpointsBatchId, _project?.SubsillTierPricesBatchId);
+                _project = _db.GetProject(_projectId);
+            }
+        }
+
+        private void btnEditFinishBreakpoints_Click(object sender, EventArgs e)
+        {
+            if (!UserSession.IsAdministrator)
+            {
+                MessageBox.Show("Only administrators can edit finish breakpoints.", "Access denied",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using var form = new FinishBreakpointsForm(_db, _project?.FinishBreakpointsBatchId, dtpRevisionDate.Value.Date);
+            if (form.ShowDialog(this) == DialogResult.OK && form.SavedBatchId != null && _projectId > 0)
+            {
+                _db.UpdateProjectReferenceBatchIds(_projectId, _project?.MetalBreakpointsBatchId,
+                    _project?.ThermalBreakBreakpointsBatchId, _project?.PowderCostTableBatchId,
+                    form.SavedBatchId, _project?.SubsillTierPricesBatchId);
+                _project = _db.GetProject(_projectId);
+            }
+        }
+
+        private void btnEditSubsillTierPrices_Click(object sender, EventArgs e)
+        {
+            if (!UserSession.IsAdministrator)
+            {
+                MessageBox.Show("Only administrators can edit subsill tier prices.", "Access denied",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using var form = new SubsillTierPricesForm(_db, _project?.SubsillTierPricesBatchId, dtpRevisionDate.Value.Date);
+            if (form.ShowDialog(this) == DialogResult.OK && form.SavedBatchId != null && _projectId > 0)
+            {
+                _db.UpdateProjectReferenceBatchIds(_projectId, _project?.MetalBreakpointsBatchId,
+                    _project?.ThermalBreakBreakpointsBatchId, _project?.PowderCostTableBatchId,
+                    _project?.FinishBreakpointsBatchId, form.SavedBatchId);
+                _project = _db.GetProject(_projectId);
+            }
+        }
+
+        private void btnEditThermalBreakCost_Click(object sender, EventArgs e)
+        {
+            if (!UserSession.IsAdministrator)
+            {
+                MessageBox.Show("Only administrators can edit the thermal break cost table.", "Access denied",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using var form = new ThermalBreakCostForm(_db, _project?.ThermalBreakCostBatchId, dtpRevisionDate.Value.Date);
+            if (form.ShowDialog(this) == DialogResult.OK && form.SavedBatchId != null && _projectId > 0)
+            {
+                _db.UpdateProjectThermalBreakCostBatchId(_projectId, form.SavedBatchId);
+                _project = _db.GetProject(_projectId);
+            }
+        }
+
+        private void btnEditThermalBreakMaterialPriceGroup_Click(object sender, EventArgs e)
+        {
+            if (!UserSession.IsAdministrator)
+            {
+                MessageBox.Show("Only administrators can edit the thermal break material price group table.", "Access denied",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using var form = new ThermalBreakMaterialPriceGroupForm(_db, _project?.ThermalBreakMaterialPriceGroupBatchId, dtpRevisionDate.Value.Date);
+            if (form.ShowDialog(this) == DialogResult.OK && form.SavedBatchId != null && _projectId > 0)
+            {
+                _db.UpdateProjectThermalBreakMaterialPriceGroupBatchId(_projectId, form.SavedBatchId);
+                _project = _db.GetProject(_projectId);
+            }
         }
 
         private void btnOpen_Click(object sender, EventArgs e)
@@ -151,6 +285,14 @@ namespace QuotingTool.Forms
             grpMatrix.Visible = isUnlocked;
             //btnOpen.Enabled = isUnlocked;
             btnClose.Enabled = isUnlocked;
+            btnEditPricingConstants.Visible = isUnlocked && UserSession.IsAdministrator;
+            btnEditMetalBreakpoints.Visible = isUnlocked && UserSession.IsAdministrator;
+            btnEditThermalBreakBreakpoints.Visible = isUnlocked && UserSession.IsAdministrator;
+            btnEditPowderCostTable.Visible = isUnlocked && UserSession.IsAdministrator;
+            btnEditFinishBreakpoints.Visible = isUnlocked && UserSession.IsAdministrator;
+            btnEditSubsillTierPrices.Visible = isUnlocked && UserSession.IsAdministrator;
+            btnEditThermalBreakCost.Visible = isUnlocked && UserSession.IsAdministrator;
+            btnEditThermalBreakMaterialPriceGroup.Visible = isUnlocked && UserSession.IsAdministrator;
             if (!isUnlocked)
                 lblStatus.Text = "Status: admin settings hidden until unlocked";
         }

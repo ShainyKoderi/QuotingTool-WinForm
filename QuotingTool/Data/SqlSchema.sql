@@ -454,6 +454,107 @@ CREATE TABLE DataEdgeMaterials (
     SapMatNo NVARCHAR(50)                -- col C: SAP.Mat.No
 );
 
+-- ============================================================
+-- Batch linking for Pricing Matrix reference tables (MetalBreakpoints,
+-- ThermalBreakBreakpoints, PowderCostTable, FinishBreakpoints,
+-- SubsillTierPrices). Each "Save" from the corresponding maintenance form
+-- inserts a brand new batch of rows sharing one BatchId (from a shared
+-- SQL Server SEQUENCE, guaranteeing uniqueness across all five tables).
+-- EffectiveDate/UpdatedAt remain purely for display/audit purposes.
+-- Projects pin to a specific BatchId per table so that existing projects
+-- keep the batch values they were created/last-saved with, while new
+-- projects default to the latest batch.
+-- ============================================================
+IF NOT EXISTS (SELECT 1 FROM sys.sequences WHERE name = 'PricingBatchSeq')
+    CREATE SEQUENCE PricingBatchSeq AS INT START WITH 1 INCREMENT BY 1;
+
+IF COL_LENGTH('MetalBreakpoints','BatchId') IS NULL ALTER TABLE MetalBreakpoints ADD BatchId INT NULL;
+IF COL_LENGTH('MetalBreakpoints','EffectiveDate') IS NULL ALTER TABLE MetalBreakpoints ADD EffectiveDate DATETIME NOT NULL DEFAULT GETDATE();
+IF COL_LENGTH('MetalBreakpoints','UpdatedAt') IS NULL ALTER TABLE MetalBreakpoints ADD UpdatedAt DATETIME NOT NULL DEFAULT GETDATE();
+
+IF COL_LENGTH('ThermalBreakBreakpoints','BatchId') IS NULL ALTER TABLE ThermalBreakBreakpoints ADD BatchId INT NULL;
+IF COL_LENGTH('ThermalBreakBreakpoints','EffectiveDate') IS NULL ALTER TABLE ThermalBreakBreakpoints ADD EffectiveDate DATETIME NOT NULL DEFAULT GETDATE();
+IF COL_LENGTH('ThermalBreakBreakpoints','UpdatedAt') IS NULL ALTER TABLE ThermalBreakBreakpoints ADD UpdatedAt DATETIME NOT NULL DEFAULT GETDATE();
+
+IF COL_LENGTH('PowderCostTable','BatchId') IS NULL ALTER TABLE PowderCostTable ADD BatchId INT NULL;
+IF COL_LENGTH('PowderCostTable','EffectiveDate') IS NULL ALTER TABLE PowderCostTable ADD EffectiveDate DATETIME NOT NULL DEFAULT GETDATE();
+
+IF COL_LENGTH('FinishBreakpoints','BatchId') IS NULL ALTER TABLE FinishBreakpoints ADD BatchId INT NULL;
+IF COL_LENGTH('FinishBreakpoints','EffectiveDate') IS NULL ALTER TABLE FinishBreakpoints ADD EffectiveDate DATETIME NOT NULL DEFAULT GETDATE();
+IF COL_LENGTH('FinishBreakpoints','UpdatedAt') IS NULL ALTER TABLE FinishBreakpoints ADD UpdatedAt DATETIME NOT NULL DEFAULT GETDATE();
+
+IF COL_LENGTH('SubsillTierPrices','BatchId') IS NULL ALTER TABLE SubsillTierPrices ADD BatchId INT NULL;
+IF COL_LENGTH('SubsillTierPrices','EffectiveDate') IS NULL ALTER TABLE SubsillTierPrices ADD EffectiveDate DATETIME NOT NULL DEFAULT GETDATE();
+IF COL_LENGTH('SubsillTierPrices','UpdatedAt') IS NULL ALTER TABLE SubsillTierPrices ADD UpdatedAt DATETIME NOT NULL DEFAULT GETDATE();
+
+-- Backfill BatchId for any pre-existing rows (e.g. seeded data) that predate
+-- this column, grouping by EffectiveDate so all rows from the same original
+-- seed/save share one BatchId.
+IF EXISTS (SELECT 1 FROM MetalBreakpoints WHERE BatchId IS NULL)
+BEGIN
+    DECLARE @mbBatch INT = NEXT VALUE FOR PricingBatchSeq;
+    UPDATE MetalBreakpoints SET BatchId = @mbBatch WHERE BatchId IS NULL;
+END
+IF EXISTS (SELECT 1 FROM ThermalBreakBreakpoints WHERE BatchId IS NULL)
+BEGIN
+    DECLARE @tbBatch INT = NEXT VALUE FOR PricingBatchSeq;
+    UPDATE ThermalBreakBreakpoints SET BatchId = @tbBatch WHERE BatchId IS NULL;
+END
+IF EXISTS (SELECT 1 FROM PowderCostTable WHERE BatchId IS NULL)
+BEGIN
+    DECLARE @pcBatch INT = NEXT VALUE FOR PricingBatchSeq;
+    UPDATE PowderCostTable SET BatchId = @pcBatch WHERE BatchId IS NULL;
+END
+IF EXISTS (SELECT 1 FROM FinishBreakpoints WHERE BatchId IS NULL)
+BEGIN
+    DECLARE @fbBatch INT = NEXT VALUE FOR PricingBatchSeq;
+    UPDATE FinishBreakpoints SET BatchId = @fbBatch WHERE BatchId IS NULL;
+END
+IF EXISTS (SELECT 1 FROM SubsillTierPrices WHERE BatchId IS NULL)
+BEGIN
+    DECLARE @stBatch INT = NEXT VALUE FOR PricingBatchSeq;
+    UPDATE SubsillTierPrices SET BatchId = @stBatch WHERE BatchId IS NULL;
+END
+
+-- Projects pin to a BatchId of each reference table.
+IF COL_LENGTH('Projects','MetalBreakpointsBatchId') IS NULL ALTER TABLE Projects ADD MetalBreakpointsBatchId INT NULL;
+IF COL_LENGTH('Projects','ThermalBreakBreakpointsBatchId') IS NULL ALTER TABLE Projects ADD ThermalBreakBreakpointsBatchId INT NULL;
+IF COL_LENGTH('Projects','PowderCostTableBatchId') IS NULL ALTER TABLE Projects ADD PowderCostTableBatchId INT NULL;
+IF COL_LENGTH('Projects','FinishBreakpointsBatchId') IS NULL ALTER TABLE Projects ADD FinishBreakpointsBatchId INT NULL;
+IF COL_LENGTH('Projects','SubsillTierPricesBatchId') IS NULL ALTER TABLE Projects ADD SubsillTierPricesBatchId INT NULL;
+
+-- Superseded by the *BatchId columns above (surrogate-key link is more robust than
+-- matching on EffectiveDate). Drop the now-unused legacy date columns from Projects.
+IF COL_LENGTH('Projects','MetalBreakpointsDate') IS NOT NULL ALTER TABLE Projects DROP COLUMN MetalBreakpointsDate;
+IF COL_LENGTH('Projects','ThermalBreakBreakpointsDate') IS NOT NULL ALTER TABLE Projects DROP COLUMN ThermalBreakBreakpointsDate;
+IF COL_LENGTH('Projects','PowderCostTableDate') IS NOT NULL ALTER TABLE Projects DROP COLUMN PowderCostTableDate;
+IF COL_LENGTH('Projects','FinishBreakpointsDate') IS NOT NULL ALTER TABLE Projects DROP COLUMN FinishBreakpointsDate;
+IF COL_LENGTH('Projects','SubsillTierPricesDate') IS NOT NULL ALTER TABLE Projects DROP COLUMN SubsillTierPricesDate;
+
+-- One-time freeze: any existing project not yet pinned to a reference-table
+-- batch is pinned to whichever batch is currently the latest for each table.
+-- This preserves current behaviour for existing quotes while ensuring future
+-- batch saves do NOT silently affect them.
+UPDATE Projects
+SET MetalBreakpointsBatchId = (SELECT TOP 1 BatchId FROM MetalBreakpoints ORDER BY Id DESC)
+WHERE MetalBreakpointsBatchId IS NULL AND EXISTS (SELECT 1 FROM MetalBreakpoints);
+
+UPDATE Projects
+SET ThermalBreakBreakpointsBatchId = (SELECT TOP 1 BatchId FROM ThermalBreakBreakpoints ORDER BY Id DESC)
+WHERE ThermalBreakBreakpointsBatchId IS NULL AND EXISTS (SELECT 1 FROM ThermalBreakBreakpoints);
+
+UPDATE Projects
+SET PowderCostTableBatchId = (SELECT TOP 1 BatchId FROM PowderCostTable ORDER BY Id DESC)
+WHERE PowderCostTableBatchId IS NULL AND EXISTS (SELECT 1 FROM PowderCostTable);
+
+UPDATE Projects
+SET FinishBreakpointsBatchId = (SELECT TOP 1 BatchId FROM FinishBreakpoints ORDER BY Id DESC)
+WHERE FinishBreakpointsBatchId IS NULL AND EXISTS (SELECT 1 FROM FinishBreakpoints);
+
+UPDATE Projects
+SET SubsillTierPricesBatchId = (SELECT TOP 1 BatchId FROM SubsillTierPrices ORDER BY Id DESC)
+WHERE SubsillTierPricesBatchId IS NULL AND EXISTS (SELECT 1 FROM SubsillTierPrices);
+
 -- RegionAddresses table – contact / address details per region code (a/b)
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='RegionAddresses')
 CREATE TABLE RegionAddresses (
@@ -469,3 +570,83 @@ CREATE TABLE RegionAddresses (
     Fax NVARCHAR(50) NOT NULL DEFAULT '1300 133 975',
     Website NVARCHAR(100) NOT NULL DEFAULT 'www.capral.com.au'
 );
+
+-- ============================================================
+-- ThermalBreakCost / ThermalBreakMaterialPriceGroup
+-- Maps to "Pricing Matrix" Table_TB_Cost (cols S-AB) and the TB_MPG named
+-- range. Used by the 2.Quote!AH column PLS/PDB "List less Discount" formulas.
+-- Follows the same BatchId-linking pattern as the other Pricing Matrix
+-- reference tables (MetalBreakpoints, ThermalBreakBreakpoints, etc.).
+-- ============================================================
+
+-- ThermalBreakCost table (maps to "Pricing Matrix" Table_TB_Cost, cols S-AB)
+-- Per-section thermal-break (PLS/PDB) metal cost reference table used by the
+-- 2.Quote!AH column formula's PLS/PDB branches.
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ThermalBreakCost')
+CREATE TABLE ThermalBreakCost (
+    Id INT IDENTITY PRIMARY KEY,
+    Section NVARCHAR(50) NOT NULL,             -- col 1: Section code (matches ExtrusionMaster.Section)
+    MetalCost DECIMAL(18,4) DEFAULT 0,         -- col 2: base metal cost for the reference length ($)
+    ReferenceLengthM DECIMAL(18,4) DEFAULT 0,  -- col 3: reference length (m)
+    MaterialPriceGroupCode NVARCHAR(10),       -- col 10: 2-char code looked up in TB_MPG
+    MetalSellPrice DECIMAL(18,4) DEFAULT 0,    -- col 11: metal sell price for the reference length ($)
+    BatchId INT NULL,
+    EffectiveDate DATETIME NOT NULL DEFAULT GETDATE(),
+    UpdatedAt DATETIME NOT NULL DEFAULT GETDATE()
+);
+
+-- ThermalBreakMaterialPriceGroup table (maps to TB_MPG named range)
+-- Material price group $/kg rate lookup, used by the "List less Discount" PDB path.
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ThermalBreakMaterialPriceGroup')
+CREATE TABLE ThermalBreakMaterialPriceGroup (
+    Id INT IDENTITY PRIMARY KEY,
+    GroupCode NVARCHAR(10) NOT NULL,      -- col 1: 2-char material price group code
+    RatePerKg DECIMAL(18,4) DEFAULT 0,    -- col 2: $/kg rate for this group
+    BatchId INT NULL,
+    EffectiveDate DATETIME NOT NULL DEFAULT GETDATE(),
+    UpdatedAt DATETIME NOT NULL DEFAULT GETDATE()
+);
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'IX_ThermalBreakCost_Section' AND object_id = OBJECT_ID('ThermalBreakCost'))
+    CREATE INDEX IX_ThermalBreakCost_Section ON ThermalBreakCost(Section);
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'IX_ThermalBreakMaterialPriceGroup_GroupCode' AND object_id = OBJECT_ID('ThermalBreakMaterialPriceGroup'))
+    CREATE INDEX IX_ThermalBreakMaterialPriceGroup_GroupCode ON ThermalBreakMaterialPriceGroup(GroupCode);
+
+-- Ensure BatchId column + backfill exist even for older installs where the
+-- tables above might already exist without these columns (defensive parity
+-- with the other Pricing Matrix reference tables).
+IF COL_LENGTH('ThermalBreakCost','BatchId') IS NULL ALTER TABLE ThermalBreakCost ADD BatchId INT NULL;
+IF COL_LENGTH('ThermalBreakCost','EffectiveDate') IS NULL ALTER TABLE ThermalBreakCost ADD EffectiveDate DATETIME NOT NULL DEFAULT GETDATE();
+IF COL_LENGTH('ThermalBreakCost','UpdatedAt') IS NULL ALTER TABLE ThermalBreakCost ADD UpdatedAt DATETIME NOT NULL DEFAULT GETDATE();
+
+IF COL_LENGTH('ThermalBreakMaterialPriceGroup','BatchId') IS NULL ALTER TABLE ThermalBreakMaterialPriceGroup ADD BatchId INT NULL;
+IF COL_LENGTH('ThermalBreakMaterialPriceGroup','EffectiveDate') IS NULL ALTER TABLE ThermalBreakMaterialPriceGroup ADD EffectiveDate DATETIME NOT NULL DEFAULT GETDATE();
+IF COL_LENGTH('ThermalBreakMaterialPriceGroup','UpdatedAt') IS NULL ALTER TABLE ThermalBreakMaterialPriceGroup ADD UpdatedAt DATETIME NOT NULL DEFAULT GETDATE();
+
+IF EXISTS (SELECT 1 FROM ThermalBreakCost WHERE BatchId IS NULL)
+BEGIN
+    DECLARE @tbcBatch INT = NEXT VALUE FOR PricingBatchSeq;
+    UPDATE ThermalBreakCost SET BatchId = @tbcBatch WHERE BatchId IS NULL;
+END
+IF EXISTS (SELECT 1 FROM ThermalBreakMaterialPriceGroup WHERE BatchId IS NULL)
+BEGIN
+    DECLARE @tbmpgBatch INT = NEXT VALUE FOR PricingBatchSeq;
+    UPDATE ThermalBreakMaterialPriceGroup SET BatchId = @tbmpgBatch WHERE BatchId IS NULL;
+END
+
+-- Projects pin to a BatchId of each of these two reference tables as well.
+IF COL_LENGTH('Projects','ThermalBreakCostBatchId') IS NULL ALTER TABLE Projects ADD ThermalBreakCostBatchId INT NULL;
+IF COL_LENGTH('Projects','ThermalBreakMaterialPriceGroupBatchId') IS NULL ALTER TABLE Projects ADD ThermalBreakMaterialPriceGroupBatchId INT NULL;
+
+UPDATE Projects
+SET ThermalBreakCostBatchId = (SELECT TOP 1 BatchId FROM ThermalBreakCost ORDER BY Id DESC)
+WHERE ThermalBreakCostBatchId IS NULL AND EXISTS (SELECT 1 FROM ThermalBreakCost);
+
+UPDATE Projects
+SET ThermalBreakMaterialPriceGroupBatchId = (SELECT TOP 1 BatchId FROM ThermalBreakMaterialPriceGroup ORDER BY Id DESC)
+WHERE ThermalBreakMaterialPriceGroupBatchId IS NULL AND EXISTS (SELECT 1 FROM ThermalBreakMaterialPriceGroup);

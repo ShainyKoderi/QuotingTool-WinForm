@@ -56,6 +56,17 @@ namespace QuotingTool.Forms
         // B58: Anodised threshold sell rate $/m² — used instead of FinishingPrice when a
         // section is flagged as a threshold (BF col = 1) and ThresholdChoice is not "No".
         private decimal _thresholdSellPricePerM2;
+        // B36/B37 on 3.Edit Pricing: thermal-break calc type ("Margin" or "List less Discount")
+        // and its margin/discount value, used by the PDB path of MF Each (col AH).
+        private string _thermalBreakCalcType = "Margin";
+        private decimal _thermalBreakMargin = 0.5m;
+        // Pricing Matrix F4/F5 — PDB metal cost base ($/kg) and ALF cost per metre ($/m).
+        private decimal _pdbMetalCostBase;
+        private decimal _alfCostPerMetre;
+        // Table_TB_Cost rows keyed by Section (case-insensitive), used for the PLS AH-column path.
+        private Dictionary<string, ThermalBreakCost> _thermalBreakCostBySection = new(StringComparer.OrdinalIgnoreCase);
+        // TB_MPG rows keyed by 2-char material price group code, used for the PDB "List less Discount" path.
+        private Dictionary<string, ThermalBreakMaterialPriceGroup> _tbMaterialPriceGroupsByCode = new(StringComparer.OrdinalIgnoreCase);
 
         public QuoteForm(DatabaseContext db)
         {
@@ -74,6 +85,7 @@ namespace QuotingTool.Forms
             LoadSundryMaster();
             LoadIPMasterData();
             LoadSubsillTiers();
+            LoadThermalBreakCostData();
             ConfigureGridColumns();
             gridQuote.CellToolTipTextNeeded += gridQuote_CellToolTipTextNeeded;
         }
@@ -107,6 +119,25 @@ namespace QuotingTool.Forms
         {
             try { _subsillTiers = _db.GetSubsillTierPrices().ToDictionary(t => t.Tier); }
             catch { _subsillTiers = new Dictionary<int, SubsillTierPrice>(); }
+        }
+
+        private void LoadThermalBreakCostData()
+        {
+            try
+            {
+                _thermalBreakCostBySection = _db.GetThermalBreakCosts()
+                    .ToDictionary(t => t.Section, StringComparer.OrdinalIgnoreCase);
+                _tbMaterialPriceGroupsByCode = _db.GetThermalBreakMaterialPriceGroups()
+                    .ToDictionary(t => t.GroupCode, StringComparer.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                // Tables may not yet exist before schema migration completes, or no data has
+                // been seeded yet; fall back to empty lookups so PLS/PDB sections simply fall
+                // through to the standard mill-finish path rather than throwing.
+                _thermalBreakCostBySection = new Dictionary<string, ThermalBreakCost>(StringComparer.OrdinalIgnoreCase);
+                _tbMaterialPriceGroupsByCode = new Dictionary<string, ThermalBreakMaterialPriceGroup>(StringComparer.OrdinalIgnoreCase);
+            }
         }
 
         private void LoadSundryMaster()
@@ -261,11 +292,76 @@ namespace QuotingTool.Forms
                 _projectFinishSapCode);
         }
 
+        /// <summary>
+        /// Col AH – MF Each. Mirrors the Excel array formula:
+        ///   IF(AV=3, IF(Y&lt;0.5, Z*2.5, 0),
+        ///     IF(P="PLS", TB_Cost.MetalSellPrice / TB_Cost.ReferenceLengthM * Length,
+        ///       IF(P="PDB",
+        ///         IFS(tb_calc_type="Margin", ((Z*F4)+(Length*F5)) / (1-tb_calc_value),
+        ///             tb_calc_type="List less Discount", ((Z*TB_MPG.Rate)+(Length*F5*3)) * (1-tb_calc_value)),
+        ///         Z * MetalSellPrice)))
+        /// Where Z = kg each, Y = kg/m, F4/F5 = PricingConstants.PdbMetalCostBase/AlfCostPerMetre.
+        /// Falls back to the standard mill-finish path when the required PLS/PDB reference
+        /// data (Table_TB_Cost / TB_MPG) has not been seeded, so pricing is still produced.
+        /// </summary>
         private decimal CalculateMillFinishEach(QuoteLine line)
         {
             var massPerM = GetMassPerM(line.ExtrusionCode);
-            if (massPerM <= 0 || line.LengthM <= 0 || _metalPricePerKg <= 0) return 0m;
-            return massPerM * line.LengthM * _metalPricePerKg;
+            if (massPerM <= 0 || line.LengthM <= 0) return 0m;
+
+            var kgEach = massPerM * line.LengthM;
+
+            // AV=3 (IP3 panoramic): rolling factor for light sections (Y < 0.5 kg/m).
+            if (line.IpGrade == 3)
+                return massPerM < 0.5m ? kgEach * 2.5m : 0m;
+
+            var thermalBreakType = _extrusionMasterByCode.TryGetValue(line.ExtrusionCode, out var master)
+                ? master.ThermalBreakType ?? "No"
+                : "No";
+
+            if (string.Equals(thermalBreakType, "PLS", StringComparison.OrdinalIgnoreCase))
+            {
+                if (_thermalBreakCostBySection.TryGetValue(line.ExtrusionCode, out var tbCost) &&
+                    tbCost.ReferenceLengthM > 0)
+                {
+                    // MetalSellPrice / ReferenceLengthM = $/m rate; scale by the quoted length.
+                    return (tbCost.MetalSellPrice / tbCost.ReferenceLengthM) * line.LengthM;
+                }
+                // No Table_TB_Cost data seeded for this section – fall back to the standard
+                // path below rather than silently returning 0.
+            }
+            else if (string.Equals(thermalBreakType, "PDB", StringComparison.OrdinalIgnoreCase))
+            {
+                bool isMarginCalc = string.Equals(_thermalBreakCalcType, "Margin", StringComparison.OrdinalIgnoreCase);
+                if (isMarginCalc)
+                {
+                    var denominator = 1m - _thermalBreakMargin;
+                    if (denominator > 0m && _pdbMetalCostBase > 0m)
+                        return ((kgEach * _pdbMetalCostBase) + (line.LengthM * _alfCostPerMetre)) / denominator;
+                }
+                else
+                {
+                    // "List less Discount": needs the material price group rate (TB_MPG),
+                    // looked up via the first 2 chars of the section's MaterialPriceGroupCode.
+                    if (_thermalBreakCostBySection.TryGetValue(line.ExtrusionCode, out var tbCost) &&
+                        !string.IsNullOrWhiteSpace(tbCost.MaterialPriceGroupCode))
+                    {
+                        var groupKey = tbCost.MaterialPriceGroupCode.Length >= 2
+                            ? tbCost.MaterialPriceGroupCode.Substring(0, 2)
+                            : tbCost.MaterialPriceGroupCode;
+                        if (_tbMaterialPriceGroupsByCode.TryGetValue(groupKey, out var mpg))
+                        {
+                            return ((kgEach * mpg.RatePerKg) + (line.LengthM * _alfCostPerMetre * 3m))
+                                   * (1m - _thermalBreakMargin);
+                        }
+                    }
+                }
+                // Missing TB_MPG/reference data – fall back to the standard path below.
+            }
+
+            // Standard mill-finish path.
+            if (_metalPricePerKg <= 0) return 0m;
+            return kgEach * _metalPricePerKg;
         }
 
         /// <summary>
@@ -892,12 +988,21 @@ namespace QuotingTool.Forms
                     ? pricing.FinishingCostPricePerM2
                     : pricing.FinishingPrice;
                 _thresholdSellPricePerM2 = pricing.Price_B58;
+                _thermalBreakCalcType = string.IsNullOrWhiteSpace(pricing.ThermalBreakCalcType)
+                    ? "Margin" : pricing.ThermalBreakCalcType;
+                _thermalBreakMargin = pricing.ThermalBreakMargin;
             }
 
             var project = _db.GetProject(_projectId);
             _projectFinishSapCode = string.IsNullOrWhiteSpace(project?.FinishSapCode) ? "NON" : project.FinishSapCode;
             _thresholdChoice = string.IsNullOrWhiteSpace(project?.ThresholdChoice) ? "No" : project.ThresholdChoice;
             _projectFinishType = string.IsNullOrWhiteSpace(project?.FinishType) ? MillFinishType : project.FinishType;
+
+            // Pricing Matrix F4/F5 — PDB metal cost base and ALF cost per metre, pinned to the
+            // project's PricingConstants snapshot (never silently updated by later reseeds).
+            var constants = new FormulaCalculationService(_db).GetPricingConstantsForProject(project);
+            _pdbMetalCostBase = constants.PdbMetalCostBase;
+            _alfCostPerMetre = constants.AlfCostPerMetre;
         }
 
         private void UpdatePageLayout()

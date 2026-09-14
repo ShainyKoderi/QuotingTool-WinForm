@@ -179,6 +179,20 @@ namespace QuotingTool.Data
                     }
                 }
             }
+            // Run the Table_TB_Cost / TB_MPG seed (ThermalBreakCost / ThermalBreakMaterialPriceGroup).
+            // The script itself is a no-op until real rows are staged in the file, so it is safe
+            // to run unconditionally on every startup.
+            var tbCostSeedPath = Path.Combine(AppContext.BaseDirectory, "Data", "ThermalBreakCostSeed.sql");
+            if (!File.Exists(tbCostSeedPath))
+                tbCostSeedPath = Path.Combine(AppContext.BaseDirectory, "ThermalBreakCostSeed.sql");
+
+            if (File.Exists(tbCostSeedPath))
+            {
+                var tbCostSeedSql = File.ReadAllText(tbCostSeedPath);
+                // Uses #temp tables, so must run as a single batch, not split by GO.
+                conn.Execute(tbCostSeedSql, commandTimeout: 120);
+            }
+
             EnsureSundryMasterSeed(conn);
             EnsureReferenceDataUpToDate(conn);
         }
@@ -211,13 +225,73 @@ BEGIN
         ALTER TABLE Projects DROP COLUMN DeliveryCharge;
     IF COL_LENGTH('Projects','PricingConstantsId') IS NULL
         ALTER TABLE Projects ADD PricingConstantsId INT NULL;
+    IF COL_LENGTH('Projects','MetalBreakpointsBatchId') IS NULL
+        ALTER TABLE Projects ADD MetalBreakpointsBatchId INT NULL;
+    IF COL_LENGTH('Projects','ThermalBreakBreakpointsBatchId') IS NULL
+        ALTER TABLE Projects ADD ThermalBreakBreakpointsBatchId INT NULL;
+    IF COL_LENGTH('Projects','PowderCostTableBatchId') IS NULL
+        ALTER TABLE Projects ADD PowderCostTableBatchId INT NULL;
+    IF COL_LENGTH('Projects','FinishBreakpointsBatchId') IS NULL
+        ALTER TABLE Projects ADD FinishBreakpointsBatchId INT NULL;
+    IF COL_LENGTH('Projects','SubsillTierPricesBatchId') IS NULL
+        ALTER TABLE Projects ADD SubsillTierPricesBatchId INT NULL;
+    IF COL_LENGTH('Projects','ThermalBreakCostBatchId') IS NULL
+        ALTER TABLE Projects ADD ThermalBreakCostBatchId INT NULL;
+    IF COL_LENGTH('Projects','ThermalBreakMaterialPriceGroupBatchId') IS NULL
+        ALTER TABLE Projects ADD ThermalBreakMaterialPriceGroupBatchId INT NULL;
+
+    -- Superseded by the *BatchId columns above; drop the now-unused legacy date columns.
+    IF COL_LENGTH('Projects','MetalBreakpointsDate') IS NOT NULL
+        ALTER TABLE Projects DROP COLUMN MetalBreakpointsDate;
+    IF COL_LENGTH('Projects','ThermalBreakBreakpointsDate') IS NOT NULL
+        ALTER TABLE Projects DROP COLUMN ThermalBreakBreakpointsDate;
+    IF COL_LENGTH('Projects','PowderCostTableDate') IS NOT NULL
+        ALTER TABLE Projects DROP COLUMN PowderCostTableDate;
+    IF COL_LENGTH('Projects','FinishBreakpointsDate') IS NOT NULL
+        ALTER TABLE Projects DROP COLUMN FinishBreakpointsDate;
+    IF COL_LENGTH('Projects','SubsillTierPricesDate') IS NOT NULL
+        ALTER TABLE Projects DROP COLUMN SubsillTierPricesDate;
 END");
+
+            // Ensure the shared batch-id sequence and BatchId columns exist on the five
+            // Pricing Matrix reference tables, even if SqlSchema.sql was not deployed
+            // alongside the executable (fallback/older-install safety net).
+            conn.Execute(@"
+IF NOT EXISTS (SELECT 1 FROM sys.sequences WHERE name = 'PricingBatchSeq')
+    CREATE SEQUENCE PricingBatchSeq AS INT START WITH 1 INCREMENT BY 1;");
+
+            conn.Execute(@"
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name='MetalBreakpoints') AND COL_LENGTH('MetalBreakpoints','BatchId') IS NULL
+    ALTER TABLE MetalBreakpoints ADD BatchId INT NULL;
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name='ThermalBreakBreakpoints') AND COL_LENGTH('ThermalBreakBreakpoints','BatchId') IS NULL
+    ALTER TABLE ThermalBreakBreakpoints ADD BatchId INT NULL;
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name='PowderCostTable') AND COL_LENGTH('PowderCostTable','BatchId') IS NULL
+    ALTER TABLE PowderCostTable ADD BatchId INT NULL;
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name='FinishBreakpoints') AND COL_LENGTH('FinishBreakpoints','BatchId') IS NULL
+    ALTER TABLE FinishBreakpoints ADD BatchId INT NULL;
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name='SubsillTierPrices') AND COL_LENGTH('SubsillTierPrices','BatchId') IS NULL
+    ALTER TABLE SubsillTierPrices ADD BatchId INT NULL;
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name='ThermalBreakCost') AND COL_LENGTH('ThermalBreakCost','BatchId') IS NULL
+    ALTER TABLE ThermalBreakCost ADD BatchId INT NULL;
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name='ThermalBreakMaterialPriceGroup') AND COL_LENGTH('ThermalBreakMaterialPriceGroup','BatchId') IS NULL
+    ALTER TABLE ThermalBreakMaterialPriceGroup ADD BatchId INT NULL;");
+
+            // Backfill BatchId for any pre-existing rows that predate this column, grouping
+            // all rows currently in a table under one freshly-issued BatchId (mirrors the
+            // one-time backfill also performed by SqlSchema.sql).
+            BackfillBatchId(conn, "MetalBreakpoints");
+            BackfillBatchId(conn, "ThermalBreakBreakpoints");
+            BackfillBatchId(conn, "PowderCostTable");
+            BackfillBatchId(conn, "FinishBreakpoints");
+            BackfillBatchId(conn, "SubsillTierPrices");
+            BackfillBatchId(conn, "ThermalBreakCost");
+            BackfillBatchId(conn, "ThermalBreakMaterialPriceGroup");
 
             // One-time freeze: any existing project that has never been linked to a
             // Pricing Matrix constants snapshot is pinned to whichever snapshot is
             // currently the latest. This preserves current behaviour for existing quotes
             // while ensuring future changes to PricingConstants do NOT silently affect
-            // them – the user must click "Recalculate All" to re-link to newer constants.
+            // them - the user must click Recalculate All to re-link to newer constants.
             conn.Execute(@"
 IF EXISTS (SELECT 1 FROM sys.tables WHERE name='Projects') AND EXISTS (SELECT 1 FROM sys.tables WHERE name='PricingConstants')
 BEGIN
@@ -226,6 +300,55 @@ BEGIN
     WHERE PricingConstantsId IS NULL
       AND EXISTS (SELECT 1 FROM PricingConstants);
 END");
+
+            // One-time freeze: any existing project not yet pinned to a reference-table batch
+            // is pinned to whichever batch is currently the latest for each table.
+            conn.Execute(@"
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name='Projects')
+BEGIN
+    IF EXISTS (SELECT 1 FROM sys.tables WHERE name='MetalBreakpoints')
+        UPDATE Projects SET MetalBreakpointsBatchId = (SELECT TOP 1 BatchId FROM MetalBreakpoints ORDER BY Id DESC)
+        WHERE MetalBreakpointsBatchId IS NULL AND EXISTS (SELECT 1 FROM MetalBreakpoints);
+
+    IF EXISTS (SELECT 1 FROM sys.tables WHERE name='ThermalBreakBreakpoints')
+        UPDATE Projects SET ThermalBreakBreakpointsBatchId = (SELECT TOP 1 BatchId FROM ThermalBreakBreakpoints ORDER BY Id DESC)
+        WHERE ThermalBreakBreakpointsBatchId IS NULL AND EXISTS (SELECT 1 FROM ThermalBreakBreakpoints);
+
+    IF EXISTS (SELECT 1 FROM sys.tables WHERE name='PowderCostTable')
+        UPDATE Projects SET PowderCostTableBatchId = (SELECT TOP 1 BatchId FROM PowderCostTable ORDER BY Id DESC)
+        WHERE PowderCostTableBatchId IS NULL AND EXISTS (SELECT 1 FROM PowderCostTable);
+
+    IF EXISTS (SELECT 1 FROM sys.tables WHERE name='FinishBreakpoints')
+        UPDATE Projects SET FinishBreakpointsBatchId = (SELECT TOP 1 BatchId FROM FinishBreakpoints ORDER BY Id DESC)
+        WHERE FinishBreakpointsBatchId IS NULL AND EXISTS (SELECT 1 FROM FinishBreakpoints);
+
+    IF EXISTS (SELECT 1 FROM sys.tables WHERE name='SubsillTierPrices')
+        UPDATE Projects SET SubsillTierPricesBatchId = (SELECT TOP 1 BatchId FROM SubsillTierPrices ORDER BY Id DESC)
+        WHERE SubsillTierPricesBatchId IS NULL AND EXISTS (SELECT 1 FROM SubsillTierPrices);
+
+    IF EXISTS (SELECT 1 FROM sys.tables WHERE name='ThermalBreakCost')
+        UPDATE Projects SET ThermalBreakCostBatchId = (SELECT TOP 1 BatchId FROM ThermalBreakCost ORDER BY Id DESC)
+        WHERE ThermalBreakCostBatchId IS NULL AND EXISTS (SELECT 1 FROM ThermalBreakCost);
+
+    IF EXISTS (SELECT 1 FROM sys.tables WHERE name='ThermalBreakMaterialPriceGroup')
+        UPDATE Projects SET ThermalBreakMaterialPriceGroupBatchId = (SELECT TOP 1 BatchId FROM ThermalBreakMaterialPriceGroup ORDER BY Id DESC)
+        WHERE ThermalBreakMaterialPriceGroupBatchId IS NULL AND EXISTS (SELECT 1 FROM ThermalBreakMaterialPriceGroup);
+END");
+        }
+
+        /// <summary>
+        /// Assigns a single fresh BatchId (from PricingBatchSeq) to every row of the given
+        /// table that currently has a NULL BatchId, so pre-existing/seeded rows are grouped
+        /// into one coherent batch rather than being left unpinned.
+        /// </summary>
+        private static void BackfillBatchId(SqlConnection conn, string tableName)
+        {
+            var hasNullBatch = conn.ExecuteScalar<int?>(
+                $"IF EXISTS (SELECT 1 FROM sys.tables WHERE name='{tableName}') SELECT TOP 1 1 FROM {tableName} WHERE BatchId IS NULL");
+            if (hasNullBatch == null) return;
+
+            var batchId = conn.ExecuteScalar<int>("SELECT NEXT VALUE FOR PricingBatchSeq");
+            conn.Execute($"UPDATE {tableName} SET BatchId=@batchId WHERE BatchId IS NULL", new { batchId });
         }
 
         private static void EnsureSundryMasterSeed(SqlConnection conn)
@@ -304,6 +427,7 @@ WHEN NOT MATCHED THEN
     VALUES (source.RegionCode, source.OfficeName, source.AddressLine1, source.AddressLine2, source.Suburb, source.State, source.Postcode, source.Phone, source.Fax, source.Website);");
 
             conn.Execute(@"
+DECLARE @mergeBatchId INT = NEXT VALUE FOR PricingBatchSeq;
 MERGE MetalBreakpoints AS target
 USING (VALUES
     (CAST(1 AS DECIMAL(18,2)),     CAST(3.50 AS DECIMAL(18,4)), CAST(12.23 AS DECIMAL(18,4)), CAST(11.88 AS DECIMAL(18,4)), CAST(12.73 AS DECIMAL(18,4)), CAST(0.35 AS DECIMAL(18,4)), CAST(0.50 AS DECIMAL(18,4))),
@@ -330,9 +454,10 @@ THEN UPDATE SET
     MinFactor = source.MinFactor,
     MaxFactor = source.MaxFactor
 WHEN NOT MATCHED THEN
-    INSERT (BreakpointKg, Spread, TypicalPrice, MinPrice, MaxPrice, MinFactor, MaxFactor)
-    VALUES (source.BreakpointKg, source.Spread, source.TypicalPrice, source.MinPrice, source.MaxPrice, source.MinFactor, source.MaxFactor);");
-        }
+INSERT (BreakpointKg, Spread, TypicalPrice, MinPrice, MaxPrice, MinFactor, MaxFactor, BatchId, EffectiveDate, UpdatedAt)
+VALUES (source.BreakpointKg, source.Spread, source.TypicalPrice, source.MinPrice, source.MaxPrice, source.MinFactor, source.MaxFactor,
+        @mergeBatchId, GETDATE(), GETDATE());");
+    }
 
         // ── Projects ─────────────────────────────────────────────────────────
 
@@ -346,20 +471,42 @@ WHEN NOT MATCHED THEN
                 p.PricingConstantsId = conn.QueryFirstOrDefault<int?>(
                     "SELECT TOP 1 Id FROM PricingConstants ORDER BY EffectiveDate DESC, Id DESC");
             }
+            // New projects always start pinned to the latest batch of each Pricing Matrix
+            // reference table (by BatchId), mirroring the PricingConstants behaviour.
+            p.MetalBreakpointsBatchId ??= conn.QueryFirstOrDefault<int?>(
+                "SELECT TOP 1 BatchId FROM MetalBreakpoints ORDER BY Id DESC");
+            p.ThermalBreakBreakpointsBatchId ??= conn.QueryFirstOrDefault<int?>(
+                "SELECT TOP 1 BatchId FROM ThermalBreakBreakpoints ORDER BY Id DESC");
+            p.PowderCostTableBatchId ??= conn.QueryFirstOrDefault<int?>(
+                "SELECT TOP 1 BatchId FROM PowderCostTable ORDER BY Id DESC");
+            p.FinishBreakpointsBatchId ??= conn.QueryFirstOrDefault<int?>(
+                "SELECT TOP 1 BatchId FROM FinishBreakpoints ORDER BY Id DESC");
+            p.SubsillTierPricesBatchId ??= conn.QueryFirstOrDefault<int?>(
+                "SELECT TOP 1 BatchId FROM SubsillTierPrices ORDER BY Id DESC");
+            p.ThermalBreakCostBatchId ??= conn.QueryFirstOrDefault<int?>(
+                "SELECT TOP 1 BatchId FROM ThermalBreakCost ORDER BY Id DESC");
+            p.ThermalBreakMaterialPriceGroupBatchId ??= conn.QueryFirstOrDefault<int?>(
+                "SELECT TOP 1 BatchId FROM ThermalBreakMaterialPriceGroup ORDER BY Id DESC");
             return conn.ExecuteScalar<int>(
                 @"INSERT INTO Projects (CustomerName, ProjectName, RevisionDate, LMERate, BilletPremium,
                   Region, QuotedBy, AccountManager, Attention, AttentionTo, QuoteValidity,
                   MarketSegment, ProductSegment, ProjectNotes, AddLocAlLogos, LocalLogo,
                   FinishType, FinishApplicator, FinishGroup, FinishName, FinishCustomName,
                   FinishSapCode, ThresholdChoice, GenerateMfAlt, GenerateMillFinishAlternative,
-                  CustomerSapDiscount, PricingConstantsId)
+                  CustomerSapDiscount, PricingConstantsId,
+                  MetalBreakpointsBatchId, ThermalBreakBreakpointsBatchId, PowderCostTableBatchId,
+                  FinishBreakpointsBatchId, SubsillTierPricesBatchId,
+                  ThermalBreakCostBatchId, ThermalBreakMaterialPriceGroupBatchId)
                   OUTPUT INSERTED.Id
                   VALUES (@CustomerName, @ProjectName, @RevisionDate, @LMERate, @BilletPremium,
                   @Region, @QuotedBy, @AccountManager, @Attention, @AttentionTo, @QuoteValidity,
                   @MarketSegment, @ProductSegment, @ProjectNotes, @AddLocAlLogos, @LocalLogo,
                   @FinishType, @FinishApplicator, @FinishGroup, @FinishName, @FinishCustomName,
                   @FinishSapCode, @ThresholdChoice, @GenerateMfAlt, @GenerateMillFinishAlternative,
-                  @CustomerSapDiscount, @PricingConstantsId)", p);
+                  @CustomerSapDiscount, @PricingConstantsId,
+                  @MetalBreakpointsBatchId, @ThermalBreakBreakpointsBatchId, @PowderCostTableBatchId,
+                  @FinishBreakpointsBatchId, @SubsillTierPricesBatchId,
+                  @ThermalBreakCostBatchId, @ThermalBreakMaterialPriceGroupBatchId)", p);
         }
 
         public Project? GetProject(int id)
@@ -394,6 +541,10 @@ WHEN NOT MATCHED THEN
                   FinishSapCode=@FinishSapCode, ThresholdChoice=@ThresholdChoice,
                   GenerateMfAlt=@GenerateMfAlt, GenerateMillFinishAlternative=@GenerateMillFinishAlternative,
                   CustomerSapDiscount=@CustomerSapDiscount, PricingConstantsId=@PricingConstantsId,
+                  MetalBreakpointsBatchId=@MetalBreakpointsBatchId, ThermalBreakBreakpointsBatchId=@ThermalBreakBreakpointsBatchId,
+                  PowderCostTableBatchId=@PowderCostTableBatchId, FinishBreakpointsBatchId=@FinishBreakpointsBatchId,
+                  SubsillTierPricesBatchId=@SubsillTierPricesBatchId,
+                  ThermalBreakCostBatchId=@ThermalBreakCostBatchId, ThermalBreakMaterialPriceGroupBatchId=@ThermalBreakMaterialPriceGroupBatchId,
                   UpdatedAt=@UpdatedAt WHERE Id=@Id", p);
         }
 
@@ -922,27 +1073,6 @@ WHEN NOT MATCHED THEN
                   VALUES (@RevisionDate, @LMERate, @BilletPremium)", rev);
         }
 
-        // ── PricingMatrix ────────────────────────────────────────────────────
-
-        public IEnumerable<PricingMatrix> GetPricingMatrix()
-        {
-            using var conn = GetConnection();
-            return conn.Query<PricingMatrix>("SELECT * FROM PricingMatrix ORDER BY Id");
-        }
-
-        public void UpsertPricingMatrix(PricingMatrix pm)
-        {
-            using var conn = GetConnection();
-            if (pm.Id > 0)
-                conn.Execute(
-                    @"UPDATE PricingMatrix SET ColourGroup=@ColourGroup, FinishType=@FinishType,
-                      CostType=@CostType, BaseRate=@BaseRate, UpdatedAt=GETDATE() WHERE Id=@Id", pm);
-            else
-                conn.Execute(
-                    @"INSERT INTO PricingMatrix (ColourGroup,FinishType,CostType,BaseRate)
-                      VALUES (@ColourGroup,@FinishType,@CostType,@BaseRate)", pm);
-        }
-
         // ── MasterFormulas ───────────────────────────────────────────────────
 
         public IEnumerable<MasterFormula> GetMasterFormulas(int projectId)
@@ -968,33 +1098,6 @@ WHEN NOT MATCHED THEN
                     "INSERT INTO MasterFormulas (ProjectId,PageBlock,RowInBlock,FormulaExpression) VALUES (@ProjectId,@PageBlock,@RowInBlock,@FormulaExpression)",
                     mf);
         }
-
-        // ── SheetLocks ───────────────────────────────────────────────────────
-
-        //public bool IsSheetLocked(int projectId, string sheetName)
-        //{
-        //    using var conn = GetConnection();
-        //    var result = conn.QueryFirstOrDefault<bool?>(
-        //        "SELECT IsLocked FROM SheetLocks WHERE ProjectId=@projectId AND SheetName=@sheetName",
-        //        new { projectId, sheetName });
-        //    return result ?? true; // default: locked
-        //}
-
-        //public void SetSheetLock(int projectId, string sheetName, bool isLocked)
-        //{
-        //    using var conn = GetConnection();
-        //    var exists = conn.ExecuteScalar<int>(
-        //        "SELECT COUNT(1) FROM SheetLocks WHERE ProjectId=@projectId AND SheetName=@sheetName",
-        //        new { projectId, sheetName });
-        //    if (exists > 0)
-        //        conn.Execute(
-        //            "UPDATE SheetLocks SET IsLocked=@isLocked, UpdatedAt=GETDATE() WHERE ProjectId=@projectId AND SheetName=@sheetName",
-        //            new { projectId, sheetName, isLocked });
-        //    else
-        //        conn.Execute(
-        //            "INSERT INTO SheetLocks (ProjectId,SheetName,IsLocked) VALUES (@projectId,@sheetName,@isLocked)",
-        //            new { projectId, sheetName, isLocked });
-        //}
 
         // ── ColourGroups ─────────────────────────────────────────────────────
 
@@ -1066,12 +1169,79 @@ WHEN NOT MATCHED THEN
             return conn.Query<MetalBreakpoint>("SELECT * FROM MetalBreakpoints ORDER BY BreakpointKg");
         }
 
+        /// <summary>Latest BatchId seeded in MetalBreakpoints, or null if empty.</summary>
+        public int? GetLatestMetalBreakpointsBatchId()
+        {
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<int?>(
+                "SELECT TOP 1 BatchId FROM MetalBreakpoints ORDER BY Id DESC");
+        }
+
+        /// <summary>Returns the MetalBreakpoints rows for the given batch, or the latest batch if null.</summary>
+        public IEnumerable<MetalBreakpoint> GetMetalBreakpointsByBatch(int? batchId)
+        {
+            using var conn = GetConnection();
+            var batch = batchId ?? GetLatestMetalBreakpointsBatchId();
+            if (batch == null) return Enumerable.Empty<MetalBreakpoint>();
+            return conn.Query<MetalBreakpoint>(
+                "SELECT * FROM MetalBreakpoints WHERE BatchId=@batch ORDER BY BreakpointKg", new { batch });
+        }
+
+        /// <summary>Inserts a new batch of MetalBreakpoints rows sharing a fresh BatchId (from PricingBatchSeq).</summary>
+        public int InsertMetalBreakpointsBatch(IEnumerable<MetalBreakpoint> rows, DateTime effectiveDate)
+        {
+            using var conn = GetConnection();
+            var batchId = conn.ExecuteScalar<int>("SELECT NEXT VALUE FOR PricingBatchSeq");
+            foreach (var row in rows)
+            {
+                row.BatchId = batchId;
+                row.EffectiveDate = effectiveDate;
+                row.UpdatedAt = DateTime.Now;
+                conn.Execute(
+                    @"INSERT INTO MetalBreakpoints (BreakpointKg,Spread,TypicalPrice,MinPrice,MaxPrice,MinFactor,MaxFactor,BatchId,EffectiveDate,UpdatedAt)
+                      VALUES (@BreakpointKg,@Spread,@TypicalPrice,@MinPrice,@MaxPrice,@MinFactor,@MaxFactor,@BatchId,@EffectiveDate,@UpdatedAt)", row);
+            }
+            return batchId;
+        }
+
         // ── ThermalBreakBreakpoints ──────────────────────────────────────────
 
         public IEnumerable<ThermalBreakBreakpoint> GetThermalBreakBreakpoints()
         {
             using var conn = GetConnection();
             return conn.Query<ThermalBreakBreakpoint>("SELECT * FROM ThermalBreakBreakpoints ORDER BY BreakpointKg");
+        }
+
+        public int? GetLatestThermalBreakBreakpointsBatchId()
+        {
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<int?>(
+                "SELECT TOP 1 BatchId FROM ThermalBreakBreakpoints ORDER BY Id DESC");
+        }
+
+        public IEnumerable<ThermalBreakBreakpoint> GetThermalBreakBreakpointsByBatch(int? batchId)
+        {
+            using var conn = GetConnection();
+            var batch = batchId ?? GetLatestThermalBreakBreakpointsBatchId();
+            if (batch == null) return Enumerable.Empty<ThermalBreakBreakpoint>();
+            return conn.Query<ThermalBreakBreakpoint>(
+                "SELECT * FROM ThermalBreakBreakpoints WHERE BatchId=@batch ORDER BY BreakpointKg", new { batch });
+        }
+
+        public int InsertThermalBreakBreakpointsBatch(IEnumerable<ThermalBreakBreakpoint> rows, DateTime effectiveDate)
+        {
+            using var conn = GetConnection();
+            var batchId = conn.ExecuteScalar<int>("SELECT NEXT VALUE FOR PricingBatchSeq");
+            foreach (var row in rows)
+            {
+                row.BatchId = batchId;
+                row.EffectiveDate = effectiveDate;
+                row.UpdatedAt = DateTime.Now;
+                conn.Execute(
+                    @"INSERT INTO ThermalBreakBreakpoints (BreakpointKg,MarginTyp,MarginMin,MarginMax,ListTyp,ListMin,ListMax,BatchId,EffectiveDate,UpdatedAt)
+                      VALUES (@BreakpointKg,@MarginTyp,@MarginMin,@MarginMax,@ListTyp,@ListMin,@ListMax,@BatchId,@EffectiveDate,@UpdatedAt)", row);
+            }
+            return batchId;
         }
 
         // ── PowderCostTable ──────────────────────────────────────────────────
@@ -1082,12 +1252,84 @@ WHEN NOT MATCHED THEN
             return conn.Query<PowderCostRow>("SELECT * FROM PowderCostTable ORDER BY Id");
         }
 
+        public int? GetLatestPowderCostTableBatchId()
+        {
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<int?>(
+                "SELECT TOP 1 BatchId FROM PowderCostTable ORDER BY Id DESC");
+        }
+
+        public IEnumerable<PowderCostRow> GetPowderCostTableByBatch(int? batchId)
+        {
+            using var conn = GetConnection();
+            var batch = batchId ?? GetLatestPowderCostTableBatchId();
+            if (batch == null) return Enumerable.Empty<PowderCostRow>();
+            return conn.Query<PowderCostRow>(
+                "SELECT * FROM PowderCostTable WHERE BatchId=@batch ORDER BY Id", new { batch });
+        }
+
+        public int InsertPowderCostTableBatch(IEnumerable<PowderCostRow> rows, DateTime effectiveDate)
+        {
+            using var conn = GetConnection();
+            var batchId = conn.ExecuteScalar<int>("SELECT NEXT VALUE FOR PricingBatchSeq");
+            foreach (var row in rows)
+            {
+                row.BatchId = batchId;
+                row.EffectiveDate = effectiveDate;
+                row.UpdatedAt = DateTime.Now;
+                conn.Execute(
+                    @"INSERT INTO PowderCostTable (FinishCategory,Vendor,ApPp,Group1Rate,Group2Rate,Group3Rate,Group4Rate,Group5Rate,
+                      Anodised20umRate,Anodised25umRate,GroupPOARate,BatchId,EffectiveDate,UpdatedAt)
+                      VALUES (@FinishCategory,@Vendor,@ApPp,@Group1Rate,@Group2Rate,@Group3Rate,@Group4Rate,@Group5Rate,
+                      @Anodised20umRate,@Anodised25umRate,@GroupPOARate,@BatchId,@EffectiveDate,@UpdatedAt)", row);
+            }
+            return batchId;
+        }
+
         // ── FinishBreakpoints ────────────────────────────────────────────────
 
         public IEnumerable<FinishBreakpoint> GetFinishBreakpoints()
         {
             using var conn = GetConnection();
             return conn.Query<FinishBreakpoint>("SELECT * FROM FinishBreakpoints ORDER BY BreakpointAP");
+        }
+
+        public int? GetLatestFinishBreakpointsBatchId()
+        {
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<int?>(
+                "SELECT TOP 1 BatchId FROM FinishBreakpoints ORDER BY Id DESC");
+        }
+
+        public IEnumerable<FinishBreakpoint> GetFinishBreakpointsByBatch(int? batchId)
+        {
+            using var conn = GetConnection();
+            var batch = batchId ?? GetLatestFinishBreakpointsBatchId();
+            if (batch == null) return Enumerable.Empty<FinishBreakpoint>();
+            return conn.Query<FinishBreakpoint>(
+                "SELECT * FROM FinishBreakpoints WHERE BatchId=@batch ORDER BY BreakpointAP", new { batch });
+        }
+
+        public int InsertFinishBreakpointsBatch(IEnumerable<FinishBreakpoint> rows, DateTime effectiveDate)
+        {
+            using var conn = GetConnection();
+            var batchId = conn.ExecuteScalar<int>("SELECT NEXT VALUE FOR PricingBatchSeq");
+            foreach (var row in rows)
+            {
+                row.BatchId = batchId;
+                row.EffectiveDate = effectiveDate;
+                row.UpdatedAt = DateTime.Now;
+                conn.Execute(
+                    @"INSERT INTO FinishBreakpoints (BreakpointAP,BreakpointPP,
+                      RangeA_Typical,RangeA_Min,RangeA_Max,RangeB_Typical,RangeB_Min,RangeB_Max,
+                      RangeC_Typical,RangeC_Min,RangeC_Max,RangeD_Typical,RangeD_Min,RangeD_Max,
+                      BatchId,EffectiveDate,UpdatedAt)
+                      VALUES (@BreakpointAP,@BreakpointPP,
+                      @RangeA_Typical,@RangeA_Min,@RangeA_Max,@RangeB_Typical,@RangeB_Min,@RangeB_Max,
+                      @RangeC_Typical,@RangeC_Min,@RangeC_Max,@RangeD_Typical,@RangeD_Min,@RangeD_Max,
+                      @BatchId,@EffectiveDate,@UpdatedAt)", row);
+            }
+            return batchId;
         }
 
         // ── SubsillTierPrices ────────────────────────────────────────────────
@@ -1103,6 +1345,60 @@ WHEN NOT MATCHED THEN
             using var conn = GetConnection();
             return conn.QueryFirstOrDefault<SubsillTierPrice>(
                 "SELECT TOP 1 * FROM SubsillTierPrices WHERE Tier=@tier", new { tier });
+        }
+
+        public int? GetLatestSubsillTierPricesBatchId()
+        {
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<int?>(
+                "SELECT TOP 1 BatchId FROM SubsillTierPrices ORDER BY Id DESC");
+        }
+
+        public IEnumerable<SubsillTierPrice> GetSubsillTierPricesByBatch(int? batchId)
+        {
+            using var conn = GetConnection();
+            var batch = batchId ?? GetLatestSubsillTierPricesBatchId();
+            if (batch == null) return Enumerable.Empty<SubsillTierPrice>();
+            return conn.Query<SubsillTierPrice>(
+                "SELECT * FROM SubsillTierPrices WHERE BatchId=@batch ORDER BY Tier", new { batch });
+        }
+
+        public int InsertSubsillTierPricesBatch(IEnumerable<SubsillTierPrice> rows, DateTime effectiveDate)
+        {
+            using var conn = GetConnection();
+            var batchId = conn.ExecuteScalar<int>("SELECT NEXT VALUE FOR PricingBatchSeq");
+            foreach (var row in rows)
+            {
+                row.BatchId = batchId;
+                row.EffectiveDate = effectiveDate;
+                row.UpdatedAt = DateTime.Now;
+                conn.Execute(
+                    @"INSERT INTO SubsillTierPrices (Tier,SellPricePerMetre,CostPerMetre,Notes,BatchId,EffectiveDate,UpdatedAt)
+                      VALUES (@Tier,@SellPricePerMetre,@CostPerMetre,@Notes,@BatchId,@EffectiveDate,@UpdatedAt)", row);
+            }
+            return batchId;
+        }
+
+        /// <summary>
+        /// Re-links a project to specific batches (BatchId) of all five Pricing Matrix reference
+        /// tables (MetalBreakpoints, ThermalBreakBreakpoints, PowderCostTable, FinishBreakpoints,
+        /// SubsillTierPrices). Called only when the user explicitly saves new batches / clicks
+        /// "Recalculate All" – projects are never auto-updated otherwise.
+        /// </summary>
+        public void UpdateProjectReferenceBatchIds(int projectId,
+            int? metalBreakpointsBatchId, int? thermalBreakBreakpointsBatchId,
+            int? powderCostTableBatchId, int? finishBreakpointsBatchId, int? subsillTierPricesBatchId)
+        {
+            using var conn = GetConnection();
+            conn.Execute(
+                @"UPDATE Projects SET
+                    MetalBreakpointsBatchId=@metalBreakpointsBatchId,
+                    ThermalBreakBreakpointsBatchId=@thermalBreakBreakpointsBatchId,
+                    PowderCostTableBatchId=@powderCostTableBatchId,
+                    FinishBreakpointsBatchId=@finishBreakpointsBatchId,
+                    SubsillTierPricesBatchId=@subsillTierPricesBatchId
+                  WHERE Id=@projectId",
+                new { projectId, metalBreakpointsBatchId, thermalBreakBreakpointsBatchId, powderCostTableBatchId, finishBreakpointsBatchId, subsillTierPricesBatchId });
         }
 
         // ── PricingConstants ─────────────────────────────────────────────────
@@ -1146,6 +1442,182 @@ WHEN NOT MATCHED THEN
                     (@EffectiveDate, @LmeBilletPremium, @InternalSpread, @MetalCostPerKg,
                      @ExtraSpread, @PdbMetalCostBase, @AlfCostPerMetre,
                      @StandardDeliveryCharge, @ApToPpFactor, @Notes)", pc);
+        }
+
+        // ── ThermalBreakCost (Table_TB_Cost) ─────────────────────────────────
+
+        public IEnumerable<ThermalBreakCost> GetThermalBreakCosts()
+        {
+            using var conn = GetConnection();
+            return conn.Query<ThermalBreakCost>("SELECT * FROM ThermalBreakCost ORDER BY Section");
+        }
+
+        /// <summary>
+        /// Case-insensitive exact-match lookup for a single section code against
+        /// ThermalBreakCost (Table_TB_Cost), matching the VLOOKUP behaviour used
+        /// in the 2.Quote!AH PLS/PDB formulas.
+        /// </summary>
+        public ThermalBreakCost? GetThermalBreakCostBySection(string section)
+        {
+            if (string.IsNullOrWhiteSpace(section)) return null;
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<ThermalBreakCost>(
+                "SELECT TOP 1 * FROM ThermalBreakCost WHERE Section=@section", new { section });
+        }
+
+        public int? GetLatestThermalBreakCostBatchId()
+        {
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<int?>(
+                "SELECT TOP 1 BatchId FROM ThermalBreakCost ORDER BY Id DESC");
+        }
+
+        public IEnumerable<ThermalBreakCost> GetThermalBreakCostsByBatch(int? batchId)
+        {
+            using var conn = GetConnection();
+            var batch = batchId ?? GetLatestThermalBreakCostBatchId();
+            if (batch == null) return Enumerable.Empty<ThermalBreakCost>();
+            return conn.Query<ThermalBreakCost>(
+                "SELECT * FROM ThermalBreakCost WHERE BatchId=@batch ORDER BY Section", new { batch });
+        }
+
+        /// <summary>Inserts a new batch of ThermalBreakCost rows sharing a fresh BatchId (from PricingBatchSeq).</summary>
+        public int InsertThermalBreakCostBatch(IEnumerable<ThermalBreakCost> rows, DateTime effectiveDate)
+        {
+            using var conn = GetConnection();
+            var batchId = conn.ExecuteScalar<int>("SELECT NEXT VALUE FOR PricingBatchSeq");
+            foreach (var row in rows)
+            {
+                row.BatchId = batchId;
+                row.EffectiveDate = effectiveDate;
+                row.UpdatedAt = DateTime.Now;
+                conn.Execute(
+                    @"INSERT INTO ThermalBreakCost (Section,MetalCost,ReferenceLengthM,MaterialPriceGroupCode,MetalSellPrice,BatchId,EffectiveDate,UpdatedAt)
+                      VALUES (@Section,@MetalCost,@ReferenceLengthM,@MaterialPriceGroupCode,@MetalSellPrice,@BatchId,@EffectiveDate,@UpdatedAt)", row);
+            }
+            return batchId;
+        }
+
+        /// <summary>
+        /// Replaces all ThermalBreakCost rows with the given set, keeping them in a single
+        /// batch (used by admin/import tooling that maintains the whole table as one unit
+        /// rather than the incremental batch-versioning pattern used elsewhere).
+        /// </summary>
+        public int ReplaceThermalBreakCosts(IEnumerable<ThermalBreakCost> rows, DateTime effectiveDate)
+        {
+            using var conn = GetConnection();
+            using var tx = conn.BeginTransaction();
+            conn.Execute("DELETE FROM ThermalBreakCost", transaction: tx);
+            var batchId = conn.ExecuteScalar<int>("SELECT NEXT VALUE FOR PricingBatchSeq", transaction: tx);
+            foreach (var row in rows)
+            {
+                row.BatchId = batchId;
+                row.EffectiveDate = effectiveDate;
+                row.UpdatedAt = DateTime.Now;
+                conn.Execute(
+                    @"INSERT INTO ThermalBreakCost (Section,MetalCost,ReferenceLengthM,MaterialPriceGroupCode,MetalSellPrice,BatchId,EffectiveDate,UpdatedAt)
+                      VALUES (@Section,@MetalCost,@ReferenceLengthM,@MaterialPriceGroupCode,@MetalSellPrice,@BatchId,@EffectiveDate,@UpdatedAt)", row, transaction: tx);
+            }
+            tx.Commit();
+            return batchId;
+        }
+
+        /// <summary>
+        /// Re-links a project to a specific batch (BatchId) of the ThermalBreakCost
+        /// (Table_TB_Cost) reference table. Called when the user explicitly saves a new
+        /// batch via the Monthly Update "Edit Thermal Break Cost" dialog.
+        /// </summary>
+        public void UpdateProjectThermalBreakCostBatchId(int projectId, int? thermalBreakCostBatchId)
+        {
+            using var conn = GetConnection();
+            conn.Execute(
+                "UPDATE Projects SET ThermalBreakCostBatchId=@thermalBreakCostBatchId WHERE Id=@projectId",
+                new { projectId, thermalBreakCostBatchId });
+        }
+
+        /// <summary>
+        /// Re-links a project to a specific batch (BatchId) of the
+        /// ThermalBreakMaterialPriceGroup (TB_MPG) reference table. Called when the user
+        /// explicitly saves a new batch via the Monthly Update "Edit TB Material Price Grp" dialog.
+        /// </summary>
+        public void UpdateProjectThermalBreakMaterialPriceGroupBatchId(int projectId, int? thermalBreakMaterialPriceGroupBatchId)
+        {
+            using var conn = GetConnection();
+            conn.Execute(
+                "UPDATE Projects SET ThermalBreakMaterialPriceGroupBatchId=@thermalBreakMaterialPriceGroupBatchId WHERE Id=@projectId",
+                new { projectId, thermalBreakMaterialPriceGroupBatchId });
+        }
+
+        // ── ThermalBreakMaterialPriceGroup (TB_MPG) ──────────────────────────
+
+        public IEnumerable<ThermalBreakMaterialPriceGroup> GetThermalBreakMaterialPriceGroups()
+        {
+            using var conn = GetConnection();
+            return conn.Query<ThermalBreakMaterialPriceGroup>(
+                "SELECT * FROM ThermalBreakMaterialPriceGroup ORDER BY GroupCode");
+        }
+
+        public ThermalBreakMaterialPriceGroup? GetThermalBreakMaterialPriceGroupByCode(string groupCode)
+        {
+            if (string.IsNullOrWhiteSpace(groupCode)) return null;
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<ThermalBreakMaterialPriceGroup>(
+                "SELECT TOP 1 * FROM ThermalBreakMaterialPriceGroup WHERE GroupCode=@groupCode", new { groupCode });
+        }
+
+        public int? GetLatestThermalBreakMaterialPriceGroupBatchId()
+        {
+            using var conn = GetConnection();
+            return conn.QueryFirstOrDefault<int?>(
+                "SELECT TOP 1 BatchId FROM ThermalBreakMaterialPriceGroup ORDER BY Id DESC");
+        }
+
+        public IEnumerable<ThermalBreakMaterialPriceGroup> GetThermalBreakMaterialPriceGroupsByBatch(int? batchId)
+        {
+            using var conn = GetConnection();
+            var batch = batchId ?? GetLatestThermalBreakMaterialPriceGroupBatchId();
+            if (batch == null) return Enumerable.Empty<ThermalBreakMaterialPriceGroup>();
+            return conn.Query<ThermalBreakMaterialPriceGroup>(
+                "SELECT * FROM ThermalBreakMaterialPriceGroup WHERE BatchId=@batch ORDER BY GroupCode", new { batch });
+        }
+
+        public int InsertThermalBreakMaterialPriceGroupBatch(IEnumerable<ThermalBreakMaterialPriceGroup> rows, DateTime effectiveDate)
+        {
+            using var conn = GetConnection();
+            var batchId = conn.ExecuteScalar<int>("SELECT NEXT VALUE FOR PricingBatchSeq");
+            foreach (var row in rows)
+            {
+                row.BatchId = batchId;
+                row.EffectiveDate = effectiveDate;
+                row.UpdatedAt = DateTime.Now;
+                conn.Execute(
+                    @"INSERT INTO ThermalBreakMaterialPriceGroup (GroupCode,RatePerKg,BatchId,EffectiveDate,UpdatedAt)
+                      VALUES (@GroupCode,@RatePerKg,@BatchId,@EffectiveDate,@UpdatedAt)", row);
+            }
+            return batchId;
+        }
+
+        /// <summary>
+        /// Replaces all ThermalBreakMaterialPriceGroup rows with the given set, keeping them
+        /// in a single batch.
+        /// </summary>
+        public int ReplaceThermalBreakMaterialPriceGroups(IEnumerable<ThermalBreakMaterialPriceGroup> rows, DateTime effectiveDate)
+        {
+            using var conn = GetConnection();
+            using var tx = conn.BeginTransaction();
+            conn.Execute("DELETE FROM ThermalBreakMaterialPriceGroup", transaction: tx);
+            var batchId = conn.ExecuteScalar<int>("SELECT NEXT VALUE FOR PricingBatchSeq", transaction: tx);
+            foreach (var row in rows)
+            {
+                row.BatchId = batchId;
+                row.EffectiveDate = effectiveDate;
+                row.UpdatedAt = DateTime.Now;
+                conn.Execute(
+                    @"INSERT INTO ThermalBreakMaterialPriceGroup (GroupCode,RatePerKg,BatchId,EffectiveDate,UpdatedAt)
+                      VALUES (@GroupCode,@RatePerKg,@BatchId,@EffectiveDate,@UpdatedAt)", row, transaction: tx);
+            }
+            tx.Commit();
+            return batchId;
         }
 
         // ── DataEdgeMaterials ────────────────────────────────────────────────
