@@ -1,0 +1,26 @@
+@page "/projects"
+@attribute [Authorize]
+@inject DatabaseContext Db
+
+<h1>Projects</h1>
+@if (_projects == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table>
+        <thead><tr><th>Id</th><th>Name</th><th>Customer</th></tr></thead>
+        <tbody>
+        @foreach (var p in _projects)
+        {
+            <tr><td>@p.Id</td><td>@p.ProjectName</td><td>@p.CustomerName</td></tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Project>? _projects;
+    protected override void OnInitialized() => _projects = Db.GetAllProjects().ToList();
+}

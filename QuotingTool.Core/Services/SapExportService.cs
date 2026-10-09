@@ -9,13 +9,6 @@ namespace QuotingTool.Services
         private readonly DatabaseContext _db;
         public SapExportService(DatabaseContext db) => _db = db;
 
-        public int CopyToClipboard(int projectId)
-        {
-            var text = GetSapFormattedText(projectId);
-            System.Windows.Forms.Clipboard.SetText(text);
-            return _db.GetQuoteLines(projectId).Count();
-        }
-
         public string GetSapFormattedText(int projectId)
         {
             var lines = _db.GetQuoteLines(projectId).ToList();

@@ -22,12 +22,10 @@ namespace QuotingTool.Services
 
         // ── Image helpers ────────────────────────────────────────────────────
 
-        private static byte[]? BitmapToBytes(System.Drawing.Bitmap? bmp)
+        private static byte[]? ReadLogo(string fileName)
         {
-            if (bmp == null) return null;
-            using var ms = new MemoryStream();
-            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-            return ms.ToArray();
+            var path = Path.Combine(AppContext.BaseDirectory, "Resources", fileName);
+            return File.Exists(path) ? File.ReadAllBytes(path) : null;
         }
 
         /// <summary>
@@ -46,13 +44,13 @@ namespace QuotingTool.Services
                 return null;
 
             if (value.IndexOf("Super", StringComparison.OrdinalIgnoreCase) >= 0)
-                return BitmapToBytes(Properties.Resources.local_super_green);
+                return ReadLogo("local_super_green.png");
 
-            return BitmapToBytes(Properties.Resources.local_green);
+            return ReadLogo("local_green.png");
         }
 
         private static byte[]? GetCapralLogoBytes()
-            => BitmapToBytes(Properties.Resources.capral_logo);
+            => ReadLogo("capral_logo.png");
 
         // ── Public export entry point ────────────────────────────────────────
 

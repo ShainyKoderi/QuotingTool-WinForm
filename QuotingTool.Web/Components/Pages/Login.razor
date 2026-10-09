@@ -1,0 +1,20 @@
+@page "/login"
+@attribute [AllowAnonymous]
+@rendermode @(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode(prerender: true))
+@using Microsoft.AspNetCore.Components.Web
+
+<h1>Log in</h1>
+@if (Error != null)
+{
+    <p class="error">Invalid username or password.</p>
+}
+<form method="post" action="/account/login">
+    <AntiforgeryToken />
+    <label>Username <input name="username" autocomplete="username" required /></label>
+    <label>Password <input name="password" type="password" autocomplete="current-password" required /></label>
+    <button type="submit">Log in</button>
+</form>
+
+@code {
+    [SupplyParameterFromQuery(Name = "error")] public string? Error { get; set; }
+}
